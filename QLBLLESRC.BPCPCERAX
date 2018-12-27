@@ -1,0 +1,1412 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    BPCPCERAX   INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2017-MAR-13.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: BPC - Centralização de Responsabilidades   *
+     š*   OBJECTIVO ......: Este programa destina-se a Gerar o XML     *
+     š*                     a enviar ao Banco de Portugal             *
+     š*   ANALISTA .......: PEDRO GARCIA                               *
+     š*   PROGRAMADOR.....:                                            *
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *------------------------------------------------------------------------*
+       FILE-CONTROL.
+      *------------------------------------------------------------------------*
+           SELECT BPCFCERA
+                  ASSIGN TO DATABASE-BPCFCERA
+                  ORGANIZATION IS SEQUENTIAL
+                  ACCESS MODE  IS SEQUENTIAL
+                  FILE STATUS  IS GRS-FILE-STATUS.
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+       FD  BPCFCERA.
+       01  REG-BPCFCERA.
+           COPY DDS-ALL-FORMATS OF BPCFCERA.
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 GRS-FILE-STATUS            PIC XX.
+
+       01 EXECUTA-P001               PIC 9(01).
+          88 INICIO-P001             VALUE 0.
+          88 FIM-P001                VALUE 1.
+
+       01 EXECUTA-P002               PIC 9(01).
+          88 INICIO-P002             VALUE 0.
+          88 FIM-P002                VALUE 1.
+      *
+       01 CICLO-SEQ                  PIC 9(01).
+          88 CICLO-1                 VALUE 0.
+          88 CICLO-N                 VALUE 1.
+      *
+       01 CICLO-R-SEQ                PIC 9(01).
+          88 CICLO-R-1               VALUE 0.
+          88 CICLO-R-N               VALUE 1.
+      *
+       01 TRATA-INFO                 PIC 9(01).
+          88 SIM-TRATA               VALUE 1.
+          88 NAO-TRATA               VALUE 0.
+
+       01 PGM-STATUS                 PIC 9(01).
+          88 SEM-ERRO                VALUE 0.
+          88 COM-ERRO                VALUE 1.
+
+       01 NR-ADM                     PIC 9(06) VALUE ZEROS.
+       01 NR-READ                    PIC 9(06) VALUE ZEROS.
+       01 NR-PROC                    PIC 9(06) VALUE ZEROS.
+       01 NR-PROCR                   PIC 9(06) VALUE ZEROS.
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-ANOIN                PIC X(04).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-DIAIN                PIC X(02).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01 WX-ANO-CONVER.
+          03 WS-ANO-12               PIC X(02).
+          03 WS-ANO-34               PIC X(02).
+
+       01  W-CONSTANTS.
+           05  K-APLICACAO           PIC X(3)    VALUE "BPC".
+           05  K-PROGRAMA            PIC X(8)    VALUE "BPCPCERAX".
+
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+     š* ------------------------------------------------------
+     š* Linha com XML gerado HardCode pelo programa
+       01 XML-OUTPUT       PIC X(1000).
+
+       01 Ws-dtCriacao.
+          05 ws-Data         PIC X(10).
+          05 ws-SepT         PIC X(1).
+          05 ws-HH           PIC X(2).
+          05 ws-SepH         PIC X(1).
+          05 ws-MM           PIC X(2).
+          05 ws-SepM         PIC X(1).
+          05 ws-SS           PIC X(2).
+
+     š* ------------------------------------------------------
+       01 WS-STRING.
+          05 WS-STRING-CHR         PIC X           OCCURS 300.
+       01 WS-VAL-TAG-A             PIC X(80).
+       01 WS-NOME-TAG              PIC X(80).
+       01 WS-VAL-TAG-L             PIC S9(4)       COMP   VALUE 0.
+       01 WS-NOM-TAG-L             PIC S9(4)       COMP   VALUE 0.
+     š* ------------------------------------------------------
+     š* Determina Comprimento de uma String
+       01 WS-POS-I                 PIC S9(4)       COMP   VALUE 0.
+       01 WS-POS-S                 PIC S9(4)       COMP   VALUE 0.
+       01 WS-POS-XML               PIC S9(4)       COMP   VALUE 0.
+       01 WS-STRING-L              PIC S9(4)       COMP   VALUE 0.
+       01 W-NUM                    PIC 9(3).
+       01 Edit-Nbr-Tx PIC      -----9,99999.
+       01 Edit-Nbr-Mn PIC      --------9,99.
+
+     š* Campos de Caracteres Invalidos
+        01 CHAR-TESTE                PIC X.
+           88 CARACTER-VALIDO      VALUE
+      *                             - letras minusculas
+                                          "a", "b", "c", "d", "e",
+                                          "f", "g", "h", "i", "j",
+                                          "k", "l", "m", "n", "o",
+                                          "p", "q", "r", "s", "t",
+                                          "u", "v", "w", "x", "y",
+                                          "z",
+      *                             - letras maiusculas
+                                          "A", "B", "C", "D", "E",
+                                          "F", "G", "H", "I", "J",
+                                          "K", "L", "M", "N", "O",
+                                          "P", "Q", "R", "S", "T",
+                                          "U", "V", "W", "X", "Y",
+                                          "Z",
+      *                             - numeros
+                                          "0", "1", "2", "3", "4",
+                                          "5", "6", "7", "8", "9",
+      *                             - outros
+                                          " ", "/", "-", "?", ":",
+                                          "(", ")", ".", ",",
+                                          "+".
+
+      * "'" passou a ser considerado invalido
+
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+     š* Criação de Ficheiro de Destino
+       01 WS-BIBORIG               PIC X(10).
+       01 WS-FICHORIG              PIC X(10).
+       01 WS-BIBDEST               PIC X(10).
+       01 WS-FICHDEST              PIC X(10).
+       01 WS-ERRO                  PIC X(10).
+     š* Área de Ligação para o FTP
+       01 BPCL001M-FICH-ORIGEM    PIC  X(15).
+       01 BPCL001M-FICH-DESTINO   PIC  X(50).
+       01 BPCL001M-ERRO-BPCPFTP   PIC  X(01).
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+     š* Copy : Tabela de Othe Numbering
+       01  R-FDBNUM.
+           COPY DDS-ALL-FORMATS OF FDBNUM.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+
+     š* Copy : Tabela de Info. Risco Cliente
+           EXEC SQL
+               INCLUDE BPCHCERA
+           END-EXEC.
+
+     š* Copy : Tabela de Info. Clientes Relacionados
+           EXEC SQL
+               INCLUDE BPCHCERA2
+           END-EXEC.
+
+     š* Copy : Ficheiro XML BP - PCERA  - Comunicação Contab. Trim
+       01  R-BPCFCERA.
+           COPY DDS-ALL-FORMATS OF BPCFCERA.
+
+     š* Copy : Tabela de Controlo
+       01  R-JCNTL.
+           COPY DDS-ALL-FORMATS OF BPCJCNTL.
+
+     š* Copy : Tabela de KYCT900A
+       01  R-KYCT900A.
+           COPY DDS-ALL-FORMATS OF KYCT900A.
+
+       01 WS-NURACI                PIC X(07).
+
+     š* Cursor Principal
+           EXEC SQL DECLARE CURJCERA CURSOR FOR
+            SELECT    DTREF
+                   ,  BPENV
+                   ,  INFRISCO
+                   ,  IDENT
+                   ,  TYPER
+                   ,  REFEXTENT
+                   ,  ESTADOINC
+                   ,  DTESTINC
+                   ,  GREXPOS
+                   ,  ENTACOMP
+                   ,  TXESF
+                   ,  DTTXESF
+                   ,  TPACTXESF
+                   ,  TMSCRIA
+                   ,  USERCRIA
+                   ,  TMSALT
+                   ,  USERALT
+                FROM  BPCJCERA  A
+                WHERE BPENV = "E"
+                AND   IDENT <> " "
+                AND   ESTADOINC <> " "
+
+           END-EXEC.
+
+     š* Cursor Principal
+
+           EXEC SQL DECLARE CURCERA2 CURSOR FOR
+            SELECT    IDENT
+                   ,  TYPER
+                   ,  REFEXTENT
+                   ,  IDENTREL
+                   ,  TYPERR
+                   ,  REFEXTENTR
+                   ,  MOTIVOREL
+                   ,  TMSCRIA
+                   ,  USERCRIA
+                   ,  TMSALT
+                   ,  USERALT
+                FROM  BPCJCERA2 A
+                WHERE REFEXTENT = :WS-NURACI
+                and ident <> " "
+           END-EXEC.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       PROCEDURE DIVISION.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+           PERFORM P002-INICIO.
+
+           PERFORM P002-REG-CONTROLO.
+
+           PERFORM P100-OPEN-CURSOR-CURJCERA.
+           PERFORM P200-FETCH-CURSOR-CURJCERA.
+           PERFORM P300-PROCESSO-GERAL
+                         WITH TEST BEFORE
+                           UNTIL FIM-P001
+           PERFORM P400-CLOSE-CURSOR-CURJCERA
+           IF NR-PROC NOT EQUAL ZERO
+             PERFORM P300-CLOSE-TAG-comRiscoEnt
+             PERFORM P300-CLOSE-TAG-conteudo
+             PERFORM P300-CLOSE-TAG-crc
+             PERFORM P400-BPCFCERA-CLOSE
+             PERFORM P450-FTP-FILE
+           END-IF
+           PERFORM P999-FIMPGM.
+     š*---------------------------------------------------------------------
+       P002-INICIO.
+     š*---------------------------------------------------------------------
+           SET  INICIO-P001         TO  TRUE.
+           SET  CICLO-1             TO  TRUE.
+           MOVE ZEROS               TO NR-PROC
+           EXEC SQL
+              DELETE FROM BPCFCERA
+           END-EXEC.
+
+           MOVE 1 TO WS-POS-XML
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10) TO WS-DATA-DIA.
+
+     š*---------------------------------------------------------------------
+       P002-REG-CONTROLO.
+     š*---------------------------------------------------------------------
+           INITIALIZE  BPCJCNTL
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+
+           PERFORM P300-GET-BPCJCNTL.
+     š*---------------------------------------------------------------------
+       P300-GET-BPCJCNTL.
+     š*---------------------------------------------------------------------
+     š*- Último Envio
+           SET SIM-TRATA TO TRUE
+
+           EXEC SQL
+             SELECT     X.DTREF
+                     ,  X.REPTYPE
+                     ,  X.ESTADO
+                     ,  X.ENTOBS
+                     ,  X.ENTREPORT
+                     ,  X.IDDEST
+                     ,  X.DTCRIACAO
+                     ,  X.NOMEFICH
+                     ,  X.NREC
+                     ,  X.NREJ
+                     ,  X.NINT
+                     ,  X.NALERTA
+                     ,  X.TMSCRIA
+                     ,  X.TMSRET
+             INTO      :BPCJCNTL.DTREF
+                     , :BPCJCNTL.REPTYPE
+                     , :BPCJCNTL.ESTADO
+                     , :BPCJCNTL.ENTOBS
+                     , :BPCJCNTL.ENTREPORT
+                     , :BPCJCNTL.IDDEST
+                     , :BPCJCNTL.DTCRIACAO
+                     , :BPCJCNTL.NOMEFICH
+                     , :BPCJCNTL.NREC
+                     , :BPCJCNTL.NREJ
+                     , :BPCJCNTL.NINT
+                     , :BPCJCNTL.NALERTA
+                     , :BPCJCNTL.TMSCRIA
+                     , :BPCJCNTL.TMSRET
+             FROM  BPCJCNTL  X
+                WHERE TMSCRIA = ( SELECT MAX(TMSCRIA)
+                                  FROM BPCJCNTL Y
+                                  WHERE REPTYPE = "CERA" )
+                AND   REPTYPE = "CERA"
+                AND   ESTADO  IN( "ENV" , "RET" )
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              IF ESTADO OF BPCJCNTL = "RET"
+                 SET NAO-TRATA TO TRUE
+              END-IF
+              MOVE S-SYSTMST(1:10) TO WS-DATA-DIA
+              MOVE DTCRIACAO OF BPCJCNTL TO Ws-dtCriacao
+           WHEN OTHER
+              MOVE "BPCPCERAX"       TO W-OBJECT-NAME
+              SET CMD-SELECT         TO TRUE
+              PERFORM  P990-ERRO-DB2
+              SET NAO-TRATA TO TRUE
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P100-OPEN-CURSOR-CURJCERA.
+     š*---------------------------------------------------------------------
+           INITIALIZE  CERA-REC
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+
+           EXEC SQL
+                OPEN CURJCERA
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-P001         TO TRUE
+           WHEN OTHER
+              SET  FIM-P001            TO TRUE
+              MOVE "CURJCERA"          TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P200-FETCH-CURSOR-CURJCERA.
+     š*---------------------------------------------------------------------
+           EXEC SQL FETCH CURJCERA
+                     INTO  :CERA-DTREF
+                         , :CERA-BPENV
+                         , :CERA-INFRISCO
+                         , :CERA-IDENT
+                         , :CERA-TYPER
+                         , :CERA-REFEXTENT
+                         , :CERA-ESTADOINC
+                         , :CERA-DTESTINC
+                         , :CERA-GREXPOS
+                         , :CERA-ENTACOMP
+                         , :CERA-TXESF
+                         , :CERA-DTTXESF
+                         , :CERA-TPACTXESF
+                         , :CERA-TMSCRIA
+                         , :CERA-USERCRIA
+                         , :CERA-TMSALT
+                         , :CERA-USERALT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             ADD 1 TO NR-READ
+           WHEN SQLCODE-NOTFOUND
+              SET  FIM-P001          TO TRUE
+           WHEN OTHER
+              SET   FIM-P001         TO TRUE
+              MOVE "CURJCERA"        TO W-OBJECT-NAME
+              SET   CMD-FETCH-CURSOR TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P300-PROCESSO-GERAL.
+     š*---------------------------------------------------------------------
+           IF CICLO-1
+              PERFORM P300-BPCFCERA-OPEN
+              IF SEM-ERRO
+                INITIALIZE REG-BPCFCERA  XML-OUTPUT
+                PERFORM P300-OPEN-TAG-crc
+                PERFORM P300-GERA-TAG-controlo
+                PERFORM P300-OPEN-TAG-conteudo
+                PERFORM P300-OPEN-TAG-comRiscoEnt
+                SET CICLO-N TO TRUE
+              END-IF
+           END-IF
+     š*-Risco de Entidade                                              -----
+           IF SEM-ERRO
+              PERFORM P300-OPEN-TAG-riscoEnt
+              PERFORM P300-OPEN-TAG-infRiscoEnt
+              PERFORM P200-FETCH-CURSOR-CURJCERA
+           END-IF.
+           IF SEM-ERRO
+             PERFORM P300-CLOSE-TAG-infRiscoEnt
+           END-IF.
+     š*-Entidades Relacionadas                                         -----
+           IF SEM-ERRO
+              PERFORM P100-OPEN-CURSOR-CURCERA2
+              PERFORM P200-FETCH-CURSOR-CURCERA2
+              PERFORM P300-TRATA-CURSOR-CURCERA2
+                      WITH TEST BEFORE
+                             UNTIL FIM-P002
+              PERFORM P400-CLOSE-CURSOR-CURCERA2
+              IF NR-PROCR NOT EQUAL ZERO
+                PERFORM P300-CLOSE-TAG-lstClienteRel
+              END-IF
+           END-IF.
+     š*-Fecha TAG de Risco                                             -----
+           IF SEM-ERRO
+             PERFORM P300-CLOSE-TAG-riscoEnt
+           END-IF.
+     š*---------------------------------------------------------------------
+       P300-OPEN-TAG-crc.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+     š*-XML Doc Declaration
+           MOVE "<?xml version='1.0' encoding='ISO-8859-1'?>"
+                       TO XML-OUTPUT.
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+     š*-CRC Tag Declaration
+           MOVE "<crc versao='1.0' >"    TO XML-OUTPUT
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-controlo.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+
+           MOVE  "controlo"              TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+
+           MOVE  "entObserv"             TO  WS-NOME-TAG
+           MOVE   ENTOBS     OF BPCJCNTL TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+
+           MOVE  "entReport"             TO  WS-NOME-TAG
+           MOVE  ENTREPORT   OF BPCJCNTL TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+
+           MOVE  "dtCriacao"             TO  WS-NOME-TAG
+           MOVE   DTCRIACAO  OF BPCJCNTL TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+
+           MOVE  "idDest"                TO  WS-NOME-TAG
+           MOVE   IDDEST    OF  BPCJCNTL TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+
+           MOVE  "idFichRelac"           TO  WS-NOME-TAG
+           MOVE   spaces                 TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+
+           PERFORM P300-END-TAG
+
+           MOVE  "controlo"              TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-OPEN-TAG-conteudo.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+
+           MOVE  "conteudo"              TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+
+           PERFORM P300-END-TAG
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-OPEN-TAG-comRiscoEnt.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT.
+
+           MOVE  "comRiscoEnt"            TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+
+           MOVE  "xmlns:xsi"         TO  WS-NOME-TAG
+           MOVE  "http://www.w3.org/2001/XMLSchema-instance"
+                                     TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+
+           MOVE  "xsi:noNamespaceSchemaLocation"
+                                     TO  WS-NOME-TAG
+           MOVE  "file:/C:/crc_bdp_schema.xsd"
+                                     TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+
+           MOVE  "dtRef"             TO  WS-NOME-TAG
+           MOVE   CERA-DTREF         TO  WS-VAL-TAG-A
+           IF CERA-DTREF     NOT EQUAL "0001-01-01" AND
+              CERA-DTREF     NOT EQUAL SPACES
+              PERFORM P300-ATRIBUTE
+           END-IF
+
+           PERFORM P300-END-TAG
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-OPEN-TAG-riscoEnt.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+     š*- Type - EI-Insert/EU-Update/ED-Delete
+
+           MOVE  "riscoEnt"           TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+
+           PERFORM P300-GERA-TAG-idEnt.
+
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-idEnt.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+
+     š*-Residentes i1
+           MOVE   "idEnt"                     TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+
+           MOVE   "xsi:type"                  TO  WS-NOME-TAG
+           MOVE   CERA-TYPER                  TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+
+           MOVE   "idEnt"                     TO  WS-NOME-TAG
+           MOVE   CERA-IDENT                  TO  WS-VAL-TAG-A
+           PERFORM P300-END-TAG.
+
+           MOVE   CERA-IDENT                  TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+
+           MOVE  "idEnt"                TO  WS-NOME-TAG
+           MOVE  SPACES                 TO  WS-VAL-TAG-A
+           PERFORM P300-CLOSE-TAG.
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-OPEN-TAG-infRiscoEnt.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+     š*- Type - ERI-Insert/ERU-Update/ERD-Delete
+
+           MOVE  "infRiscoEnt"           TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+
+           MOVE  "xsi:type"          TO  WS-NOME-TAG
+           MOVE   CERA-INFRISCO      TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+
+      ***  IF CERA-ESTADOINC NOT = "000"
+             MOVE  "estadoInc"         TO  WS-NOME-TAG
+             MOVE   CERA-ESTADOINC     TO  WS-VAL-TAG-A
+             PERFORM P300-ATRIBUTE
+      ***  END-IF
+
+           MOVE  "dtAltEstadoInc"    TO  WS-NOME-TAG
+           IF  ( CERA-DTESTINC = "0000-00-00" OR
+                 CERA-DTESTINC = "0001-01-01" )
+                 MOVE SPACES         TO  WS-VAL-TAG-A
+           ELSE
+             MOVE   CERA-DTESTINC    TO  WS-VAL-TAG-A
+           END-IF
+           PERFORM P300-ATRIBUTE.
+
+           MOVE  "grExposicao"       TO  WS-NOME-TAG
+           IF  CERA-GREXPOS  = "N"
+               MOVE "false"          TO  WS-VAL-TAG-A
+           ELSE
+               MOVE "true"           TO  WS-VAL-TAG-A
+           END-IF
+           PERFORM P300-ATRIBUTE.
+
+           MOVE  "entAcompanhada"    TO  WS-NOME-TAG
+           MOVE   CERA-ENTACOMP      TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE.
+
+           IF CERA-TXESF NOT EQUAL ZERO
+             MOVE  "txEsf"             TO  WS-NOME-TAG
+             MOVE   CERA-TXESF         TO  Edit-Nbr-Tx
+             MOVE  Edit-Nbr-Tx         TO  WS-VAL-TAG-A
+             PERFORM P300-ATRIBUTE-N
+           END-IF
+
+           MOVE  "dtApurTxEsf"       TO  WS-NOME-TAG
+           IF  ( CERA-DTTXESF  = "0000-00-00" OR
+                 CERA-DTTXESF  = "0001-01-01" )
+                 MOVE SPACES         TO  WS-VAL-TAG-A
+           ELSE
+             MOVE   CERA-DTTXESF     TO  WS-VAL-TAG-A
+           END-IF
+           PERFORM P300-ATRIBUTE.
+
+           MOVE  "tpAtualizTxEsf"    TO  WS-NOME-TAG
+           MOVE   CERA-TPACTXESF     TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE.
+
+           PERFORM P300-END-TAG
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG-infRiscoEnt.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+
+           MOVE  "infRiscoEnt"                 TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG-riscoEnt.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+
+           MOVE  "riscoEnt"                 TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG-comRiscoEnt.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+
+           MOVE  "comRiscoEnt"                TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG-conteudo.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+
+           MOVE  "conteudo"              TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG-crc.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+
+           MOVE  "crc"                   TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-BPCFCERA-OPEN.
+     š*---------------------------------------------------------------------
+           OPEN OUTPUT BPCFCERA
+           MOVE GRS-FILE-STATUS TO W-FILE-CODE W-EDTFILC
+           IF  GRS-GOOD-IO                OR
+               GRS-FILE-ALREADY-OPENED
+               CONTINUE
+           ELSE
+               SET  FIM-P001             TO TRUE
+               MOVE "BPCPCERAX"            TO W-PROGRAMA
+               MOVE "P300-BPCFCERA-OPEN" TO W-PARAGRAFO
+               MOVE "BPCFCERA"           TO W-OBJECT-NAME
+               MOVE "OPEN"               TO W-CMDEXEC
+               MOVE SPACES               TO W-CHAVE
+               PERFORM  P990-ERRO-FS
+           END-IF.
+     š*---------------------------------------------------------------------
+       P400-BPCFCERA-CLOSE.
+     š*---------------------------------------------------------------------
+           CLOSE BPCFCERA
+           MOVE GRS-FILE-STATUS TO W-FILE-CODE W-EDTFILC
+           IF  GRS-GOOD-IO                OR
+               GRS-FILE-ALREADY-CLOSED
+               CONTINUE
+           ELSE
+               SET  FIM-P001              TO TRUE
+               MOVE "BPCPCERAX"             TO W-PROGRAMA
+               MOVE "P300-BPCFCERA-CLOSE" TO W-PARAGRAFO
+               MOVE "BPCFCERA"            TO W-OBJECT-NAME
+               MOVE "CLOSE"               TO W-CMDEXEC
+               MOVE SPACES                TO W-CHAVE
+               PERFORM  P990-ERRO-FS
+           END-IF.
+     š*---------------------------------------------------------------------
+       P450-FTP-FILE.
+     š*---------------------------------------------------------------------
+           INITIALIZE BPCL001M-FICH-ORIGEM
+                      BPCL001M-FICH-DESTINO
+                      BPCL001M-ERRO-BPCPFTP
+                      REPLACING ALPHANUMERIC BY SPACES
+                                    NUMERIC BY ZEROS.
+
+           MOVE  "BPCFCERA"            TO BPCL001M-FICH-ORIGEM
+           MOVE  NOMEFICH  OF BPCJCNTL TO BPCL001M-FICH-DESTINO
+
+           CALL "BPCCFTP" USING BPCL001M-FICH-ORIGEM
+                                BPCL001M-FICH-DESTINO
+                                BPCL001M-ERRO-BPCPFTP
+
+           IF BPCL001M-ERRO-BPCPFTP NOT EQUAL SPACES
+             MOVE "001"                     TO W-FILE-CODE
+             MOVE WS-ERRO                   TO MSG-ERRO-FS
+             MOVE "BPCCFTP"                 TO W-OBJECT-NAME
+             MOVE "FTP"                     TO W-CMDEXEC
+             MOVE "P450-FTP-FILE"           TO W-PARAGRAFO
+             PERFORM P990-ERRO-FS
+           END-IF.
+     š*---------------------------------------------------------------------
+       P300-BPCFCERA-WRITE.
+     š*---------------------------------------------------------------------
+           WRITE REG-BPCFCERA
+           MOVE GRS-FILE-STATUS TO W-FILE-CODE W-EDTFILC
+           IF  GRS-GOOD-IO       OR
+               GRS-DUP-KEY
+                INITIALIZE REG-BPCFCERA
+                ADD 1 TO NR-PROC
+           ELSE
+               SET  FIM-P001              TO TRUE
+               MOVE "BPCPCERAX"             TO W-PROGRAMA
+               MOVE "P300-BPCFCERA-WRITE" TO W-PARAGRAFO
+               MOVE "BPCFCERA"            TO W-OBJECT-NAME
+               MOVE "WRITE"               TO W-CMDEXEC
+               MOVE SPACES                TO W-CHAVE
+               PERFORM  P990-ERRO-FS
+           END-IF.
+
+           MOVE 1 TO WS-POS-XML.
+
+     š*---------------------------------------------------------------------
+       P400-CLOSE-CURSOR-CURJCERA.
+     š*---------------------------------------------------------------------
+           EXEC SQL
+               CLOSE CURJCERA
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  FIM-P001            TO TRUE
+           WHEN OTHER
+              SET  FIM-P001            TO TRUE
+              MOVE "CURJCERA"          TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P100-OPEN-CURSOR-CURCERA2.
+     š*---------------------------------------------------------------------
+           INITIALIZE  CERA2-REC
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           MOVE CERA-REFEXTENT TO WS-NURACI
+           EXEC SQL
+                OPEN CURCERA2
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-P002         TO TRUE
+              SET  CICLO-R-1           TO TRUE
+              MOVE ZEROS               TO NR-PROCR
+           WHEN OTHER
+              SET  FIM-P002            TO TRUE
+              MOVE "CURCERA2"          TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P200-FETCH-CURSOR-CURCERA2.
+     š*---------------------------------------------------------------------
+           INITIALIZE  CERA2-REC
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+
+           EXEC SQL FETCH CURCERA2
+                     INTO  :CERA2-IDENT
+                         , :CERA2-TYPER
+                         , :CERA2-REFEXTENT
+                         , :CERA2-IDENTREL
+                         , :CERA2-TYPERR
+                         , :CERA2-REFEXTENTR
+                         , :CERA2-MOTIVOREL
+                         , :CERA2-TMSCRIA
+                         , :CERA2-USERCRIA
+                         , :CERA2-TMSALT
+                         , :CERA2-USERALT
+
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD 1 TO NR-READ
+              ADD 1 TO NR-PROCR
+           WHEN SQLCODE-NOTFOUND
+              SET  FIM-P002          TO TRUE
+           WHEN OTHER
+              SET   FIM-P002         TO TRUE
+              MOVE "CURCERA2"        TO W-OBJECT-NAME
+              SET   CMD-FETCH-CURSOR TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P300-TRATA-CURSOR-CURCERA2.
+     š*---------------------------------------------------------------------
+
+           IF CICLO-R-1
+              PERFORM P300-OPEN-TAG-lstClienteRel
+                SET CICLO-R-N TO TRUE
+           END-IF.
+           PERFORM P300-GERA-TAG-clienteRel.
+           PERFORM P200-FETCH-CURSOR-CURCERA2.
+
+     š*---------------------------------------------------------------------
+       P300-OPEN-TAG-lstClienteRel.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT.
+
+           MOVE  "lstClienteRel"          TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+
+           PERFORM P300-END-TAG
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-clienteRel.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+
+           MOVE  "clienteRel"            TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+
+           MOVE  "motivoRel"             TO  WS-NOME-TAG
+           MOVE   CERA2-MOTIVOREL        TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+
+           PERFORM P300-END-TAG
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+
+           PERFORM P300-GERA-TAG-idEntREL
+
+           INITIALIZE XML-OUTPUT
+           MOVE  "clienteRel"            TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG.
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-idEntREL.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+
+     š*-Residentes i1
+           MOVE   "idEnt"                     TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+
+           MOVE   "xsi:type"                  TO  WS-NOME-TAG
+           MOVE   CERA2-TYPERR                TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+
+           PERFORM P300-END-TAG.
+
+           MOVE   "idEnt"                     TO  WS-NOME-TAG
+           MOVE   CERA2-IDENTREL              TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+
+           PERFORM P300-CLOSE-TAG.
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG-lstClienteRel.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+
+           MOVE  "lstClienteRel"          TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+
+           MOVE XML-OUTPUT TO REG-BPCFCERA
+           PERFORM P300-BPCFCERA-WRITE.
+     š*---------------------------------------------------------------------
+       P400-CLOSE-CURSOR-CURCERA2.
+     š*---------------------------------------------------------------------
+           EXEC SQL
+               CLOSE CURCERA2
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  FIM-P002            TO TRUE
+           WHEN OTHER
+              SET  FIM-P002            TO TRUE
+              MOVE "CURCERA2"          TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P300-OPEN-TAG.
+     š*---------------------------------------------------------------------
+     š*-Trata Nome da TAG
+           MOVE WS-NOME-TAG TO WS-STRING
+           PERFORM P300-COMPRIMENTO
+           MOVE WS-STRING-L  TO WS-NOM-TAG-L
+
+           STRING "<"
+                   WS-NOME-TAG(1: WS-NOM-TAG-L)
+           DELIMITED BY SIZE INTO XML-OUTPUT
+           WITH POINTER WS-POS-XML.
+
+     š*---------------------------------------------------------------------
+       P300-ATRIBUTE.
+     š*---------------------------------------------------------------------
+     š*-Trata Valor Atributo
+           MOVE WS-VAL-TAG-A TO WS-STRING
+           IF WS-STRING  NOT = SPACES
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-VAL-TAG-L
+             MOVE WS-STRING    TO WS-VAL-TAG-A
+
+     š*-Trata Nome e Valor Atributo
+             MOVE WS-NOME-TAG TO WS-STRING
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-NOM-TAG-L
+
+             STRING  " "
+                   WS-NOME-TAG(1: WS-NOM-TAG-L)
+                   "='"
+                   WS-VAL-TAG-A(1: WS-VAL-TAG-L)
+                   "'"
+             DELIMITED BY SIZE INTO XML-OUTPUT
+             WITH POINTER WS-POS-XML.
+
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG.
+     š*---------------------------------------------------------------------
+     š*-Trata Valor da TAG
+           MOVE WS-VAL-TAG-A TO WS-STRING
+           IF  WS-VAL-TAG-A NOT = SPACES
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-VAL-TAG-L
+             MOVE WS-STRING    TO WS-VAL-TAG-A
+
+     š*-Trata Nome da TAG
+             MOVE WS-NOME-TAG TO WS-STRING
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-NOM-TAG-L
+             MOVE WS-STRING    TO WS-NOME-TAG
+
+             STRING "<"
+                   WS-NOME-TAG(1: WS-NOM-TAG-L)
+                   ">"
+                   WS-VAL-TAG-A(1: WS-VAL-TAG-L)
+                   "</"
+                   WS-NOME-TAG(1: WS-NOM-TAG-L)
+                   ">"
+             DELIMITED BY SIZE INTO XML-OUTPUT
+             WITH POINTER WS-POS-XML.
+
+     š*---------------------------------------------------------------------
+       P300-DATA-TAG.
+     š*---------------------------------------------------------------------
+     š*-Trata Valor da TAG
+           MOVE WS-VAL-TAG-A TO WS-STRING
+           IF  WS-VAL-TAG-A NOT = SPACES
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-VAL-TAG-L
+
+             STRING
+                   WS-VAL-TAG-A(1: WS-VAL-TAG-L)
+             DELIMITED BY SIZE INTO XML-OUTPUT
+             WITH POINTER WS-POS-XML
+           END-IF.
+     š*---------------------------------------------------------------------
+       P300-DATA-TAG-N.
+     š*---------------------------------------------------------------------
+     š*-Trata Valor da TAG
+           MOVE WS-VAL-TAG-A TO WS-STRING
+           IF  WS-VAL-TAG-A NOT = SPACES
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             PERFORM P300-PRIMEIRO-ESPACO
+             INSPECT WS-STRING REPLACING
+                      all "," by "."
+             MOVE WS-STRING TO WS-VAL-TAG-A
+             MOVE WS-STRING-L  TO WS-VAL-TAG-L
+
+             STRING
+                   WS-VAL-TAG-A( WS-POS-S: WS-VAL-TAG-L)
+             DELIMITED BY SIZE INTO XML-OUTPUT
+             WITH POINTER WS-POS-XML
+           END-IF.
+     š*---------------------------------------------------------------------
+       P300-ATRIBUTE-N.
+     š*---------------------------------------------------------------------
+     š*-Trata Valor da TAG
+           MOVE WS-VAL-TAG-A TO WS-STRING
+           IF  WS-VAL-TAG-A NOT = SPACES
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             PERFORM P300-PRIMEIRO-ESPACO
+             INSPECT WS-STRING REPLACING
+                      all "," by "."
+             MOVE WS-STRING TO WS-VAL-TAG-A
+             MOVE WS-STRING-L  TO WS-VAL-TAG-L
+
+     š*-Trata Nome e Valor Atributo
+             MOVE WS-NOME-TAG TO WS-STRING
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-NOM-TAG-L
+
+             STRING  " "
+                   WS-NOME-TAG(1: WS-NOM-TAG-L)
+                   "='"
+                   WS-VAL-TAG-A(WS-POS-S: WS-VAL-TAG-L)
+                   "'"
+             DELIMITED BY SIZE INTO XML-OUTPUT
+             WITH POINTER WS-POS-XML
+
+           END-IF.
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG.
+     š*---------------------------------------------------------------------
+     š*-Trata Nome da TAG
+           MOVE WS-NOME-TAG TO WS-STRING
+           PERFORM P300-COMPRIMENTO
+           MOVE WS-STRING-L  TO WS-NOM-TAG-L
+
+           STRING
+                "</"
+                WS-NOME-TAG(1: WS-NOM-TAG-L)
+                ">"
+
+           DELIMITED BY SIZE INTO XML-OUTPUT
+           WITH POINTER WS-POS-XML.
+
+     š*---------------------------------------------------------------------
+       P300-END-TAG.
+     š*---------------------------------------------------------------------
+           STRING ">"
+           DELIMITED BY SIZE INTO XML-OUTPUT
+           WITH POINTER WS-POS-XML.
+     š*---------------------------------------------------------------------
+       P300-COMPRIMENTO.
+     š*---------------------------------------------------------------------
+     š*--Retira Espaços  WS-STRING
+     š*- WY -Comprimento Final
+           MOVE ZEROES TO WS-POS-I.
+           INSPECT FUNCTION REVERSE(WS-STRING)
+                   TALLYING WS-POS-I      FOR LEADING SPACE.
+           COMPUTE  WS-STRING-L = LENGTH OF WS-STRING  -  WS-POS-I.
+     š*---------------------------------------------------------------------
+       P300-PRIMEIRO-ESPACO.
+     š*---------------------------------------------------------------------
+     š*--Retira Espaços  WS-STRING(1:WS-STRING-L)
+           MOVE ZEROES TO WS-POS-S.
+           INSPECT WS-STRING(1:WS-STRING-L)
+                   TALLYING WS-POS-S      FOR LEADING SPACE.
+           COMPUTE  WS-STRING-L = WS-STRING-L -  WS-POS-S.
+           ADD 1 TO WS-POS-S.
+     š*---------------------------------------------------------------------
+       P300-RETIRA-CARAC-ESPECIAIS.
+     š*---------------------------------------------------------------------
+     š*-Retira Caracters Invalidos de WS-STRING
+           PERFORM P300-UTLS001-TESTA
+                   VARYING W-NUM FROM 1 BY 1
+                   UNTIL W-NUM > LENGTH OF WS-STRING.
+
+     š*---------------------------------------------------------------------
+       P300-UTLS001-TESTA.
+     š*---------------------------------------------------------------------
+           MOVE WS-STRING-CHR(W-NUM)  TO CHAR-TESTE.
+           IF   NOT CARACTER-VALIDO
+                PERFORM  P300-UTLS001-ALTERA
+           END-IF.
+
+     š*---------------------------------------------------------------------
+       P300-UTLS001-ALTERA.
+     š*---------------------------------------------------------------------
+           EVALUATE  TRUE
+
+            WHEN WS-STRING-CHR(W-NUM) = "à" OR
+                 WS-STRING-CHR(W-NUM) = "á" OR
+                 WS-STRING-CHR(W-NUM) = "â" OR
+                 WS-STRING-CHR(W-NUM) = "ã" OR
+                 WS-STRING-CHR(W-NUM) = "ä" OR
+                 WS-STRING-CHR(W-NUM) = "ª"
+              MOVE "a" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "ç"
+              MOVE "c" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "é" OR
+                 WS-STRING-CHR(W-NUM) = "è" OR
+                 WS-STRING-CHR(W-NUM) = "ê" OR
+                 WS-STRING-CHR(W-NUM) = "ë"
+              MOVE "e" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "í" OR
+                 WS-STRING-CHR(W-NUM) = "ì" OR
+                 WS-STRING-CHR(W-NUM) = "ï"
+              MOVE "i" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "ñ"
+              MOVE "n" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "ó" OR
+                 WS-STRING-CHR(W-NUM) = "ò" OR
+                 WS-STRING-CHR(W-NUM) = "õ" OR
+                 WS-STRING-CHR(W-NUM) = "ö"
+              MOVE "o" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "ú" OR
+                 WS-STRING-CHR(W-NUM) = "ù" OR
+                 WS-STRING-CHR(W-NUM) = "û" OR
+                 WS-STRING-CHR(W-NUM) = "ü"
+              MOVE "u" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Á" OR
+                 WS-STRING-CHR(W-NUM) = "À" OR
+                 WS-STRING-CHR(W-NUM) = "Ã" OR
+                 WS-STRING-CHR(W-NUM) = "Â" OR
+                 WS-STRING-CHR(W-NUM) = "Ä"
+              MOVE "A" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Ç"
+              MOVE "C" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "É" OR
+                 WS-STRING-CHR(W-NUM) = "È" OR
+                 WS-STRING-CHR(W-NUM) = "Ê" OR
+                 WS-STRING-CHR(W-NUM) = "Ë"
+              MOVE "E" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Í" OR
+                 WS-STRING-CHR(W-NUM) = "Ì" OR
+                 WS-STRING-CHR(W-NUM) = "Ï"
+              MOVE "I" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Ñ"
+              MOVE "N" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Ó" OR
+                 WS-STRING-CHR(W-NUM) = "Ò" OR
+                 WS-STRING-CHR(W-NUM) = "Õ" OR
+                 WS-STRING-CHR(W-NUM) = "Ô" OR
+                 WS-STRING-CHR(W-NUM) = "Ö"
+              MOVE "O" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Ú" OR
+                 WS-STRING-CHR(W-NUM) = "Ù" OR
+                 WS-STRING-CHR(W-NUM) = "Û" OR
+                 WS-STRING-CHR(W-NUM) = "Ü"
+              MOVE "U" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "\"
+              MOVE "/" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "[" OR
+                 WS-STRING-CHR(W-NUM) = "{"
+              MOVE "(" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "]" OR
+                 WS-STRING-CHR(W-NUM) = "}"
+              MOVE ")" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = """" OR
+                 WS-STRING-CHR(W-NUM) = "«"  OR
+                 WS-STRING-CHR(W-NUM) = "»"
+              MOVE "'" TO WS-STRING-CHR(W-NUM)
+
+            WHEN OTHER
+              MOVE " " TO WS-STRING-CHR(W-NUM)
+
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P990-ERRO-FS.
+     š*---------------------------------------------------------------------
+           EVALUATE TRUE
+           WHEN GRS-READ-DUP-KEY
+                  STRING "ERRO DE DADOS: CHAVE DUPLICADA NO FICHEIRO <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-FS
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ ERRO    <"
+                      W-EDTFILC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-FS
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           SET  COM-ERRO        TO TRUE
+           MOVE  1              TO ERRRTC   OF  KYCT900A
+           MOVE W-FILE-CODE     TO ERRCOD   OF  KYCT900A
+           MOVE MSG-ERRO-FS     TO ERRMSG   OF  KYCT900A
+           MOVE "BPCPCERAX"       TO ERRPRG   OF  KYCT900A
+           MOVE "BPC"           TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE W-CMDEXEC       TO ERRCMD   OF  KYCT900A
+           MOVE W-PARAGRAFO     TO ERRFLD   OF  KYCT900A
+
+           PERFORM    P995-INSERT-ERROS.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           SET  COM-ERRO        TO TRUE
+           MOVE MSG-ERRO-SQL    TO ERRMSG   OF  KYCT900A
+           MOVE W-SQLCODE       TO ERRCOD   OF  KYCT900A
+           MOVE "SQL"           TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE  2              TO ERRRTC   OF  KYCT900A
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "BPCPCERAX"      TO  ERRPRG OF KYCT900A.
+           MOVE   WS-NURACI        TO  RACINE OF KYCT900A.
+
+           EXEC SQL  INSERT
+                INTO KYCT900A
+                VALUES  (
+                           :KYCT900A.RACINE
+                         , :KYCT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :KYCT900A.ERRRTC
+                         , :KYCT900A.ERRCOD
+                         , :KYCT900A.ERRMSG
+                         , :KYCT900A.ERRPRG
+                         , :KYCT900A.ERRAPL
+                         , :KYCT900A.ERROBJ
+                         , :KYCT900A.ERRFLD
+                         , :KYCT900A.ERRCMD
+                         , :KYCT900A.ERRKEY1
+                         , :KYCT900A.ERRVAL1
+                         , :KYCT900A.ERRKEY2
+                         , :KYCT900A.ERRVAL2 )
+           END-EXEC.
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "KYCT900A"       TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P999-FIMPGM.
+     š*---------------------------------------------------------------------
+           EXIT PROGRAM.
+           STOP RUN.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA BPCPCERAX
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+

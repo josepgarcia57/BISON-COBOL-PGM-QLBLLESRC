@@ -1,0 +1,416 @@
+      *================================================================*
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.     BPCP252.
+      *----------------------------------------------------------------*
+      * APLICACAO : GESTAO DE CRC
+      * PROGRAMA .: BPCP252
+      * OBJECTIVO : GERIR O ECRAN DE DIALOGO "BPCE252"
+      * CRIADO EM : 2005/FEVEREIRO
+      * POR ......: FERNANDO SILVA (CAPGEMINI PORTUGAL)
+      *----------------------------------------------------------------*
+
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       CONFIGURATION               SECTION.
+      *----------------------------------------------------------------*
+       SPECIAL-NAMES.  DECIMAL-POINT  IS COMMA
+                       SYSTEM-CONSOLE IS VIDEO
+                       LOCAL-DATA     IS LDATA
+                       ATTRIBUTE-DATA IS ATTRB.
+
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT                SECTION.
+      *----------------------------------------------------------------*
+       FILE-CONTROL.
+
+           SELECT BPCE252
+                  ASSIGN        TO WORKSTATION-BPCE252-SI
+                  ORGANIZATION  IS TRANSACTION
+                  FILE STATUS   IS FS-BPCE252
+                  CONTROL-AREA  IS CA-BPCE252.
+
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       FILE                        SECTION.
+      *----------------------------------------------------------------*
+       FD  BPCE252
+           LABEL RECORD OMITTED.
+       01  BPCE252-HDR.
+           COPY DDS-BPCE252HDR OF BPCE252.
+       01  BPCE252-D01.
+           COPY DDS-BPCE252D01 OF BPCE252.
+       01  BPCE252-FTR.
+           COPY DDS-BPCE252FTR OF BPCE252.
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE             SECTION.
+      *----------------------------------------------------------------*
+       01  FS-BPCE252                  PIC 99.
+           88  BPCE252-OK                          VALUE ZERO.
+
+       01  CA-BPCE252.
+           05  IDTECLAF                PIC 99.
+           05  IDTERMNL                PIC X(10).
+           05  FRMTREGT                PIC X(10).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-VARSTRAB.
+           05  WS-ARRYNDX1             PIC S9(4)       BINARY.
+           05  WS-DTHR-N14             PIC 9(14).
+           05  FILLER      REDEFINES WS-DTHR-N14.
+               10  WS-DATA-N08         PIC 9(08).
+               10  WS-HORA-N06         PIC 9(06).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-CNSTANTS.
+           05  KV-IDDIALOG             PIC X(08)   VALUE "BPCE252".
+           05  KV-IDFMTDLG-HDR         PIC X(10)   VALUE "BPCE252HDR".
+           05  KV-IDFMTDLG-D01         PIC X(10)   VALUE "BPCE252D01".
+           05  KV-IDFMTDLG-FTR         PIC X(10)   VALUE "BPCE252FTR".
+           05  KV-IDINST-HI            PIC 99      VALUE 25.
+           05  KV-IDINST-PC            PIC 99      VALUE 26.
+           05  KV-IDINST-PR            PIC 99      VALUE 27.
+           05  KV-DTPDINST-HI          PIC 99      VALUE 28.
+           05  KV-DTPDINST-PC          PIC 99      VALUE 29.
+           05  KV-DTPDINST-PR          PIC 99      VALUE 30.
+           05  KV-TIPOPD-HI            PIC 99      VALUE 31.
+           05  KV-TIPOPD-PC            PIC 99      VALUE 32.
+           05  KV-TIPOPD-PR            PIC 99      VALUE 33.
+           05  KV-TPAVALR-HI           PIC 99      VALUE 34.
+           05  KV-TPAVALR-PC           PIC 99      VALUE 35.
+           05  KV-TPAVALR-PR           PIC 99      VALUE 36.
+           05  KV-SISAVALR-HI          PIC 99      VALUE 37.
+           05  KV-SISAVALR-PC          PIC 99      VALUE 38.
+           05  KV-SISAVALR-PR          PIC 99      VALUE 39.
+           05  KV-NOTACINST-HI         PIC 99      VALUE 40.
+           05  KV-NOTACINST-PC         PIC 99      VALUE 41.
+           05  KV-NOTACINST-PR         PIC 99      VALUE 42.
+           05  KV-PDINST-HI            PIC 99      VALUE 43.
+           05  KV-PDINST-PC            PIC 99      VALUE 44.
+           05  KV-PDINST-PR            PIC 99      VALUE 45.
+           05  KV-MODIRBINST-HI        PIC 99      VALUE 46.
+           05  KV-MODIRBINST-PC        PIC 99      VALUE 47.
+           05  KV-MODIRBINST-PR        PIC 99      VALUE 48.
+           05  KV-LGDINST-HI           PIC 99      VALUE 49.
+           05  KV-LGDINST-PC           PIC 99      VALUE 50.
+           05  KV-LGDINST-PR           PIC 99      VALUE 51.
+           05  KV-MODLGDINST-HI        PIC 99      VALUE 52.
+           05  KV-MODLGDINST-PC        PIC 99      VALUE 53.
+           05  KV-MODLGDINST-PR        PIC 99      VALUE 54.
+           05  KV-DHCRIREG-ND          PIC 99      VALUE 60.
+           05  KV-DHMDFREG-ND          PIC 99      VALUE 60.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           COPY BPCB252.
+
+      *----------------------------------------------------------------*
+       LINKAGE                     SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB000.
+
+      *================================================================*
+       PROCEDURE DIVISION USING CREB000-LKGERAL.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       P0000-RAIZ                  SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P1000-INICIO
+
+           PERFORM P2000-PROCESSO
+
+           PERFORM P3000-FIM
+           .
+       P0000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P1000-INICIO                SECTION.
+      *----------------------------------------------------------------*
+
+           INITIALIZE FS-BPCE252, CA-BPCE252
+           .
+       P1000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P2000-PROCESSO              SECTION.
+      *----------------------------------------------------------------*
+
+           IF  CREB000-STDIALOG-OFF
+               PERFORM P2100-OPEN-DIALOG
+           END-IF
+
+           EVALUATE TRUE
+           WHEN NOT BPCE252-OK
+               CONTINUE
+           WHEN CREB000-EXECPRC
+               PERFORM P2200-PROC-DIALOG
+           WHEN OTHER
+               PERFORM P2300-CLSE-DIALOG
+           END-EVALUATE
+           .
+       P2000-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2100-OPEN-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           OPEN I-O BPCE252
+
+           IF  NOT BPCE252-OK
+               MOVE FS-BPCE252      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-OPEN-IO TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2100-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2200-PROC-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE CREB000-MSGDLG-V(CREB000-MSGDLG-P:) TO BPCB252-MSGDIALG
+
+           PERFORM P2210-PREP-ATRIBS
+           PERFORM P2220-WRIT-REGHDR
+           IF  BPCE252-OK
+               PERFORM P2230-WRIT-REGFTR
+           END-IF
+           IF  BPCE252-OK
+               PERFORM P2240-WRIT-REGDET
+           END-IF
+           IF  BPCE252-OK
+               PERFORM P2250-READ-REGDET
+           END-IF
+
+           MOVE BPCB252-MSGDIALG TO CREB000-MSGDLG-V(CREB000-MSGDLG-P:)
+           .
+       P2200-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2210-PREP-ATRIBS           SECTION.
+
+           IF  BPCB252-IDINST-PR
+               SET  CREB000-INDICDLG-ON (KV-IDINST-PR)   TO TRUE
+           END-IF
+      *
+           IF  BPCB252-DTPDINST-PR
+               SET  CREB000-INDICDLG-ON (KV-DTPDINST-PR) TO TRUE
+           END-IF
+      *
+           IF  BPCB252-TIPOPD-PR
+               SET  CREB000-INDICDLG-ON (KV-TIPOPD-PR)   TO TRUE
+           END-IF
+      *
+           IF  BPCB252-TPAVALR-PR
+               SET  CREB000-INDICDLG-ON (KV-TPAVALR-PR)  TO TRUE
+           END-IF
+      *
+           IF  BPCB252-SISAVALR-PR
+               SET  CREB000-INDICDLG-ON (KV-SISAVALR-PR) TO TRUE
+           END-IF
+      *
+           IF  BPCB252-NOTACINST-PR
+               SET  CREB000-INDICDLG-ON (KV-NOTACINST-PR) TO TRUE
+           END-IF
+      *
+           IF   BPCB252-PDINST-PR
+               SET  CREB000-INDICDLG-ON (KV-PDINST-PR)   TO TRUE
+           END-IF
+      *
+           IF   BPCB252-MODIRBINST-PR
+               SET  CREB000-INDICDLG-ON (KV-MODIRBINST-PR) TO TRUE
+           END-IF
+      *
+           IF   BPCB252-LGDINST-PR
+               SET  CREB000-INDICDLG-ON (KV-LGDINST-PR)    TO TRUE
+           END-IF
+      *
+           IF   BPCB252-MODLGDINST-PR
+               SET  CREB000-INDICDLG-ON (KV-MODLGDINST-PR) TO TRUE
+           END-IF
+      *
+           EVALUATE TRUE
+           WHEN BPCB252-DTPDINST-PC
+               SET  CREB000-INDICDLG-ON   (KV-DTPDINST-PC)   TO TRUE
+           WHEN BPCB252-TIPOPD-PC
+               SET  CREB000-INDICDLG-ON   (KV-TIPOPD-PC)     TO TRUE
+           WHEN BPCB252-TPAVALR-PC
+               SET  CREB000-INDICDLG-ON   (KV-TPAVALR-PC)    TO TRUE
+           WHEN BPCB252-SISAVALR-PC
+               SET  CREB000-INDICDLG-ON   (KV-SISAVALR-PC)   TO TRUE
+           WHEN BPCB252-NOTACINST-PC
+               SET  CREB000-INDICDLG-ON   (KV-NOTACINST-PC)  TO TRUE
+           WHEN BPCB252-PDINST-PC
+               SET  CREB000-INDICDLG-ON   (KV-PDINST-PC)     TO TRUE
+           WHEN BPCB252-MODIRBINST-PC
+               SET  CREB000-INDICDLG-ON   (KV-MODIRBINST-PC) TO TRUE
+           WHEN BPCB252-LGDINST-PC
+               SET  CREB000-INDICDLG-ON   (KV-LGDINST-PC)    TO TRUE
+           WHEN BPCB252-MODLGDINST-PC
+               SET  CREB000-INDICDLG-ON   (KV-MODLGDINST-PC) TO TRUE
+           WHEN BPCB252-IDINST-UP
+               SET  CREB000-INDICDLG-ON   (KV-IDINST-PC)    TO TRUE
+           END-EVALUATE
+      *
+           EVALUATE TRUE
+           WHEN CREB000-PROC-OK
+               CONTINUE
+           WHEN BPCB252-IDINST-PC
+               SET  CREB000-INDICDLG-ON  (KV-IDINST-HI)     TO TRUE
+           WHEN BPCB252-DTPDINST-PC
+               SET  CREB000-INDICDLG-ON  (KV-DTPDINST-HI)   TO TRUE
+           WHEN BPCB252-TIPOPD-PC
+               SET  CREB000-INDICDLG-ON  (KV-TIPOPD-HI)     TO TRUE
+           WHEN BPCB252-TPAVALR-PC
+               SET  CREB000-INDICDLG-ON  (KV-TPAVALR-HI)    TO TRUE
+           WHEN BPCB252-SISAVALR-PC
+               SET  CREB000-INDICDLG-ON  (KV-SISAVALR-HI)   TO TRUE
+           WHEN BPCB252-NOTACINST-PC
+               SET  CREB000-INDICDLG-ON  (KV-NOTACINST-HI)  TO TRUE
+           WHEN BPCB252-PDINST-PC
+               SET  CREB000-INDICDLG-ON  (KV-PDINST-HI)     TO TRUE
+           WHEN BPCB252-MODIRBINST-PC
+               SET  CREB000-INDICDLG-ON  (KV-MODIRBINST-HI) TO TRUE
+           WHEN BPCB252-LGDINST-PC
+               SET  CREB000-INDICDLG-ON  (KV-LGDINST-HI)    TO TRUE
+           WHEN BPCB252-MODLGDINST-PC
+               SET  CREB000-INDICDLG-ON  (KV-MODLGDINST-HI) TO TRUE
+           END-EVALUATE
+      *
+           IF  BPCB252-DHCRIREG-ND
+               SET  CREB000-INDICDLG-ON (KV-DHCRIREG-ND) TO TRUE
+           END-IF
+      *
+           IF  BPCB252-DHMDFREG-ND
+               SET  CREB000-INDICDLG-ON (KV-DHMDFREG-ND) TO TRUE
+           END-IF
+           .
+       P2210-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2220-WRIT-REGHDR           SECTION.
+
+           MOVE SPACES              TO BPCE252-HDR
+           MOVE CREB000-SGEMPRSA    TO SGEMPRSA OF BPCE252HDR-O
+           MOVE CREB000-DSAPLICA    TO DSAPLICA OF BPCE252HDR-O
+           MOVE CREB000-DTPRCAPL    TO DTACTUAL OF BPCE252HDR-O
+           MOVE CREB000-IDPRCAPL    TO IDPRCAPL OF BPCE252HDR-O
+           MOVE CREB000-IDDIALOG    TO IDDIALOG OF BPCE252HDR-O
+           MOVE CREB000-DSPRCAPL    TO DSPRCAPL OF BPCE252HDR-O
+           MOVE CREB000-NMFUNDLG    TO NMFUNDLG OF BPCE252HDR-O
+           WRITE BPCE252-HDR
+                 FORMAT KV-IDFMTDLG-HDR INDIC CREB000-TBINDARA
+
+           IF  NOT BPCE252-OK
+               MOVE FS-BPCE252      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2220-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2230-WRIT-REGFTR           SECTION.
+
+           MOVE SPACES              TO BPCE252-FTR
+           MOVE CREB000-DSTECLAS    TO DSTECLAS OF BPCE252FTR-O
+           MOVE CREB000-DSMSGAPL    TO DSMSGAPL OF BPCE252FTR-O
+           WRITE BPCE252-FTR
+                 FORMAT KV-IDFMTDLG-FTR INDIC CREB000-TBINDARA
+
+           IF  NOT BPCE252-OK
+               MOVE FS-BPCE252      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2230-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2240-WRIT-REGDET           SECTION.
+
+           MOVE SPACES               TO BPCE252-D01
+           MOVE BPCB252-IDINST-V     TO IDINST     OF BPCE252D01-O
+           MOVE BPCB252-DTPDINST-V   TO DTPDINST   OF BPCE252D01-O
+           MOVE BPCB252-TIPOPD-V     TO TIPOPD     OF BPCE252D01-O
+           MOVE BPCB252-TPAVALR-V    TO TPAVALR    OF BPCE252D01-O
+           MOVE BPCB252-SISAVALR-V   TO SISAVALR   OF BPCE252D01-O
+           MOVE BPCB252-NOTACINST-V  TO NOTACINST  OF BPCE252D01-O
+           MOVE BPCB252-PDINST-V     TO PDINST     OF BPCE252D01-O
+           MOVE BPCB252-MODIRBINST-V TO MODIRBINST OF BPCE252D01-O
+           MOVE BPCB252-LGDINST-V    TO LGDINST    OF BPCE252D01-O
+           MOVE BPCB252-MODLGDINST-V TO MODLGDINST OF BPCE252D01-O
+           MOVE BPCB252-NMRACINE-V   TO NMRACINE   OF BPCE252D01-O
+           MOVE BPCB252-NMTIPOPD-V   TO NMTIPOPD   OF BPCE252D01-O
+           MOVE BPCB252-NMTPAVALR-V  TO NMTPAVALR  OF BPCE252D01-O
+           MOVE BPCB252-NMSISAVALR-V TO NMSISAVALR OF BPCE252D01-O
+           MOVE BPCB252-DHCRIREG-V   TO DHCRIREG   OF BPCE252D01-O
+           MOVE BPCB252-DHMDFREG-V   TO DHMDFREG   OF BPCE252D01-O
+           WRITE BPCE252-D01
+                 FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+
+           IF  NOT BPCE252-OK
+               MOVE FS-BPCE252      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2240-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2250-READ-REGDET           SECTION.
+
+           READ BPCE252
+                FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+                AT END CONTINUE
+           END-READ
+
+           IF  BPCE252-OK
+               MOVE IDINST      OF BPCE252D01-I TO BPCB252-IDINST-V
+               MOVE DTPDINST    OF BPCE252D01-I TO BPCB252-DTPDINST-V
+               MOVE TIPOPD      OF BPCE252D01-I TO BPCB252-TIPOPD-V
+               MOVE TPAVALR     OF BPCE252D01-I TO BPCB252-TPAVALR-V
+               MOVE SISAVALR    OF BPCE252D01-I TO BPCB252-SISAVALR-V
+               MOVE NOTACINST   OF BPCE252D01-I TO BPCB252-NOTACINST-V
+               MOVE PDINST      OF BPCE252D01-I TO BPCB252-PDINST-V
+               MOVE MODIRBINST  OF BPCE252D01-I TO BPCB252-MODIRBINST-V
+               MOVE LGDINST     OF BPCE252D01-I TO BPCB252-LGDINST-V
+               MOVE MODLGDINST  OF BPCE252D01-I TO BPCB252-MODLGDINST-V
+               MOVE IDVARCSR    OF BPCE252D01-I TO CREB000-IDVARCSR
+               MOVE IDTECLAF    OF CA-BPCE252   TO CREB000-IDTECLAF
+           ELSE
+               MOVE FS-BPCE252               TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG              TO CREB000-NMOBJECT
+               SET  CREB000-READ             TO TRUE
+               SET  CREB000-MSGDLOG          TO TRUE
+           END-IF
+           .
+       P2250-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2300-CLSE-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           CLOSE BPCE252
+
+           IF  NOT BPCE252-OK
+               MOVE FS-BPCE252      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-CLSE    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2300-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P3000-FIM                   SECTION.
+      *----------------------------------------------------------------*
+
+           GOBACK
+           .
+       P3000-EXIT.                 EXIT.
+      *--- FIM DO PROGRAMA BPCP252 ------------------------------------*

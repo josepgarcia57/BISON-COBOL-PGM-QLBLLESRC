@@ -1,0 +1,446 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    BPCSCERA   INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2017-MAR-13.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: BPC - Centralização de Responsabilidades   *
+     š*   OBJECTIVO ......: Este Interface destina-se a Extrair Info   *
+     š*                     Periódica de Risco de Cliente              *
+     š*   ANALISTA .......: PEDRO GARCIA                               *
+     š*   PROGRAMADOR.....:                                            *
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 DADOS-EXT                  PIC 9(01).
+          88 COM-DADOS-EXT           VALUE 1.
+          88 SEM-DADOS-EXT           VALUE 0.
+      *
+       01 NR-ADM                     PIC 9(06) VALUE ZEROS.
+       01 NR-READ                    PIC 9(06) VALUE ZEROS.
+       01 NR-PROC                    PIC 9(06) VALUE ZEROS.
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-ANOIN                PIC X(04).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-DIAIN                PIC X(02).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01 WX-ANO-CONVER.
+          03 WS-ANO-12               PIC X(02).
+          03 WS-ANO-34               PIC X(02).
+
+       01  W-CONSTANTS.
+           05  K-APLICACAO           PIC X(3)    VALUE "BPC".
+           05  K-PROGRAMA            PIC X(8)    VALUE "BPCSCERA".
+
+     š* Indice para Pesquisa de String
+       01 S-CHAR-L                   PIC S9(4)   COMP.
+       01 S-CHAR-V                   PIC X(50).
+       01 W-CHAR.
+          03 W-NOMECHR               PIC X       OCCURS 50.
+
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+
+       01 WS-TST-DATE      PIC X(10).
+       01 WS-VAL-DATE      PIC X(10).
+       01 WS-OUT-DATE      PIC X(10).
+
+       01 WS-RACINE        PIC X(07).
+       01 WS-ESTINC        PIC X(03).
+       01 WS-DTESTINC      PIC X(10).
+
+       01  R-TCERA.
+           COPY DDS-ALL-FORMATS OF BPCTCERA.
+
+     š* Copy : Tabela de Info. Contabilistica
+           EXEC SQL
+               INCLUDE BPCHCERA
+           END-EXEC.
+
+     š* Copy : Tabela de KYCT900A
+       01  R-KYCT900A.
+           COPY DDS-ALL-FORMATS OF KYCT900A.
+
+       01 WS-NURACI                PIC X(07).
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+           COPY BPCBCERA.
+      *================================================================*
+       PROCEDURE DIVISION USING BPCBCERA-LKPARMS.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+           PERFORM P001-INICIO
+           PERFORM P300-GET-BPCTCERA
+           PERFORM P300-INCUMP-CLI
+           IF BPCBCERA-PROC-OK
+              PERFORM P400-MOVE-INS-BPCJCERA
+           END-IF
+           PERFORM P999-FIMPGM.
+     š*---------------------------------------------------------------------
+       P001-INICIO.
+     š*---------------------------------------------------------------------
+           INITIALIZE  CERA-REC
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10) TO WS-DATA-DIA.
+           MOVE BPCBCERA-RACINE TO WS-RACINE
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-BPCTCERA.
+     š*----------------------------------------------------------------
+     š*-
+     š*- Obtem Informação de Dados Externos Contabilisticos
+           INITIALIZE  R-TCERA
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+
+           EXEC SQL
+                SELECT    IDENT
+                       ,  TYPER
+                       ,  REFEXTENT
+                       ,  ESTADOINC
+                       ,  DTESTINC
+                       ,  GREXPOS
+                       ,  ENTACOMP
+                       ,  TXESF
+                       ,  TPACTXESF
+
+                INTO     :IDENT
+                       , :TYPER
+                       , :REFEXTENT
+                       , :ESTADOINC
+                       , :DTESTINC
+                       , :GREXPOS
+                       , :ENTACOMP
+                       , :TXESF
+                       , :TPACTXESF
+
+                FROM  BPCTCERA A
+                WHERE A.REFEXTENT =:WS-RACINE
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET COM-DADOS-EXT TO TRUE
+           WHEN SQLCODE-NOTFOUND
+              SET SEM-DADOS-EXT TO TRUE
+           WHEN OTHER
+              MOVE "BPCTCERA"          TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-INCUMP-CLI.
+     š*----------------------------------------------------------------
+     š*- Cliente Nunca Esteve em Incumprimento
+           MOVE SPACES TO WS-ESTINC
+
+           EXEC SQL
+             SELECT VALUE(MAX(ESTINC) , " " )
+             INTO  :WS-ESTINC
+             FROM  BPCJPFIN
+             WHERE SUBSTR(IDINST , 1, 7 ) = :WS-RACINE
+           END-EXEC.
+
+           IF WS-ESTINC  EQUAL "000" OR SPACES
+             MOVE SPACES TO WS-DTESTINC
+
+             EXEC SQL
+               SELECT VALUE(MAX(DTESTINC) , " " )
+               INTO  :WS-DTESTINC
+               FROM  BPCJPFIN
+              WHERE SUBSTR(IDINST , 1, 7 ) = :WS-RACINE
+             END-EXEC
+
+             IF WS-DTESTINC EQUAL "0001-01-01" OR SPACES
+                MOVE "9999-12-31" TO WS-DTESTINC
+             END-IF
+           END-IF
+
+     š*- Cliente  Esteve em Incumprimento - Data Mais Antiga
+           IF WS-ESTINC NOT EQUAL "000"
+             MOVE SPACES TO WS-DTESTINC
+
+             EXEC SQL
+               SELECT VALUE(MIN(DTESTINC), " " )
+               INTO  :WS-DTESTINC
+               FROM  BPCJPFIN
+               WHERE SUBSTR(IDINST , 1, 7 ) = :WS-RACINE
+               AND   ESTINC = :WS-ESTINC
+               AND   DTESTINC <> "0001-01-01"
+             END-EXEC
+
+           END-IF.
+     š*-
+     š*----------------------------------------------------------------
+       P400-MOVE-INS-BPCJCERA.
+     š*----------------------------------------------------------------
+     š*- INFTINST
+           MOVE "ERI"             TO CERA-INFRISCO
+     š*- BPENV - E- Para Enviar
+           MOVE "E"               TO CERA-BPENV
+     š*- DTREFENT - data de Referencia
+           MOVE  BPCBCERA-DTPROC  TO CERA-DTREF
+     š*- RACINE
+           MOVE  WS-RACINE        TO CERA-REFEXTENT
+     š*- Audit Log
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP       END-EXEC.
+           MOVE S-SYSTMST         TO CERA-TMSCRIA.
+           MOVE "BPCSCERA"        TO CERA-USERCRIA.
+           MOVE WS-ESTINC         TO CERA-ESTADOINC
+           MOVE WS-DTESTINC       TO CERA-DTESTINC
+           IF COM-DADOS-EXT
+             MOVE  IDENT            TO CERA-IDENT
+             MOVE  TYPER            TO CERA-TYPER
+             MOVE  REFEXTENT        TO CERA-REFEXTENT
+             MOVE  GREXPOS          TO CERA-GREXPOS
+             IF ESTADOINC NOT EQUAL SPACES
+                MOVE ESTADOINC    TO CERA-ESTADOINC
+             END-IF
+             IF DTESTINC NOT EQUAL SPACES AND
+                DTESTINC NOT EQUAL "0001-01-01"
+                MOVE DTESTINC     TO CERA-DTESTINC
+             END-IF
+             MOVE   ENTACOMP      TO CERA-ENTACOMP
+             MOVE   TXESF         TO CERA-TXESF
+             MOVE   DTTXESF       TO CERA-DTTXESF
+             MOVE   TPACTXESF     TO CERA-TPACTXESF
+           END-IF
+           PERFORM P500-INSERT-BPCJCERA.
+     š*-
+     š*----------------------------------------------------------------
+       P500-INSERT-BPCJCERA.
+     š*----------------------------------------------------------------
+     š*- Verifica se o Registo Já Existe
+     š*-
+           MOVE WS-TMS-NULA  TO CERA-TMSALT
+           MOVE "E"          TO CERA-BPENV
+           EXEC SQL
+                 INSERT INTO BPCJCERA
+                 VALUES ( :CERA-DTREF
+                        , :CERA-BPENV
+                        , :CERA-INFRISCO
+                        , :CERA-IDENT
+                        , :CERA-TYPER
+                        , :CERA-REFEXTENT
+                        , :CERA-ESTADOINC
+                        , :CERA-DTESTINC
+                        , :CERA-GREXPOS
+                        , :CERA-ENTACOMP
+                        , :CERA-TXESF
+                        , :CERA-DTTXESF
+                        , :CERA-TPACTXESF
+                        , :CERA-TMSCRIA
+                        , :CERA-USERCRIA
+                        , :CERA-TMSALT
+                        , :CERA-USERALT  )
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "BPCJCERA"          TO W-OBJECT-NAME
+              SET CMD-INSERT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P450-VALIDA-DATE.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+               SET :WS-VAL-DATE  = DATE(:WS-TST-DATE)
+           END-EXEC
+           EVALUATE SQLCODE
+              WHEN +0
+                  MOVE  WS-TST-DATE TO WS-OUT-DATE
+              WHEN -180
+                  MOVE "0001-01-01" TO WS-OUT-DATE
+           END-EVALUATE.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           MOVE WS-NURACI       TO RACINE   OF  KYCT900A
+           MOVE MSG-ERRO-SQL    TO ERRMSG   OF  KYCT900A
+           MOVE W-SQLCODE       TO ERRCOD   OF  KYCT900A
+           MOVE "SQL"           TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE  2              TO ERRRTC   OF  KYCT900A
+           SET BPCBCERA-MSGSGBD  TO TRUE
+           MOVE W-OBJECT-NAME   TO BPCBCERA-IDPARERR
+           MOVE W-SQLCODE       TO BPCBCERA-CODERR
+           MOVE MSG-ERRO-SQL    TO BPCBCERA-DESCERR
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "BPCSCERA"     TO  ERRPRG OF KYCT900A.
+           MOVE     WS-NURACI    TO  RACINE OF KYCT900A.
+
+           EXEC SQL  INSERT
+                INTO KYCT900A
+                VALUES  (
+                           :KYCT900A.RACINE
+                         , :KYCT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :KYCT900A.ERRRTC
+                         , :KYCT900A.ERRCOD
+                         , :KYCT900A.ERRMSG
+                         , :KYCT900A.ERRPRG
+                         , :KYCT900A.ERRAPL
+                         , :KYCT900A.ERROBJ
+                         , :KYCT900A.ERRFLD
+                         , :KYCT900A.ERRCMD
+                         , :KYCT900A.ERRKEY1
+                         , :KYCT900A.ERRVAL1
+                         , :KYCT900A.ERRKEY2
+                         , :KYCT900A.ERRVAL2 )
+           END-EXEC.
+
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "INSERT-T900A"   TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+
+
+     š*****************************************************************
+       P999-FIMPGM.
+     š*****************************************************************
+           GOBACK.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA BPCSCERA
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *

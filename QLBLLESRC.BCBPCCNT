@@ -1,0 +1,778 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    BCBPCCNT   INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2017-MAR-13.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: BCB - Centralização de Responsabilidades   *
+     š*   OBJECTIVO ......: Este programa destina-se a Extrair Info    *
+     š*                     a enviar ao Banco de Portugal Contas/Interv*
+     š*   ANALISTA .......: PEDRO GARCIA                               *
+     š*   PROGRAMADOR.....:                                            *
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 TRATA-INFO                 PIC 9(01).
+          88 SIM-TRATA               VALUE 1.
+          88 NAO-TRATA               VALUE 0.
+      *
+       01 EXECUTA-P001               PIC 9(01).
+          88 INICIO-P001             VALUE 0.
+          88 FIM-P001                VALUE 1.
+      *
+       01 NR-ADM                     PIC 9(06) VALUE ZEROS.
+       01 NR-READ                    PIC 9(06) VALUE ZEROS.
+       01 NR-PROC                    PIC 9(06) VALUE ZEROS.
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-ANOIN                PIC X(04).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-DIAIN                PIC X(02).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01 WX-ANO-CONVER.
+          03 WS-ANO-12               PIC X(02).
+          03 WS-ANO-34               PIC X(02).
+
+       01  W-CONSTANTS.
+           05  K-APLICACAO           PIC X(3)    VALUE "BPC".
+           05  K-PROGRAMA            PIC X(8)    VALUE "BCBPCCNT".
+
+       01 Ws-dtCriacao.
+          05 ws-Data         PIC X(10).
+          05 ws-SepT         PIC X(1).
+          05 ws-HH           PIC X(2).
+          05 ws-SepH         PIC X(1).
+          05 ws-MM           PIC X(2).
+          05 ws-SepM         PIC X(1).
+          05 ws-SS           PIC X(2).
+
+     š* BCB.BdP.SSSSSSSSS.TTTT.AAAAMMDD.hhmmss.xml-------------
+       01 ws-idFich.
+          05  ws-idFichBCB   PIC X(4) VALUE "BCB.".
+          05  ws-idFichPPP   PIC X(5) VALUE "0063.".
+          05  ws-idFichANO   PIC X(4) .
+          05  ws-idFichMES   PIC X(2) .
+          05  ws-idFichVVV   PIC X(3) .
+          05  ws-FILLER1     PIC X(1) VALUE ".".
+          05  ws-idFichTTTT  PIC X(5) VALUE "CCNT.".
+          05  ws-idFichAAAA  PIC X(4) .
+          05  ws-idFichMM    PIC X(2) .
+          05  ws-idFichDD    PIC X(2) .
+          05  ws-FILLER1     PIC X(1) VALUE ".".
+          05  ws-idFichHH    PIC X(2) .
+          05  ws-idFichMI    PIC X(2) .
+          05  ws-idFichSS    PIC X(2) .
+          05  ws-FILLER1     PIC X(1) VALUE ".".
+          05  ws-idFichXML   PIC X(8) VALUE "XML".
+
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+     š* Parametros p/ Interface Clientes
+           COPY BCBBCCNT.
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+
+       01  WS-DATA-INI-MES          PIC X(10).
+
+     š* Copy : Tabela de Saldos Posição
+       01  R-FDBCPT.
+           COPY DDS-ALL-FORMATS OF FDBCPT.
+
+     š* Copy : Tabela de Contratos
+       01  R-FDBCTR.
+           COPY DDS-ALL-FORMATS OF FDBCTR.
+
+     š* Copy : Tabela de Dossier de Titulos
+       01  R-FDBDOS.
+           COPY DDS-ALL-FORMATS OF FDBDOS.
+
+     š* Copy : Tabela de Clientes
+       01  R-FDBCLI.
+           COPY DDS-ALL-FORMATS OF FDBCLI.
+
+     š* Copy : Tabela de KYCT900A
+       01  R-KYCT900A.
+           COPY DDS-ALL-FORMATS OF KYCT900A.
+
+     š* Copy : Tabela de Controlo
+       01  R-JCNTL.
+           COPY DDS-ALL-FORMATS OF BCBJCNTL.
+
+       01 WS-NURACI                PIC X(07).
+       01 WS-GRE                   PIC X(03).
+       01 WS-RUB                   PIC X(03).
+       01 WS-MON                   PIC X(03).
+       01 WS-CTID                  PIC X(03).
+       01 WS-CTCONT                PIC X(07).
+       01 WS-VERSAO                PIC X(03).
+
+       01 WX-NOVA-VERSAO.
+          05 WS-NOVA-VERSAO        PIC 999.
+
+       01 WS-DTINI-BCB             PIC X(10).
+       01 WX-DTINI-BCB  REDEFINES WS-DTINI-BCB.
+          05 WS-DTINI-BCB-AAAA     PIC 9(04).
+          05 WS-DTINI-FILLER1      PIC X(1).
+          05 WS-DTINI-BCB-MM       PIC 9(02).
+          05 WS-DTINI-FILLER1      PIC X(1).
+          05 WS-DTINI-BCB-DD       PIC 9(02).
+     š*--Selecção de acordo com a Tabela 30 de Produtos
+     š*--Retirado o Acesso aos Contratos - Nos DP'S
+           EXEC SQL DECLARE CURFDBOPE CURSOR FOR
+                SELECT
+                        CPRACI
+                     ,  CPGRE
+                     ,  CPRUB
+                     ,  CPMON
+                     , "000"
+                     , "0000000"
+                FROM  FDBCPT A
+                WHERE CPGRE  IN( "001"
+                               , "007"
+                               , "404"
+                               , "405"
+                               , "446"
+                               , "400"
+                               , "450"  )
+                AND ( CPDTAN  = " " OR
+                      CPDTAN  = "000000"
+                      OR  ("20" ||
+                          SUBSTR(CPDTAN , 5 , 2 ) || "-" ||
+                          SUBSTR(CPDTAN , 3 , 2 ) || "-" ||
+                          SUBSTR(CPDTAN , 1 , 2 ) > :WS-DATA-INI-MES))
+                     AND CPRUB = "000"
+                     AND (CPMON = "978" OR
+                          CPGRE  IN( "400" , "450" ))
+                    UNION ALL
+                SELECT
+                        CTRACI
+                     ,  CTGRE
+                     ,  CTRUB
+                     ,  CTMON
+                     ,  CTID
+                     ,  CTCONT
+                FROM  FDBCTR A
+                WHERE CTGRE  IN( "402"
+                               , "403"
+                               , "438"  )
+                AND CTOPER NOT IN "L"
+                AND (CTDTLQ  = " "  OR CTDTLQ = "000000"
+                     OR  ("20" ||
+                          SUBSTR(CTDTLQ , 5 , 2 ) || "-" ||
+                          SUBSTR(CTDTLQ , 3 , 2 ) || "-" ||
+                          SUBSTR(CTDTLQ , 1 , 2 ) > :WS-DATA-INI-MES))
+                     AND CTRUB = "000"
+                    UNION ALL
+                SELECT
+                        DOCLIR
+                     , "000"
+                     ,  DOCLIS
+                     , "000"
+                     , "000"
+                     , "0000000"
+                FROM  FDBDOS A
+                WHERE (DODTAN  = " "  OR DODTAN = "000000"
+                      OR  ("20" ||
+                          SUBSTR(DODTAN , 5 , 2 ) || "-" ||
+                          SUBSTR(DODTAN , 3 , 2 ) || "-" ||
+                          SUBSTR(DODTAN , 1 , 2 ) > :WS-DATA-INI-MES))
+                  AND DOCLIS = "000"
+           END-EXEC.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       PROCEDURE DIVISION.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+           PERFORM P001-INICIO
+           PERFORM P001-VRFY-RETORNO
+           IF NOT SIM-ERRO
+             PERFORM P002-REG-CONTROLO
+             PERFORM P100-OPEN-CURSOR-FDBCPT
+             PERFORM P200-FETCH-CURSOR-FDBCPT
+             PERFORM P300-PROCESSO-GERAL
+                             UNTIL FIM-P001
+             PERFORM P400-CLOSE-CURSOR-FDBCPT
+           END-IF
+           PERFORM P999-FIMPGM.
+     š*---------------------------------------------------------------------
+       P001-INICIO.
+     š*---------------------------------------------------------------------
+           SET  INICIO-P001         TO  TRUE.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10) TO  WS-DATA-DIA.
+           MOVE "2011-03-01"        TO WS-DTINI-BCB.
+     š*---------------------------------------------------------------------
+       P001-VRFY-RETORNO.
+     š*---------------------------------------------------------------------
+
+     š*- Inicializa Envio BCBJCCNT                                     -----
+           EXEC SQL
+             UPDATE  BCBJCCNT
+             SET   BPENV = " "
+             WHERE BPENV = "E"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN SQLCODE-NOTFOUND
+              CONTINUE
+           WHEN OTHER
+              MOVE "BCBJCCNT"        TO W-OBJECT-NAME
+              SET CMD-UPDATE         TO TRUE
+              PERFORM  P990-ERRO-DB2
+              SET SIM-ERRO           TO TRUE
+           END-EVALUATE.
+
+     š*- Inicializa Envio BCBJCINT                                     -----
+           EXEC SQL
+             UPDATE  BCBJCINT
+             SET   BPENV = " "
+             WHERE BPENV = "E"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN SQLCODE-NOTFOUND
+              CONTINUE
+           WHEN OTHER
+              MOVE "BCBJCINT"        TO W-OBJECT-NAME
+              SET CMD-UPDATE         TO TRUE
+              PERFORM  P990-ERRO-DB2
+              SET SIM-ERRO           TO TRUE
+           END-EVALUATE.
+
+     š*- Inicializa Envio ESTADO RET                                   -----
+           EXEC SQL
+             UPDATE  BCBJCNTL
+             SET   ESTADO = "RET"
+             WHERE ESTADO = "ENV"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN SQLCODE-NOTFOUND
+              CONTINUE
+           WHEN OTHER
+              MOVE "BCBJCNTL"        TO W-OBJECT-NAME
+              SET CMD-UPDATE         TO TRUE
+              PERFORM  P990-ERRO-DB2
+              SET SIM-ERRO           TO TRUE
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P002-REG-CONTROLO.
+     š*---------------------------------------------------------------------
+           INITIALIZE  BCBJCNTL
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+
+     š*-Ws-dtCriacao                                                   -----
+           MOVE WS-DATA-DIA TO ws-Data
+           MOVE "T"         TO ws-SepT.
+           MOVE S-SYSTMST(12:2  ) TO  ws-HH
+           MOVE S-SYSTMST(15:2  ) TO  ws-MM
+           MOVE S-SYSTMST(18:2  ) TO  ws-SS
+           MOVE ":"               TO  ws-SepH
+           MOVE ":"               TO  ws-SepM
+     š*-Data de Reporte                                                -----
+           IF  WS-MESIN-DIA    = 01
+               MOVE 12 TO WS-MESIN-DIA
+               COMPUTE  WS-ANOIN-DIA       = WS-ANOIN-DIA    - 1
+           ELSE
+               COMPUTE   WS-MESIN-DIA      = WS-MESIN-DIA    - 1
+           END-IF
+           MOVE WS-ANOIN-DIA   TO   ANO       OF BCBJCNTL
+           MOVE WS-MESIN-DIA   TO   MES       OF BCBJCNTL
+
+     š*-Controla os Anulados pela Data                                 -----
+           MOVE 1              TO   WS-DIAIN-DIA
+           MOVE WS-DATA-DIA    TO   WS-DATA-INI-MES.
+
+           PERFORM P003-VERIFICA-NR-ENVIO.
+
+     š*-NOMEFICH                                                       -----
+     š*-TTTT pode ser CCNT e RSPC                                      -----
+     š*-BCB.PPPP.SSSSSSSSS.TTTT.AAAAMMDD.hhmmss.xml----------------    -----
+           MOVE WS-ANOIN-DIA   TO   ws-idFichANO.
+           MOVE WS-MESIN-DIA   TO   ws-idFichMES.
+           MOVE WS-NOVA-VERSAO TO   ws-idFichVVV.
+           MOVE S-SYSTMST(1:4 )   TO  ws-idFichAAAA
+           MOVE S-SYSTMST(6:2 )   TO  ws-idFichMM
+           MOVE S-SYSTMST(9:2 )   TO  ws-idFichDD
+           MOVE S-SYSTMST(12:2  ) TO  ws-idFichHH
+           MOVE S-SYSTMST(15:2  ) TO  ws-idFichMI
+           MOVE S-SYSTMST(18:2  ) TO  ws-idFichSS.
+
+           MOVE "1.0"          TO   VERSAOBCB OF BCBJCNTL
+           MOVE "0063"         TO   REMET     OF BCBJCNTL.
+           MOVE "0063"         TO   REPOR     OF BCBJCNTL.
+           MOVE "0001"         TO   DESTI     OF BCBJCNTL.
+           MOVE Ws-dtCriacao   TO   DTCRIACAO OF BCBJCNTL.
+           MOVE WS-NOVA-VERSAO TO   VERSAO    OF BCBJCNTL
+           MOVE ws-idFich      TO   NOMEFICH  OF BCBJCNTL.
+           MOVE "ENV"          TO   ESTADO    OF BCBJCNTL.
+           MOVE WS-TMS-NULA    TO   TMSRET    OF BCBJCNTL.
+
+           PERFORM P003-INSERT-BCBJCNTL.
+     š*---------------------------------------------------------------------
+       P003-VERIFICA-NR-ENVIO.
+     š*---------------------------------------------------------------------
+     š*- Último Envio
+
+           EXEC SQL
+             SELECT     X.ANO
+                     ,  X.MES
+                     ,  X.VERSAOBCB
+                     ,  X.REMET
+                     ,  X.REPOR
+                     ,  X.DESTI
+                     ,  X.DTCRIACAO
+                     ,  X.VERSAO
+                     ,  X.VERSUB
+                     ,  X.NOMEFICH
+                     ,  X.ESTADO
+                     ,  X.NREC
+                     ,  X.NREJ
+                     ,  X.NINT
+                     ,  X.NALERTA
+                     ,  X.TMSCRIA
+                     ,  X.TMSRET
+             INTO      :BCBJCNTL.ANO
+                     , :BCBJCNTL.MES
+                     , :BCBJCNTL.VERSAOBCB
+                     , :BCBJCNTL.REMET
+                     , :BCBJCNTL.REPOR
+                     , :BCBJCNTL.DESTI
+                     , :BCBJCNTL.DTCRIACAO
+                     , :BCBJCNTL.VERSAO
+                     , :BCBJCNTL.VERSUB
+                     , :BCBJCNTL.NOMEFICH
+                     , :BCBJCNTL.ESTADO
+                     , :BCBJCNTL.NREC
+                     , :BCBJCNTL.NREJ
+                     , :BCBJCNTL.NINT
+                     , :BCBJCNTL.NALERTA
+                     , :BCBJCNTL.TMSCRIA
+                     , :BCBJCNTL.TMSRET
+             FROM  BCBJCNTL  X
+                WHERE ANO    = :BCBJCNTL.ANO
+                 AND  MES    = :BCBJCNTL.MES
+                 AND  TMSCRIA = ( SELECT MAX(TMSCRIA)
+                                  FROM BCBJCNTL Y
+                                  WHERE X.MES = Y.MES
+                                   AND  X.ANO = Y.ANO )
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              MOVE VERSAO OF BCBJCNTL TO WX-NOVA-VERSAO
+              IF VERSUB OF BCBJCNTL NOT EQUAL "1" AND
+                 ESTADO OF BCBJCNTL  = "RET"
+                 ADD 1        TO WS-NOVA-VERSAO
+                 MOVE "1"     TO VERSUB OF BCBJCNTL
+              ELSE
+                PERFORM P003-DELETE-BCBJCNTL
+              END-IF
+           WHEN SQLCODE-NOTFOUND
+              MOVE  1        TO WS-NOVA-VERSAO
+              MOVE "0"       TO VERSUB OF BCBJCNTL
+           WHEN OTHER
+              MOVE "BCBJCNTL"        TO W-OBJECT-NAME
+              SET CMD-SELECT         TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P003-DELETE-BCBJCNTL.
+     š*---------------------------------------------------------------------
+           EXEC SQL
+             DELETE FROM BCBJCNTL
+             WHERE  ANO    = :BCBJCNTL.ANO
+               AND  MES    = :BCBJCNTL.MES
+               AND  VERSAO = :BCBJCNTL.VERSAO
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "BCBJCNTL"          TO W-OBJECT-NAME
+              SET CMD-INSERT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P003-INSERT-BCBJCNTL.
+     š*---------------------------------------------------------------------
+     š*-
+           EXEC SQL
+                 INSERT INTO BCBJCNTL
+                 VALUES ( :BCBJCNTL.ANO
+                        , :BCBJCNTL.MES
+                        , :BCBJCNTL.VERSAOBCB
+                        , :BCBJCNTL.REMET
+                        , :BCBJCNTL.REPOR
+                        , :BCBJCNTL.DESTI
+                        , :BCBJCNTL.DTCRIACAO
+                        , :BCBJCNTL.VERSAO
+                        , :BCBJCNTL.VERSUB
+                        , :BCBJCNTL.NOMEFICH
+                        , :BCBJCNTL.ESTADO
+                        , :BCBJCNTL.NREC
+                        , :BCBJCNTL.NREJ
+                        , :BCBJCNTL.NINT
+                        , :BCBJCNTL.NALERTA
+                        , CURRENT TIMESTAMP
+                        , :BCBJCNTL.TMSRET )
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "BCBJCCNT"          TO W-OBJECT-NAME
+              SET CMD-INSERT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P100-OPEN-CURSOR-FDBCPT.
+     š*---------------------------------------------------------------------
+     š*-
+           INITIALIZE  R-FDBCPT
+
+           EXEC SQL
+                OPEN CURFDBOPE
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-P001         TO TRUE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURFDBOPE"         TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*****************************************************************
+       P200-FETCH-CURSOR-FDBCPT.
+     š*****************************************************************
+     š*-
+           EXEC SQL FETCH CURFDBOPE
+                     INTO
+                       :WS-NURACI
+                     , :WS-GRE
+                     , :WS-RUB
+                     , :WS-MON
+                     , :WS-CTID
+                     , :WS-CTCONT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             ADD 1 TO NR-READ
+     š*-
+           WHEN SQLCODE-NOTFOUND
+              SET  FIM-P001          TO TRUE
+           WHEN OTHER
+              SET   FIM-P001         TO TRUE
+              MOVE "CURFDBOPE"       TO W-OBJECT-NAME
+              SET   CMD-FETCH-CURSOR TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*****************************************************************
+       P300-PROCESSO-GERAL.
+     š*****************************************************************
+     š*-
+           IF SQLCODE-OK
+      *-      IF WS-NURACI NOT EQUAL '0100396'
+      *-        CONTINUE
+      *-      ELSE
+              PERFORM P400-ANALISA-CLIENTE
+              IF SIM-TRATA
+                PERFORM P400-CALL-BCBSCCNT
+              END-IF
+           END-IF.
+           PERFORM P200-FETCH-CURSOR-FDBCPT.
+     š*-
+     š*----------------------------------------------------------------
+       P400-ANALISA-CLIENTE.
+     š*----------------------------------------------------------------
+     š*-
+           INITIALIZE  R-FDBCLI
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           SET NAO-TRATA           TO TRUE
+     š*- Obtem Informação Mestre de Clientes
+
+           EXEC SQL
+                SELECT  CLTYPE
+                INTO   :CLTYPE
+                FROM  FDBCLI A
+                WHERE A.CLRACI = :WS-NURACI
+                AND   A.CLCENT = 1
+                AND  A.CLRACI < 1000000
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             IF CLTYPE  OF R-FDBCLI  = "S"
+                                OR   = "B"
+                                OR   = "U"
+               SET SIM-TRATA        TO TRUE
+             END-IF
+             IF CLTYPE  OF R-FDBCLI  = "P"
+                                    OR "L"
+                                    OR "E"
+               SET SIM-TRATA       TO TRUE
+             END-IF
+     š*- Retira Acima de 1000000
+     š*- Só considera BBI - Centro 1
+           WHEN SQLCODE-NOTFOUND
+              SET NAO-TRATA           TO TRUE
+           WHEN OTHER
+              MOVE "FDBCLI "           TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*----------------------------------------------------------------
+       P400-CALL-BCBSCCNT.
+     š*----------------------------------------------------------------
+           INITIALIZE              BCBBCCNT-LKPARMS.
+           MOVE WS-NURACI      TO  BCBBCCNT-RACINE
+           MOVE WS-GRE         TO  BCBBCCNT-CPGRE
+           MOVE WS-RUB         TO  BCBBCCNT-CPRUB
+           MOVE WS-MON         TO  BCBBCCNT-CPMON
+           MOVE WS-CTID        TO  BCBBCCNT-CTID
+           MOVE WS-CTCONT      TO  BCBBCCNT-CTCONT
+           MOVE WS-NOVA-VERSAO TO  BCBBCCNT-VERSAO
+           MOVE WS-DATA-DIA    TO  BCBBCCNT-DTPROC
+
+           CALL "BCBSCCNT" USING  BCBBCCNT-LKPARMS
+           IF BCBBCCNT-PROC-OK
+              CONTINUE
+           ELSE
+             SET  FIM-P001            TO TRUE
+             INITIALIZE   KYCT900A
+             MOVE BCBBCCNT-DESCERR  TO ERRMSG   OF  KYCT900A
+             MOVE BCBBCCNT-CODERR   TO ERRCOD   OF  KYCT900A
+             MOVE "BCBSCCNT"        TO ERRPRG   OF  KYCT900A
+             MOVE "BCB"             TO ERRAPL   OF  KYCT900A
+             MOVE BCBBCCNT-IDMSGEXE TO ERROBJ   OF  KYCT900A
+             MOVE  1                TO ERRRTC   OF  KYCT900A
+             PERFORM P995-INSERT-ERROS
+           END-IF.
+     š*-
+     š*****************************************************************
+       P400-CLOSE-CURSOR-FDBCPT.
+     š*****************************************************************
+     š*-
+           EXEC SQL
+               CLOSE CURFDBOPE
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET     FIM-P001         TO TRUE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURSOR-FDBCPT"     TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           MOVE MSG-ERRO-SQL    TO ERRMSG   OF  KYCT900A
+           MOVE W-SQLCODE       TO ERRCOD   OF  KYCT900A
+           MOVE "SQL"           TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE  2              TO ERRRTC   OF  KYCT900A
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "BCBPCCNT"      TO  ERRPRG OF KYCT900A.
+           MOVE   WS-NURACI       TO  RACINE OF KYCT900A.
+
+           EXEC SQL  INSERT
+                INTO KYCT900A
+                VALUES  (
+                           :KYCT900A.RACINE
+                         , :KYCT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :KYCT900A.ERRRTC
+                         , :KYCT900A.ERRCOD
+                         , :KYCT900A.ERRMSG
+                         , :KYCT900A.ERRPRG
+                         , :KYCT900A.ERRAPL
+                         , :KYCT900A.ERROBJ
+                         , :KYCT900A.ERRFLD
+                         , :KYCT900A.ERRCMD
+                         , :KYCT900A.ERRKEY1
+                         , :KYCT900A.ERRVAL1
+                         , :KYCT900A.ERRKEY2
+                         , :KYCT900A.ERRVAL2 )
+           END-EXEC.
+
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "KYCT900A"       TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+
+
+     š*****************************************************************
+       P999-FIMPGM.
+     š*****************************************************************
+           EXEC SQL    COMMIT    HOLD         END-EXEC
+           EXIT PROGRAM.
+           STOP RUN.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA BCBPCCNT
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *

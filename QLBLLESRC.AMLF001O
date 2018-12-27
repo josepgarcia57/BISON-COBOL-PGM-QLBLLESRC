@@ -1,0 +1,4996 @@
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-14.27.06.273898.XLS
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-14.27.06.273898.XLS
+229 Entering Extended Passive Mode (|||2402|)
+150 Connection accepted
+226 Transfer OK
+4422615 bytes transferidos em 0,141 segundos. A velocidade de transferência é
+ 31449,707 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-14.31.13.774699.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-14.31.13.774699.CSV
+229 Entering Extended Passive Mode (|||2447|)
+150 Connection accepted
+226 Transfer OK
+4422615 bytes transferidos em 0,187 segundos. A velocidade de transferência é
+ 23710,773 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-14.37.20.804236.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-14.37.20.804236.CSV
+229 Entering Extended Passive Mode (|||2502|)
+150 Connection accepted
+226 Transfer OK
+4422615 bytes transferidos em 0,134 segundos. A velocidade de transferência é
+ 33056,625 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-15.13.19.489786.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-15.13.19.489786.CSV
+229 Entering Extended Passive Mode (|||2870|)
+150 Connection accepted
+226 Transfer OK
+4422615 bytes transferidos em 0,197 segundos. A velocidade de transferência é
+ 22419,594 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-15.16.00.595506.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-15.16.00.595506.CSV
+229 Entering Extended Passive Mode (|||2897|)
+150 Connection accepted
+226 Transfer OK
+4422615 bytes transferidos em 0,130 segundos. A velocidade de transferência é
+ 34050,809 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-15.17.15.508842.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-15.17.15.508842.CSV
+229 Entering Extended Passive Mode (|||2914|)
+150 Connection accepted
+226 Transfer OK
+4422615 bytes transferidos em 0,138 segundos. A velocidade de transferência é
+ 32118,850 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-15.17.17.341144.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-15.17.17.341144.CSV
+229 Entering Extended Passive Mode (|||2941|)
+150 Connection accepted
+226 Transfer OK
+4425478 bytes transferidos em 0,154 segundos. A velocidade de transferência é
+ 28681,578 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-15.43.12.550013.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-15.43.12.550013.CSV
+229 Entering Extended Passive Mode (|||3189|)
+150 Connection accepted
+226 Transfer OK
+4425480 bytes transferidos em 0,210 segundos. A velocidade de transferência é
+ 21077,635 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-15.43.49.006601.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-15.43.49.006601.CSV
+229 Entering Extended Passive Mode (|||3197|)
+150 Connection accepted
+226 Transfer OK
+4425480 bytes transferidos em 0,214 segundos. A velocidade de transferência é
+ 20692,656 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-15.45.51.389419.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-15.45.51.389419.CSV
+229 Entering Extended Passive Mode (|||3218|)
+150 Connection accepted
+226 Transfer OK
+4425480 bytes transferidos em 0,161 segundos. A velocidade de transferência é
+ 27464,797 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-15.51.32.884300.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-15.51.32.884300.CSV
+229 Entering Extended Passive Mode (|||3271|)
+150 Connection accepted
+226 Transfer OK
+4422615 bytes transferidos em 0,143 segundos. A velocidade de transferência é
+ 31018,889 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-15.53.59.437369.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-15.53.59.437369.CSV
+229 Entering Extended Passive Mode (|||3294|)
+150 Connection accepted
+226 Transfer OK
+4619345 bytes transferidos em 0,180 segundos. A velocidade de transferência é
+ 25707,658 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-15.55.12.543648.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-15.55.12.543648.CSV
+229 Entering Extended Passive Mode (|||3313|)
+150 Connection accepted
+226 Transfer OK
+4619345 bytes transferidos em 0,266 segundos. A velocidade de transferência é
+ 17390,475 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-15.57.00.351317.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-15.57.00.351317.CSV
+229 Entering Extended Passive Mode (|||3321|)
+150 Connection accepted
+226 Transfer OK
+4619345 bytes transferidos em 0,148 segundos. A velocidade de transferência é
+ 31119,799 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-15.58.13.101529.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-15.58.13.101529.CSV
+229 Entering Extended Passive Mode (|||3329|)
+150 Connection accepted
+226 Transfer OK
+4744450 bytes transferidos em 0,168 segundos. A velocidade de transferência é
+ 28246,027 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-16.23.34.865051.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-16.23.34.865051.CSV
+229 Entering Extended Passive Mode (|||3606|)
+150 Connection accepted
+226 Transfer OK
+5335595 bytes transferidos em 0,227 segundos. A velocidade de transferência é
+ 23550,213 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-17.39.19.784305.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-17.39.19.784305.CSV
+229 Entering Extended Passive Mode (|||4451|)
+150 Connection accepted
+226 Transfer OK
+384940 bytes transferidos em 0,016 segundos. A velocidade de transferência é
+ 24636,160 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-17.41.03.746968.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-17.41.03.746968.CSV
+229 Entering Extended Passive Mode (|||4477|)
+150 Connection accepted
+226 Transfer OK
+384940 bytes transferidos em 0,016 segundos. A velocidade de transferência é
+ 24636,160 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-17.41.49.851670.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-17.41.49.851670.CSV
+229 Entering Extended Passive Mode (|||4478|)
+150 Connection accepted
+226 Transfer OK
+384940 bytes transferidos em 0,021 segundos. A velocidade de transferência é
+ 17917,207 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-17.41.52.299613.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-17.41.52.299613.CSV
+229 Entering Extended Passive Mode (|||4480|)
+150 Connection accepted
+226 Transfer OK
+384940 bytes transferidos em 0,015 segundos. A velocidade de transferência é
+ 26278,570 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-17.42.29.780038.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-17.42.29.780038.CSV
+229 Entering Extended Passive Mode (|||4483|)
+150 Connection accepted
+226 Transfer OK
+384940 bytes transferidos em 0,023 segundos. A velocidade de transferência é
+ 16424,107 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-17.43.50.198599.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-17.43.50.198599.CSV
+229 Entering Extended Passive Mode (|||4492|)
+150 Connection accepted
+226 Transfer OK
+384940 bytes transferidos em 0,019 segundos. A velocidade de transferência é
+ 20746,240 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-17.44.57.517744.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-17.44.57.517744.CSV
+229 Entering Extended Passive Mode (|||4558|)
+150 Connection accepted
+226 Transfer OK
+384940 bytes transferidos em 0,016 segundos. A velocidade de transferência é
+ 24636,160 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-17.52.26.371688.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-17.52.26.371688.CSV
+229 Entering Extended Passive Mode (|||4583|)
+150 Connection accepted
+226 Transfer OK
+384940 bytes transferidos em 0,021 segundos. A velocidade de transferência é
+ 18770,408 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-17.54.39.025933.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-17.54.39.025933.CSV
+229 Entering Extended Passive Mode (|||4603|)
+150 Connection accepted
+226 Transfer OK
+384940 bytes transferidos em 0,017 segundos. A velocidade de transferência é
+ 23186,975 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-17.56.49.031123.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-17.56.49.031123.CSV
+229 Entering Extended Passive Mode (|||4627|)
+150 Connection accepted
+226 Transfer OK
+384940 bytes transferidos em 0,043 segundos. A velocidade de transferência é
+ 8958,604 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-18.00.05.711635.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-18.00.05.711635.CSV
+229 Entering Extended Passive Mode (|||4683|)
+150 Connection accepted
+226 Transfer OK
+384940 bytes transferidos em 0,018 segundos. A velocidade de transferência é
+ 21898,809 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-18.01.45.656536.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-18.01.45.656536.CSV
+229 Entering Extended Passive Mode (|||4699|)
+150 Connection accepted
+226 Transfer OK
+384940 bytes transferidos em 0,015 segundos. A velocidade de transferência é
+ 26278,570 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-18.01.47.472449.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-18.01.47.472449.CSV
+229 Entering Extended Passive Mode (|||4700|)
+150 Connection accepted
+226 Transfer OK
+384940 bytes transferidos em 0,017 segundos. A velocidade de transferência é
+ 23186,975 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-18.06.41.757095.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-18.06.41.757095.CSV
+229 Entering Extended Passive Mode (|||4756|)
+150 Connection accepted
+226 Transfer OK
+5458509 bytes transferidos em 0,162 segundos. A velocidade de transferência é
+ 33671,766 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-18.35.34.654961.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-18.35.34.654961.CSV
+229 Entering Extended Passive Mode (|||1265|)
+150 Connection accepted
+226 Transfer OK
+5458698 bytes transferidos em 0,193 segundos. A velocidade de transferência é
+ 28230,842 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-22-18.51.07.856861.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-22-18.51.07.856861.CSV
+229 Entering Extended Passive Mode (|||1436|)
+150 Connection accepted
+226 Transfer OK
+5831914 bytes transferidos em 0,251 segundos. A velocidade de transferência é
+ 23236,887 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-23-17.00.02.580093.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-23-17.00.02.580093.CSV
+229 Entering Extended Passive Mode (|||3528|)
+150 Connection accepted
+226 Transfer OK
+5831914 bytes transferidos em 0,211 segundos. A velocidade de transferência é
+ 27647,592 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-10.00.01.948684.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-10.00.01.948684.CSV
+229 Entering Extended Passive Mode (|||2809|)
+150 Connection accepted
+226 Transfer OK
+5831914 bytes transferidos em 0,228 segundos. A velocidade de transferência é
+ 25630,387 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-14.39.30.090070.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-14.39.30.090070.CSV
+229 Entering Extended Passive Mode (|||2001|)
+150 Connection accepted
+226 Transfer OK
+   190 bytes transferidos em 0,006 segundos. A velocidade de transferência é
+ 32,427 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-14.40.49.226747.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-14.40.49.226747.CSV
+229 Entering Extended Passive Mode (|||2016|)
+150 Connection accepted
+226 Transfer OK
+   190 bytes transferidos em 0,004 segundos. A velocidade de transferência é
+ 48,640 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-14.45.39.966446.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-14.45.39.966446.CSV
+229 Entering Extended Passive Mode (|||2068|)
+150 Connection accepted
+226 Transfer OK
+202405 bytes transferidos em 0,039 segundos. A velocidade de transferência é
+ 5181,568 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-14.50.52.073734.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-14.50.52.073734.CSV
+229 Entering Extended Passive Mode (|||2126|)
+150 Connection accepted
+226 Transfer OK
+202405 bytes transferidos em 0,044 segundos. A velocidade de transferência é
+ 4605,838 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-14.56.08.844044.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-14.56.08.844044.CSV
+229 Entering Extended Passive Mode (|||2256|)
+150 Connection accepted
+226 Transfer OK
+202405 bytes transferidos em 0,035 segundos. A velocidade de transferência é
+ 5757,298 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-15.15.39.648047.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-15.15.39.648047.CSV
+229 Entering Extended Passive Mode (|||2379|)
+150 Connection accepted
+226 Transfer OK
+202405 bytes transferidos em 0,046 segundos. A velocidade de transferência é
+ 4409,845 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-15.21.38.647842.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-15.21.38.647842.CSV
+229 Entering Extended Passive Mode (|||2476|)
+150 Connection accepted
+226 Transfer OK
+202405 bytes transferidos em 0,032 segundos. A velocidade de transferência é
+ 6280,688 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-15.22.43.934100.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-15.22.43.934100.CSV
+229 Entering Extended Passive Mode (|||2479|)
+150 Connection accepted
+226 Transfer OK
+202405 bytes transferidos em 0,039 segundos. A velocidade de transferência é
+ 5181,568 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-15.23.51.175023.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-15.23.51.175023.CSV
+229 Entering Extended Passive Mode (|||2487|)
+150 Connection accepted
+226 Transfer OK
+202405 bytes transferidos em 0,028 segundos. A velocidade de transferência é
+ 7146,990 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-15.56.28.813342.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-15.56.28.813342.CSV
+229 Entering Extended Passive Mode (|||2829|)
+150 Connection accepted
+226 Transfer OK
+202533 bytes transferidos em 0,032 segundos. A velocidade de transferência é
+ 6284,660 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-16.00.24.791618.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-16.00.24.791618.CSV
+229 Entering Extended Passive Mode (|||2882|)
+150 Connection accepted
+226 Transfer OK
+202533 bytes transferidos em 0,030 segundos. A velocidade de transferência é
+ 6690,123 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-16.01.46.079456.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-16.01.46.079456.CSV
+229 Entering Extended Passive Mode (|||2900|)
+150 Connection accepted
+226 Transfer OK
+202533 bytes transferidos em 0,034 segundos. A velocidade de transferência é
+ 5925,537 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-16.58.10.993051.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-16.58.10.993051.CSV
+229 Entering Extended Passive Mode (|||3508|)
+150 Connection accepted
+226 Transfer OK
+200544 bytes transferidos em 0,044 segundos. A velocidade de transferência é
+ 4563,490 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-16.59.05.404190.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-16.59.05.404190.CSV
+229 Entering Extended Passive Mode (|||3528|)
+150 Connection accepted
+226 Transfer OK
+200544 bytes transferidos em 0,042 segundos. A velocidade de transferência é
+ 4775,746 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-17.19.04.274098.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-17.19.04.274098.CSV
+229 Entering Extended Passive Mode (|||3740|)
+150 Connection accepted
+226 Transfer OK
+271485 bytes transferidos em 0,027 segundos. A velocidade de transferência é
+ 9928,595 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-17.22.09.972273.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-17.22.09.972273.CSV
+229 Entering Extended Passive Mode (|||3787|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,032 segundos. A velocidade de transferência é
+ 8383,115 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-24-17.22.40.154491.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-24-17.22.40.154491.CSV
+229 Entering Extended Passive Mode (|||3793|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,024 segundos. A velocidade de transferência é
+ 11065,713 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-10.00.00.924053.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-10.00.00.924053.CSV
+229 Entering Extended Passive Mode (|||1919|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,020 segundos. A velocidade de transferência é
+ 13832,141 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-11.32.51.728465.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-11.32.51.728465.CSV
+229 Entering Extended Passive Mode (|||2907|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,029 segundos. A velocidade de transferência é
+ 9221,427 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-11.42.13.852903.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-11.42.13.852903.CSV
+229 Entering Extended Passive Mode (|||3014|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,012 segundos. A velocidade de transferência é
+ 23053,568 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-11.44.25.039133.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-11.44.25.039133.CSV
+229 Entering Extended Passive Mode (|||3039|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,010 segundos. A velocidade de transferência é
+ 27664,281 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-11.50.14.696773.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-11.50.14.696773.CSV
+229 Entering Extended Passive Mode (|||3107|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,014 segundos. A velocidade de transferência é
+ 19760,201 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-12.01.20.215406.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-12.01.20.215406.CSV
+229 Entering Extended Passive Mode (|||3248|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,018 segundos. A velocidade de transferência é
+ 15369,045 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-12.01.23.018186.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-12.01.23.018186.CSV
+229 Entering Extended Passive Mode (|||3249|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,017 segundos. A velocidade de transferência é
+ 16273,106 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-12.25.50.038939.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-12.25.50.038939.CSV
+229 Entering Extended Passive Mode (|||3510|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,014 segundos. A velocidade de transferência é
+ 19760,201 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-12.27.13.818756.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-12.27.13.818756.CSV
+229 Entering Extended Passive Mode (|||3527|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,018 segundos. A velocidade de transferência é
+ 15369,045 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-12.37.50.515295.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-12.37.50.515295.CSV
+229 Entering Extended Passive Mode (|||3640|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,016 segundos. A velocidade de transferência é
+ 17290,176 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-12.59.39.038611.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-12.59.39.038611.CSV
+229 Entering Extended Passive Mode (|||3925|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,015 segundos. A velocidade de transferência é
+ 18442,854 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-13.11.30.221538.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-13.11.30.221538.CSV
+229 Entering Extended Passive Mode (|||4014|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,015 segundos. A velocidade de transferência é
+ 18442,854 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-13.31.42.019083.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-13.31.42.019083.CSV
+229 Entering Extended Passive Mode (|||4240|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,018 segundos. A velocidade de transferência é
+ 15369,045 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-13.35.07.612369.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-13.35.07.612369.CSV
+229 Entering Extended Passive Mode (|||4278|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,012 segundos. A velocidade de transferência é
+ 23053,568 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-13.35.12.181683.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-13.35.12.181683.CSV
+229 Entering Extended Passive Mode (|||4279|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,019 segundos. A velocidade de transferência é
+ 14560,148 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-13.36.34.599588.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-13.36.34.599588.CSV
+229 Entering Extended Passive Mode (|||4303|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,026 segundos. A velocidade de transferência é
+ 10246,030 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-13.44.11.457598.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-13.44.11.457598.CSV
+229 Entering Extended Passive Mode (|||4387|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,016 segundos. A velocidade de transferência é
+ 17290,176 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-13.55.04.193705.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-13.55.04.193705.CSV
+229 Entering Extended Passive Mode (|||4505|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,033 segundos. A velocidade de transferência é
+ 8136,553 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-13.56.15.081159.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-13.56.15.081159.CSV
+229 Entering Extended Passive Mode (|||4509|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,035 segundos. A velocidade de transferência é
+ 7684,522 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-27-13.56.52.737502.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-27-13.56.52.737502.CSV
+229 Entering Extended Passive Mode (|||4516|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,034 segundos. A velocidade de transferência é
+ 7904,081 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+Output redirected to a file.
+Input read from specified override file.
+Connecting to remote host 10.61.55.25 using port 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Enter login ID (andrade):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Enter an FTP subcommand.
+>       LCD KYCDES
+Local working directory is KYCDES
+Enter an FTP subcommand.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Enter an FTP subcommand.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Enter an FTP subcommand.
+>       DELETE AMLF001.2018-08-27-17.33.02.402769.CSV
+550 File not found
+Enter an FTP subcommand.
+>       PUT AMLF001 AMLF001.2018-08-27-17.33.02.402769.CSV
+229 Entering Extended Passive Mode (|||2936|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferred in 0,056 seconds. Transfer rate 4853,383 KB/sec.
+Enter an FTP subcommand.
+> CLOSE
+221 Goodbye
+Enter an FTP subcommand.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-28-10.00.01.976204.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-28-10.00.01.976204.CSV
+229 Entering Extended Passive Mode (|||1719|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,030 segundos. A velocidade de transferência é
+ 8923,962 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-29-10.00.00.918414.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-29-10.00.00.918414.CSV
+229 Entering Extended Passive Mode (|||1198|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,033 segundos. A velocidade de transferência é
+ 8136,553 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-30-10.00.02.132794.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-30-10.00.02.132794.CSV
+229 Entering Extended Passive Mode (|||4918|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,034 segundos. A velocidade de transferência é
+ 7904,081 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-08-31-10.00.02.453369.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-08-31-10.00.02.453369.CSV
+229 Entering Extended Passive Mode (|||4704|)
+150 Connection accepted
+226 Transfer OK
+270159 bytes transferidos em 0,021 segundos. A velocidade de transferência é
+ 12574,674 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-03-10.00.01.344774.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-03-10.00.01.344774.CSV
+229 Entering Extended Passive Mode (|||4633|)
+150 Connection accepted
+226 Transfer OK
+290049 bytes transferidos em 0,037 segundos. A velocidade de transferência é
+ 7816,057 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-03-15.05.12.652255.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-03-15.05.12.652255.CSV
+229 Entering Extended Passive Mode (|||4111|)
+150 Connection accepted
+226 Transfer OK
+290041 bytes transferidos em 0,039 segundos. A velocidade de transferência é
+ 7425,050 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-03-15.12.03.410900.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-03-15.12.03.410900.CSV
+229 Entering Extended Passive Mode (|||4185|)
+150 Connection accepted
+226 Transfer OK
+290041 bytes transferidos em 0,038 segundos. A velocidade de transferência é
+ 7615,436 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-03-15.23.26.011720.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-03-15.23.26.011720.CSV
+229 Entering Extended Passive Mode (|||4317|)
+150 Connection accepted
+226 Transfer OK
+290041 bytes transferidos em 0,033 segundos. A velocidade de transferência é
+ 8735,353 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-04-10.00.02.505929.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-04-10.00.02.505929.CSV
+229 Entering Extended Passive Mode (|||4615|)
+150 Connection accepted
+226 Transfer OK
+290041 bytes transferidos em 0,046 segundos. A velocidade de transferência é
+ 6319,191 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-04-15.08.00.886733.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-04-15.08.00.886733.CSV
+229 Entering Extended Passive Mode (|||4018|)
+150 Connection accepted
+226 Transfer OK
+290704 bytes transferidos em 0,063 segundos. A velocidade de transferência é
+ 4579,706 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-05-10.00.02.279647.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-05-10.00.02.279647.CSV
+229 Entering Extended Passive Mode (|||4393|)
+150 Connection accepted
+226 Transfer OK
+290704 bytes transferidos em 0,030 segundos. A velocidade de transferência é
+ 9602,609 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-06-10.00.01.423590.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-06-10.00.01.423590.CSV
+229 Entering Extended Passive Mode (|||4004|)
+150 Connection accepted
+226 Transfer OK
+291367 bytes transferidos em 0,073 segundos. A velocidade de transferência é
+ 3978,131 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-07-10.00.02.195930.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-07-10.00.02.195930.CSV
+229 Entering Extended Passive Mode (|||3508|)
+150 Connection accepted
+226 Transfer OK
+292030 bytes transferidos em 0,092 segundos. A velocidade de transferência é
+ 3181,263 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-10-10.04.09.685407.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-10-10.04.09.685407.CSV
+229 Entering Extended Passive Mode (|||2767|)
+150 Connection accepted
+226 Transfer OK
+292030 bytes transferidos em 0,039 segundos. A velocidade de transferência é
+ 7475,968 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-11-10.00.02.228240.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-11-10.00.02.228240.CSV
+229 Entering Extended Passive Mode (|||2754|)
+150 Connection accepted
+226 Transfer OK
+292030 bytes transferidos em 0,035 segundos. A velocidade de transferência é
+ 8306,631 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-12-10.00.01.727615.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-12-10.00.01.727615.CSV
+229 Entering Extended Passive Mode (|||3024|)
+150 Connection accepted
+226 Transfer OK
+292030 bytes transferidos em 0,065 segundos. A velocidade de transferência é
+ 4463,265 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-13-09.00.02.137958.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-13-09.00.02.137958.CSV
+229 Entering Extended Passive Mode (|||2181|)
+150 Connection accepted
+226 Transfer OK
+292030 bytes transferidos em 0,066 segundos. A velocidade de transferência é
+ 4397,628 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-13-09.28.42.203136.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-13-09.28.42.203136.CSV
+229 Entering Extended Passive Mode (|||2481|)
+150 Connection accepted
+226 Transfer OK
+292030 bytes transferidos em 0,038 segundos. A velocidade de transferência é
+ 7667,660 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-13-09.35.52.387219.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-13-09.35.52.387219.CSV
+229 Entering Extended Passive Mode (|||2567|)
+150 Connection accepted
+226 Transfer OK
+292030 bytes transferidos em 0,054 segundos. A velocidade de transferência é
+ 5437,068 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-13-09.36.33.443906.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-13-09.36.33.443906.CSV
+229 Entering Extended Passive Mode (|||2573|)
+150 Connection accepted
+226 Transfer OK
+292030 bytes transferidos em 0,116 segundos. A velocidade de transferência é
+ 2512,930 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-13-09.39.39.764468.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-13-09.39.39.764468.CSV
+229 Entering Extended Passive Mode (|||2643|)
+150 Connection accepted
+226 Transfer OK
+292030 bytes transferidos em 0,032 segundos. A velocidade de transferência é
+ 9061,779 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-13-09.42.54.263689.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-13-09.42.54.263689.CSV
+229 Entering Extended Passive Mode (|||2668|)
+150 Connection accepted
+226 Transfer OK
+292030 bytes transferidos em 0,041 segundos. A velocidade de transferência é
+ 7119,970 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-13-09.46.52.962409.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-13-09.46.52.962409.CSV
+229 Entering Extended Passive Mode (|||2695|)
+150 Connection accepted
+226 Transfer OK
+292030 bytes transferidos em 0,032 segundos. A velocidade de transferência é
+ 9061,779 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-13-09.48.16.875292.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-13-09.48.16.875292.CSV
+229 Entering Extended Passive Mode (|||2705|)
+150 Connection accepted
+226 Transfer OK
+292030 bytes transferidos em 0,039 segundos. A velocidade de transferência é
+ 7475,968 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-13-09.50.12.610223.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-13-09.50.12.610223.CSV
+229 Entering Extended Passive Mode (|||2726|)
+150 Connection accepted
+226 Transfer OK
+292030 bytes transferidos em 0,036 segundos. A velocidade de transferência é
+ 8082,127 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-13-10.00.01.402877.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-13-10.00.01.402877.CSV
+229 Entering Extended Passive Mode (|||2844|)
+150 Connection accepted
+226 Transfer OK
+292030 bytes transferidos em 0,031 segundos. A velocidade de transferência é
+ 9344,960 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-14-10.00.02.026577.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-14-10.00.02.026577.CSV
+229 Entering Extended Passive Mode (|||2442|)
+150 Connection accepted
+226 Transfer OK
+292030 bytes transferidos em 0,042 segundos. A velocidade de transferência é
+ 6954,389 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-17-10.00.01.441629.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-17-10.00.01.441629.CSV
+229 Entering Extended Passive Mode (|||1466|)
+150 Connection accepted
+226 Transfer OK
+300649 bytes transferidos em 0,041 segundos. A velocidade de transferência é
+ 7330,109 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-18-10.00.02.327527.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-18-10.00.02.327527.CSV
+229 Entering Extended Passive Mode (|||1057|)
+150 Connection accepted
+226 Transfer OK
+300653 bytes transferidos em 0,046 segundos. A velocidade de transferência é
+ 6550,397 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-19-10.00.02.366087.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-19-10.00.02.366087.CSV
+229 Entering Extended Passive Mode (|||1038|)
+150 Connection accepted
+226 Transfer OK
+300653 bytes transferidos em 0,066 segundos. A velocidade de transferência é
+ 4527,480 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-20-10.00.01.249315.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-20-10.00.01.249315.CSV
+229 Entering Extended Passive Mode (|||4913|)
+150 Connection accepted
+226 Transfer OK
+300653 bytes transferidos em 0,353 segundos. A velocidade de transferência é
+ 852,822 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-21-10.00.01.400685.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-21-10.00.01.400685.CSV
+229 Entering Extended Passive Mode (|||4813|)
+150 Connection accepted
+226 Transfer OK
+300653 bytes transferidos em 0,066 segundos. A velocidade de transferência é
+ 4527,480 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-24-10.00.01.631757.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-24-10.00.01.631757.CSV
+229 Entering Extended Passive Mode (|||4013|)
+150 Connection accepted
+226 Transfer OK
+300653 bytes transferidos em 0,048 segundos. A velocidade de transferência é
+ 6283,034 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-25-10.00.02.109046.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-25-10.00.02.109046.CSV
+229 Entering Extended Passive Mode (|||3345|)
+150 Connection accepted
+226 Transfer OK
+300653 bytes transferidos em 0,079 segundos. A velocidade de transferência é
+ 3800,848 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-26-10.00.01.755257.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-26-10.00.01.755257.CSV
+229 Entering Extended Passive Mode (|||2859|)
+150 Connection accepted
+226 Transfer OK
+300653 bytes transferidos em 0,046 segundos. A velocidade de transferência é
+ 6550,397 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-27-10.00.00.686977.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-27-10.00.00.686977.CSV
+229 Entering Extended Passive Mode (|||2437|)
+150 Connection accepted
+226 Transfer OK
+300653 bytes transferidos em 0,054 segundos. A velocidade de transferência é
+ 5597,612 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-09-28-10.00.03.034479.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-09-28-10.00.03.034479.CSV
+229 Entering Extended Passive Mode (|||2295|)
+150 Connection accepted
+226 Transfer OK
+300653 bytes transferidos em 0,035 segundos. A velocidade de transferência é
+ 8551,907 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-01-10.00.01.439287.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-01-10.00.01.439287.CSV
+229 Entering Extended Passive Mode (|||2367|)
+150 Connection accepted
+226 Transfer OK
+300653 bytes transferidos em 0,062 segundos. A velocidade de transferência é
+ 4886,804 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-02-10.00.02.024887.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-02-10.00.02.024887.CSV
+229 Entering Extended Passive Mode (|||2709|)
+150 Connection accepted
+226 Transfer OK
+300653 bytes transferidos em 0,058 segundos. A velocidade de transferência é
+ 5218,113 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-03-10.00.02.395380.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-03-10.00.02.395380.CSV
+229 Entering Extended Passive Mode (|||3168|)
+150 Connection accepted
+226 Transfer OK
+300653 bytes transferidos em 0,056 segundos. A velocidade de transferência é
+ 5401,205 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-04-10.00.00.837231.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-04-10.00.00.837231.CSV
+229 Entering Extended Passive Mode (|||3378|)
+150 Connection accepted
+226 Transfer OK
+301979 bytes transferidos em 0,032 segundos. A velocidade de transferência é
+ 9370,500 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-05-10.00.00.924654.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-05-10.00.00.924654.CSV
+229 Entering Extended Passive Mode (|||3669|)
+150 Connection accepted
+226 Transfer OK
+301979 bytes transferidos em 0,049 segundos. A velocidade de transferência é
+ 6184,530 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-08-10.00.01.215759.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-08-10.00.01.215759.CSV
+229 Entering Extended Passive Mode (|||3651|)
+150 Connection accepted
+226 Transfer OK
+301979 bytes transferidos em 0,035 segundos. A velocidade de transferência é
+ 8589,625 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-09-10.00.02.415906.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-09-10.00.02.415906.CSV
+229 Entering Extended Passive Mode (|||3634|)
+150 Connection accepted
+226 Transfer OK
+301979 bytes transferidos em 0,077 segundos. A velocidade de transferência é
+ 3914,260 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-10-10.00.01.626929.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-10-10.00.01.626929.CSV
+229 Entering Extended Passive Mode (|||1394|)
+150 Connection accepted
+226 Transfer OK
+301979 bytes transferidos em 0,109 segundos. A velocidade de transferência é
+ 2760,951 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-11-10.00.01.574751.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-11-10.00.01.574751.CSV
+229 Entering Extended Passive Mode (|||4853|)
+150 Connection accepted
+226 Transfer OK
+301979 bytes transferidos em 0,062 segundos. A velocidade de transferência é
+ 4908,357 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-12-10.00.01.766501.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-12-10.00.01.766501.CSV
+229 Entering Extended Passive Mode (|||4408|)
+150 Connection accepted
+226 Transfer OK
+301979 bytes transferidos em 0,122 segundos. A velocidade de transferência é
+ 2473,812 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-15-10.00.01.195613.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-15-10.00.01.195613.CSV
+229 Entering Extended Passive Mode (|||2319|)
+150 Connection accepted
+226 Transfer OK
+301979 bytes transferidos em 0,044 segundos. A velocidade de transferência é
+ 6871,700 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-16-10.00.01.786491.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-16-10.00.01.786491.CSV
+229 Entering Extended Passive Mode (|||1749|)
+150 Connection accepted
+226 Transfer OK
+301979 bytes transferidos em 0,052 segundos. A velocidade de transferência é
+ 5834,462 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-17-10.00.02.551387.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-17-10.00.02.551387.CSV
+229 Entering Extended Passive Mode (|||1474|)
+150 Connection accepted
+226 Transfer OK
+301979 bytes transferidos em 0,049 segundos. A velocidade de transferência é
+ 6184,530 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-18-10.00.02.144680.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-18-10.00.02.144680.CSV
+229 Entering Extended Passive Mode (|||1333|)
+150 Connection accepted
+226 Transfer OK
+301979 bytes transferidos em 0,039 segundos. A velocidade de transferência é
+ 7730,663 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-19-09.46.53.308472.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-19-09.46.53.308472.CSV
+229 Entering Extended Passive Mode (|||4827|)
+150 Connection accepted
+226 Transfer OK
+301979 bytes transferidos em 0,032 segundos. A velocidade de transferência é
+ 9370,500 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-19-10.00.00.560502.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-19-10.00.00.560502.CSV
+229 Entering Extended Passive Mode (|||4966|)
+150 Connection accepted
+226 Transfer OK
+301979 bytes transferidos em 0,039 segundos. A velocidade de transferência é
+ 7730,663 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-22-10.00.01.413519.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-22-10.00.01.413519.CSV
+229 Entering Extended Passive Mode (|||3502|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,052 segundos. A velocidade de transferência é
+ 5872,891 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-23-10.00.01.301503.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-23-10.00.01.301503.CSV
+229 Entering Extended Passive Mode (|||3255|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,033 segundos. A velocidade de transferência é
+ 9154,801 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-24-10.00.02.362436.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-24-10.00.02.362436.CSV
+229 Entering Extended Passive Mode (|||3266|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,036 segundos. A velocidade de transferência é
+ 8412,520 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-25-10.00.01.826849.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-25-10.00.01.826849.CSV
+229 Entering Extended Passive Mode (|||2961|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,044 segundos. A velocidade de transferência é
+ 6916,961 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-26-10.00.01.297924.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-26-10.00.01.297924.CSV
+229 Entering Extended Passive Mode (|||2897|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,044 segundos. A velocidade de transferência é
+ 6916,961 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-29-10.00.01.404029.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-29-10.00.01.404029.CSV
+229 Entering Extended Passive Mode (|||3182|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,039 segundos. A velocidade de transferência é
+ 7781,581 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-30-10.00.04.418476.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-30-10.00.04.418476.CSV
+229 Entering Extended Passive Mode (|||3210|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,091 segundos. A velocidade de transferência é
+ 3346,917 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-10-31-08.00.01.251344.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-10-31-08.00.01.251344.CSV
+229 Entering Extended Passive Mode (|||1685|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,047 segundos. A velocidade de transferência é
+ 6484,651 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-11-01-08.00.01.570059.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-11-01-08.00.01.570059.CSV
+229 Entering Extended Passive Mode (|||1107|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,050 segundos. A velocidade de transferência é
+ 6103,201 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-11-02-08.00.02.619490.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-11-02-08.00.02.619490.CSV
+229 Entering Extended Passive Mode (|||4224|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,049 segundos. A velocidade de transferência é
+ 6225,265 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-11-05-08.00.00.929669.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-11-05-08.00.00.929669.CSV
+229 Entering Extended Passive Mode (|||1759|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,153 segundos. A velocidade de transferência é
+ 1982,568 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-11-06-08.00.02.130744.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-11-06-08.00.02.130744.CSV
+229 Entering Extended Passive Mode (|||1919|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,060 segundos. A velocidade de transferência é
+ 5102,676 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-11-07-08.00.01.725658.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-11-07-08.00.01.725658.CSV
+229 Entering Extended Passive Mode (|||1900|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,063 segundos. A velocidade de transferência é
+ 4788,665 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-11-08-08.57.13.556638.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-11-08-08.57.13.556638.CSV
+229 Entering Extended Passive Mode (|||2981|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,079 segundos. A velocidade de transferência é
+ 3842,756 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-11-09-08.00.02.338009.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-11-09-08.00.02.338009.CSV
+229 Entering Extended Passive Mode (|||4264|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,039 segundos. A velocidade de transferência é
+ 7781,581 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-11-12-08.00.01.493437.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-11-12-08.00.01.493437.CSV
+229 Entering Extended Passive Mode (|||3197|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,193 segundos. A velocidade de transferência é
+ 1572,036 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+Output redirected to a file.
+Input read from specified override file.
+Connecting to remote host 10.61.55.25 using port 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Enter login ID (andrade):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Enter an FTP subcommand.
+>       LCD KYCDES
+Local working directory is KYCDES
+Enter an FTP subcommand.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Enter an FTP subcommand.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Enter an FTP subcommand.
+>       DELETE AMLF001.2018-11-13-10.36.11.805629.CSV
+550 File not found
+Enter an FTP subcommand.
+>       PUT AMLF001 AMLF001.2018-11-13-10.36.11.805629.CSV
+229 Entering Extended Passive Mode (|||2976|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferred in 0,041 seconds. Transfer rate 7411,029 KB/sec.
+Enter an FTP subcommand.
+> CLOSE
+221 Goodbye
+Enter an FTP subcommand.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-11-13-11.07.58.228387.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-11-13-11.07.58.228387.CSV
+229 Entering Extended Passive Mode (|||3390|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,034 segundos. A velocidade de transferência é
+ 8893,235 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-11-14-08.00.01.787562.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-11-14-08.00.01.787562.CSV
+229 Entering Extended Passive Mode (|||3130|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,045 segundos. A velocidade de transferência é
+ 6766,592 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-11-15-08.00.02.257522.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-11-15-08.00.02.257522.CSV
+229 Entering Extended Passive Mode (|||1584|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,053 segundos. A velocidade de transferência é
+ 5764,134 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-11-16-08.00.02.007071.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-11-16-08.00.02.007071.CSV
+229 Entering Extended Passive Mode (|||3651|)
+150 Connection accepted
+226 Transfer OK
+303968 bytes transferidos em 0,062 segundos. A velocidade de transferência é
+ 4940,686 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (qijs):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  AML Informacao Banco Portugal
+250 CWD successful. "/AML Informacao Banco Portugal" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/AML Informacao Banco Portugal/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001.2018-11-19-08.00.01.169813.CSV
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001.2018-11-19-08.00.01.169813.CSV
+229 Entering Extended Passive Mode (|||2457|)
+150 Connection accepted
+226 Transfer OK
+305957 bytes transferidos em 0,133 segundos. A velocidade de transferência é
+ 2303,676 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT

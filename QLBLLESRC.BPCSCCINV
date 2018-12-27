@@ -1,0 +1,1804 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    BPCSCCINV  INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2017-MAR-13.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: BPC - Centralização de Responsabilidades   *
+     š*   OBJECTIVO ......: Este Interface destina-se a Extrair Info   *
+     š*                     Estática de Instrumentos e Contratos       *
+     š*   ANALISTA .......: PEDRO GARCIA                               *
+     š*   PROGRAMADOR.....:                                            *
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 EXISTE-INFO-CTR            PIC 9(01).
+          88 SIM-EXISTE-CTR          VALUE 1.
+          88 NAO-EXISTE-CTR          VALUE 0.
+      *
+       01 EXISTE-INFO-CPT            PIC 9(01).
+          88 SIM-EXISTE-CPT          VALUE 1.
+          88 NAO-EXISTE-CPT          VALUE 0.
+      *
+       01 EXISTE-INST                PIC 9(01).
+          88 SIM-EXISTE              VALUE 1.
+          88 NAO-EXISTE              VALUE 0.
+      *
+       01 ENVIADA-INFO               PIC 9(01).
+          88 SIM-ENVIADA             VALUE 1.
+          88 NAO-ENVIADA             VALUE 0.
+      *
+       01 ENVIADA-INFO-DOC           PIC 9(01).
+          88 SIM-ENVIADA-DOC         VALUE 1.
+          88 NAO-ENVIADA-DOC         VALUE 0.
+      *
+       01 EXISTE-ALTER               PIC 9(01).
+          88 SIM-ALTER               VALUE 1.
+          88 NAO-ALTER               VALUE 0.
+      *
+       01 F-ALTER                    PIC 9(01).
+          88 SIM-FALTER              VALUE 1.
+          88 NAO-FALTER              VALUE 0.
+      *
+       01 TIPO-TAXA                  PIC X(01).
+          88 TAXA-FIXA               VALUE "F".
+          88 TAXA-VAR                VALUE "V".
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-ANOIN                PIC X(04).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-DIAIN                PIC X(02).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01 WX-ANO-CONVER.
+          03 WS-ANO-12               PIC X(02).
+          03 WS-ANO-34               PIC X(02).
+
+       01  W-CONSTANTS.
+           05  K-APLICACAO           PIC X(3)    VALUE "BPC".
+           05  K-PROGRAMA            PIC X(8)    VALUE "BPCSCCIV".
+
+     š* Indice para Pesquisa de String
+       01 S-CHAR-L                   PIC S9(4)   COMP.
+       01 S-CHAR-V                   PIC X(50).
+       01 W-CHAR.
+          03 W-NOMECHR               PIC X       OCCURS 50.
+
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+           COPY BPCBCINT.
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA        PIC 9(04).
+           03  FILLER              PIC X VALUE "-".
+           03  WS-MESIN-DIA        PIC 9(02).
+           03  FILLER              PIC X VALUE "-".
+           03  WS-DIAIN-DIA        PIC 9(02).
+
+       01 WS-TST-DATE              PIC X(10).
+       01 WS-VAL-DATE              PIC X(10).
+       01 WS-OUT-DATE              PIC X(10).
+
+       01 WS-NURACI                PIC X(07).
+       01 WS-MVDTA                 PIC S9(09).
+       01 WS-MVDTAX                PIC S9(09).
+       01 WS-BALCAO                PIC X(07).
+       01 WS-BTGRE                 PIC X(03).
+       01 WS-BTRUB                 PIC X(03).
+       01 WS-BTMON                 PIC X(03).
+       01 WN-CTCONT-CTR            PIC 9(11).
+       01 WA-CTCONT-CTR REDEFINES WN-CTCONT-CTR.
+          05  WA-CTCONT-CTR4       PIC X(4).
+          05  WA-CTCONT-CTR7       PIC X(7).
+       01 WN-CTID-CTR              PIC 9(3).
+       01 WA-CTID-CTR REDEFINES WN-CTID-CTR.
+          05  WA-CTID-CTR3         PIC X(3).
+     š* Definição de Contrato
+     š* Se Não Houver Contrato CTID = '000' e CTCONT = Racine
+       01 WS-CTR                   PIC X(32).
+       01 WX-CTR    REDEFINES WS-CTR.
+          05 WS-CTID-CTR           PIC X(03).
+          05 WS-CTCONT-CTR         PIC X(07).
+
+     š* Contrato
+       01 WS-IDCONT                PIC X(32).
+       01 WX-IDCONT REDEFINES WS-IDCONT.
+          05 WS-CTR-CONT           PIC X(03).
+          05 WS-FILLER1-CONT       PIC X(01).
+          05 WS-SEQ-CONT           PIC X(07).
+
+     š* Definição de Conta - Contrato No Fim se Houver
+       01 WS-CONTA                 PIC X(32).
+       01 WX-CONTA  REDEFINES WS-CONTA.
+          05 WS-RACINE             PIC X(07).
+          05 WS-GRE                PIC X(03).
+          05 WS-RUB                PIC X(03).
+          05 WS-MON                PIC X(03).
+          05 WS-CTID               PIC X(03).
+          05 WS-CTCONT             PIC X(07).
+
+     š* Instrumento de Crédito
+       01 WS-IDINST                PIC X(32).
+       01 WX-IDINT  REDEFINES WS-IDINST.
+          05 WS-RACINE-INST        PIC X(07).
+          05 WS-FILLER1            PIC X(01).
+          05 WS-GRE-INST           PIC X(03).
+          05 WS-FILLER2            PIC X(01).
+          05 WS-RUB-INST           PIC X(03).
+          05 WS-FILLER3            PIC X(01).
+          05 WS-MON-INST           PIC X(03).
+          05 WS-FILLER4            PIC X(01).
+          05 WS-CTID-INST          PIC X(03).
+          05 WS-FILLER5            PIC X(01).
+          05 WS-CTCONT-INST        PIC X(07).
+
+       01 WS-TXJURD                PIC S9(3)V9(6) COMP-3.
+       01 WS-SPRTXJURD             PIC S9(3)V9(6) COMP-3.
+       01 WS-TXJURC                PIC S9(3)V9(6) COMP-3.
+       01 WS-SPRTXJURC             PIC S9(3)V9(6) COMP-3.
+       01 WS-TXDESC                PIC X(35).
+       01 WS-DTINI-DESC            PIC S9(9) COMP-3.
+       01 WW-DTINI-DESC            PIC X(9).
+       01 WX-DTINI-DESC REDEFINES WW-DTINI-DESC.
+          05 FILLER1               PIC X(1).
+          05 DTANO-DESC            PIC X(4).
+          05 DTMES-DESC            PIC X(2).
+          05 DTDIA-DESC            PIC X(2).
+       01 WS-CVTAB                 PIC X(03).
+       01 WS-CVCOD                 PIC X(03).
+       01 WS-CVMOED                PIC X(03).
+       01 WS-CVPRZ                 PIC S9(02) COMP-3.
+       01 WS-MON-ALFA              PIC X(03).
+       01 WS-TBCODE                PIC X(03).
+
+     š* Copy : Tabela de Entidades
+           EXEC SQL
+               INCLUDE BPCHCENTN
+           END-EXEC.
+
+     š* Copy : Tabela de Instrumentos NOVA
+           EXEC SQL
+               INCLUDE BPCHCCINN
+           END-EXEC.
+
+     š* Copy : Tabela de Instrumentos ANTIGA
+           EXEC SQL
+               INCLUDE BPCHCCINO
+           END-EXEC.
+
+     š* Copy : Tabela de Clientes
+       01  R-BPCT199.
+           COPY DDS-ALL-FORMATS OF BPCT199.
+
+     š* Copy : Tabela de Clientes
+       01  R-FDBTAB.
+           COPY DDS-ALL-FORMATS OF FDBTAB.
+
+     š* Copy : Tabela de Dados de Movimentos
+       01  R-FDBMVT.
+           COPY DDS-ALL-FORMATS OF FDBMVT.
+
+     š* Copy : Tabela de Dados de Contrato Crédito
+       01  R-FDBCTR.
+           COPY DDS-ALL-FORMATS OF FDBCTR.
+
+     š* Copy : Tabela de Saldos de Conta
+       01  R-FDBCPT.
+           COPY DDS-ALL-FORMATS OF FDBCPT.
+
+     š* Copy : Tabela de Other Numbering
+       01  R-FDBNUM.
+           COPY DDS-ALL-FORMATS OF FDBNUM.
+
+     š* Copy : Tabela de KYCT900A
+       01  R-KYCT900A.
+           COPY DDS-ALL-FORMATS OF KYCT900A.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+           COPY BPCBCCIN.
+      *================================================================*
+       PROCEDURE DIVISION USING BPCBCCIN-LKPARMS.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+           PERFORM P001-INICIO
+     š*- Havendo Contrato Desagrega Saldos Por Contrato ( Mais que um )
+           PERFORM P350-OBTEM-CONTRATO-ORG
+           IF BPCBCCIN-PROC-OK
+             PERFORM P300-GET-FDBCTR
+           END-IF
+     š*- Obtem Saldos Cash Accounts (Saldo Contab. Agregado Contrato)
+           PERFORM P300-GET-FDBCPT.
+           IF BPCBCCIN-PROC-OK AND
+              NAO-EXISTE-CTR  AND
+              NAO-EXISTE-CPT
+              PERFORM P300-GET-FDBCPT-DO
+           END-IF
+           IF BPCBCCIN-PROC-OK
+              PERFORM P400-MOVE-BPCJCCIN
+              PERFORM P500-TESTA-BPCJCCIN
+           END-IF
+           IF BPCBCCIN-PROC-OK
+             PERFORM P500-TRATA-BPCJCCIN
+           END-IF.
+           IF BPCBCCIN-PROC-OK
+             PERFORM P500-TRATA-BPCJCINT
+           END-IF.
+           PERFORM P999-FIMPGM.
+     š*---------------------------------------------------------------------
+       P001-INICIO.
+     š*---------------------------------------------------------------------
+           INITIALIZE  NEWCCIN-REC
+                    ,  OLDCCIN-REC
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           INITIALIZE  R-FDBCTR
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10) TO WS-DATA-DIA.
+           MOVE ZERO TO EXISTE-ALTER.
+           MOVE  BPCBCCIN-RACINE  TO WS-RACINE WS-NURACI
+           MOVE  BPCBCCIN-CPGRE   TO WS-GRE    WS-BTGRE
+           MOVE  BPCBCCIN-CPRUB   TO WS-RUB    WS-BTRUB
+           MOVE  BPCBCCIN-CPMON   TO WS-MON    WS-BTMON.
+           MOVE  ZEROS            TO CTTAUX OF R-FDBCTR.
+           MOVE "000"             TO WS-CTID-CTR.
+           MOVE BPCBCCIN-RACINE   TO WS-CTCONT-CTR.
+     š*-
+     š*----------------------------------------------------------------
+       P350-OBTEM-CONTRATO-ORG.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                SELECT
+                       X.MVIDRS
+                  ,    X.MVNORS
+                  ,    X.MVRUB
+                  ,    X.MVGRE
+                INTO
+                      :MVIDRS
+                  ,   :MVNORS
+                  ,   :MVRUB
+                  ,   :MVGRE
+                FROM  FDBMVT X
+                WHERE
+                     X.MVRACI  = :WS-NURACI
+                AND  X.MVMON   = :WS-BTMON
+                AND  X.MVIDRS in ( 402 , 403, 404, 407 , 7 )
+                AND  X.MVIDRS = ( SELECT  MAX(MVIDRS  )
+                               FROM  FDBMVT y
+                                WHERE X.MVIDRS = Y.MVIDRS
+                                 AND  X.MVNORS = Y.MVNORS
+                                 AND  X.MVRACI = Y.MVRACI
+                                 AND  X.MVGRE  = Y.MVGRE )
+                FETCH FIRST 1  ROWS ONLY
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             SET   SIM-EXISTE-CTR      TO TRUE
+             MOVE  MVNORS OF R-FDBMVT  TO WN-CTCONT-CTR
+             MOVE  WA-CTCONT-CTR7      TO WS-CTCONT
+                                          WS-CTCONT-CTR
+             MOVE  MVIDRS OF R-FDBMVT  TO WN-CTID-CTR
+             MOVE  WA-CTID-CTR3        TO WS-CTID
+                                          WS-CTID-CTR
+                                          WS-GRE WS-BTGRE
+             MOVE MVRUB  OF R-FDBMVT   TO WS-RUB
+             MOVE MVGRE  OF R-FDBMVT   TO WS-GRE
+           WHEN SQLCODE-NOTFOUND
+             SET  NAO-EXISTE-CTR      TO TRUE
+           WHEN OTHER
+             SET  NAO-EXISTE-CTR      TO TRUE
+             MOVE "FDBMVT"            TO W-OBJECT-NAME
+             SET   CMD-SELECT         TO TRUE
+             PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-FDBCTR.
+     š*----------------------------------------------------------------
+     š*-
+           INITIALIZE  R-FDBCTR
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+     š*- Obtem Informação de Contratos
+
+           EXEC SQL
+                SELECT  CTID
+                     ,  CTCONT
+                     ,  CTOPER
+                     ,  CTNOPR
+                     ,  CTDTOU
+                     ,  CTDTPR
+                     ,  CTDTLQ
+                     ,  CTSTAT
+                     ,  CTSAIP
+                     ,  CTCNTP
+                     ,  CTCENT
+                     ,  CTRACI
+                     ,  CTGRE
+                     ,  CTRUB
+                     ,  CTMON
+                     ,  CTTYPE
+                     ,  CTBACA
+                     ,  CTDTEJ
+                     ,  CTDTEM
+                     ,  CTDTEA
+                     ,  CTDJEX
+                     ,  CTDMEX
+                     ,  CTDAEX
+                     ,  CTCRAC
+                     ,  CTCGRE
+                     ,  CTCRUB
+                     ,  CTCMON
+                     ,  CTDRAC
+                     ,  CTDGRE
+                     ,  CTDRUB
+                     ,  CTDMON
+                     ,  CTCAPI
+                     ,  CTTAUX
+                     ,  CTDTVJ
+                     ,  CTDTVM
+                     ,  CTDTVA
+                     ,  CTECHJ
+                     ,  CTECHM
+                     ,  CTECHA
+                     ,  CTFCHJ
+                     ,  CTFCHM
+                     ,  CTFCHA
+                     ,  CTNBRJ
+                     ,  CTSJOU
+                     ,  CTINTE
+                     ,  CTINML
+                     ,  CTINTC
+                     ,  CTCIMP
+                     ,  CTIMPO
+                     ,  CTCOMM
+                     ,  CTTCOM
+                     ,  CTCOMI
+                     ,  CTFRAI
+                     ,  CTOTAU
+                     ,  CTOCAP
+                     ,  CTODVJ
+                     ,  CTODVM
+                     ,  CTODVA
+                     ,  CTODEJ
+                     ,  CTODEM
+                     ,  CTODEA
+                     ,  CTTABA
+                     ,  CTSIMA
+                     ,  CTMARG
+                     ,  CTRORI
+                     ,  CTRGRP
+                     ,  CTAMMT
+                     ,  CTJPEN
+                     ,  CTTPEN
+                     ,  CTXCCA
+                     ,  CTXCIN
+                     ,  CTFRIN
+                     ,  CTTYPT
+                     ,  CTRFRQTAU
+
+                INTO   :CTID
+                     , :CTCONT
+                     , :CTOPER
+                     , :CTNOPR
+                     , :CTDTOU
+                     , :CTDTPR
+                     , :CTDTLQ
+                     , :CTSTAT
+                     , :CTSAIP
+                     , :CTCNTP
+                     , :CTCENT
+                     , :CTRACI
+                     , :CTGRE
+                     , :CTRUB
+                     , :CTMON
+                     , :CTTYPE
+                     , :CTBACA
+                     , :CTDTEJ
+                     , :CTDTEM
+                     , :CTDTEA
+                     , :CTDJEX
+                     , :CTDMEX
+                     , :CTDAEX
+                     , :CTCRAC
+                     , :CTCGRE
+                     , :CTCRUB
+                     , :CTCMON
+                     , :CTDRAC
+                     , :CTDGRE
+                     , :CTDRUB
+                     , :CTDMON
+                     , :CTCAPI
+                     , :CTTAUX
+                     , :CTDTVJ
+                     , :CTDTVM
+                     , :CTDTVA
+                     , :CTECHJ
+                     , :CTECHM
+                     , :CTECHA
+                     , :CTFCHJ
+                     , :CTFCHM
+                     , :CTFCHA
+                     , :CTNBRJ
+                     , :CTSJOU
+                     , :CTINTE
+                     , :CTINML
+                     , :CTINTC
+                     , :CTCIMP
+                     , :CTIMPO
+                     , :CTCOMM
+                     , :CTTCOM
+                     , :CTCOMI
+                     , :CTFRAI
+                     , :CTOTAU
+                     , :CTOCAP
+                     , :CTODVJ
+                     , :CTODVM
+                     , :CTODVA
+                     , :CTODEJ
+                     , :CTODEM
+                     , :CTODEA
+                     , :CTTABA
+                     , :CTSIMA
+                     , :CTMARG
+                     , :CTRORI
+                     , :CTRGRP
+                     , :CTAMMT
+                     , :CTJPEN
+                     , :CTTPEN
+                     , :CTXCCA
+                     , :CTXCIN
+                     , :CTFRIN
+                     , :CTTYPT
+                     , :CTRFRQTAU
+
+                FROM  FDBCTR A
+                WHERE A.CTID   = :WS-CTID
+                 AND  A.CTCONT = :WS-CTCONT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET SIM-EXISTE-CTR       TO TRUE
+              MOVE CTCONT OF R-FDBCTR  TO WS-CTCONT
+              MOVE CTID   OF R-FDBCTR  TO WS-GRE  WS-BTGRE
+           WHEN SQLCODE-NOTFOUND
+              MOVE  ZEROS              TO CTTAUX OF R-FDBCTR
+              SET NAO-EXISTE-CTR       TO TRUE
+           WHEN OTHER
+              MOVE "FDBCTR "           TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-FDBCPT.
+     š*----------------------------------------------------------------
+     š*-
+           INITIALIZE  R-FDBCPT
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+     š*- Obtem Informação Mestre de Saldos
+
+           EXEC SQL
+                SELECT  CPRACI
+                     ,  CPGRE
+                     ,  CPRUB
+                     ,  CPMON
+                     ,  CPETAT
+                     ,  CPDTOU
+                     ,  CPDTMU
+                     ,  CPDTAN
+                     ,  CPNBRM
+                     ,  CPTRUB
+                     ,  CPACPT
+                     ,  CPNATU
+                     ,  CPFRBO
+                     ,  CPMLIM
+                     ,  CPDVDU
+                     ,  CPDVAU
+                     ,  CPFRAM
+                     ,  CPMTAM
+                     ,  CPDTAM
+                     ,  CPCPTI
+                     ,  CPCPTC
+                     ,  CPCPTF
+                     ,  CPBCAL
+                     ,  CPDVLT
+                     ,  CPDCBA
+                     ,  CPDTBA
+                     ,  CPDSIG
+                     ,  CPDMAR
+                     ,  CPDEFF
+                     ,  CPCCBA
+                     ,  CPCTBA
+                     ,  CPCSIG
+                     ,  CPCMAR
+                     ,  CPCEFF
+                     ,  CPCCOM
+                     ,  CPCBCL
+                     ,  CPAVOF
+                     ,  CPECHD
+                     ,  CPPRIF
+                     ,  CPCOFI
+                     ,  CPCDOR
+                     ,  CPDDOR
+                     ,  CPFAVI
+                     ,  CPFREL
+                     ,  CPFEXT
+                     ,  CPFANU
+                     ,  CPFBCL
+                     ,  CPFCOG
+                     ,  CPFCOM
+                     ,  CPSOLD
+                     ,  CPSMLC
+
+                INTO   :CPRACI
+                     , :CPGRE
+                     , :CPRUB
+                     , :CPMON
+                     , :CPETAT
+                     , :CPDTOU
+                     , :CPDTMU
+                     , :CPDTAN
+                     , :CPNBRM
+                     , :CPTRUB
+                     , :CPACPT
+                     , :CPNATU
+                     , :CPFRBO
+                     , :CPMLIM
+                     , :CPDVDU
+                     , :CPDVAU
+                     , :CPFRAM
+                     , :CPMTAM
+                     , :CPDTAM
+                     , :CPCPTI
+                     , :CPCPTC
+                     , :CPCPTF
+                     , :CPBCAL
+                     , :CPDVLT
+                     , :CPDCBA
+                     , :CPDTBA
+                     , :CPDSIG
+                     , :CPDMAR
+                     , :CPDEFF
+                     , :CPCCBA
+                     , :CPCTBA
+                     , :CPCSIG
+                     , :CPCMAR
+                     , :CPCEFF
+                     , :CPCCOM
+                     , :CPCBCL
+                     , :CPAVOF
+                     , :CPECHD
+                     , :CPPRIF
+                     , :CPCOFI
+                     , :CPCDOR
+                     , :CPDDOR
+                     , :CPFAVI
+                     , :CPFREL
+                     , :CPFEXT
+                     , :CPFANU
+                     , :CPFBCL
+                     , :CPFCOG
+                     , :CPFCOM
+                     , :CPSOLD
+                     , :CPSMLC
+                FROM  FDBCPT A
+                WHERE A.CPRACI = :WS-RACINE
+                 AND  A.CPGRE  = :WS-GRE
+                 AND  A.CPRUB  = :WS-RUB
+                 AND  A.CPMON  = :WS-MON
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET SIM-EXISTE-CPT       TO TRUE
+           WHEN SQLCODE-NOTFOUND
+              SET NAO-EXISTE-CPT       TO TRUE
+           WHEN OTHER
+              SET NAO-EXISTE-CPT       TO TRUE
+              MOVE "FDBCPT "           TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-FDBCPT-DO.
+     š*----------------------------------------------------------------
+     š*-
+           INITIALIZE  R-FDBCPT
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+     š*- Obtem Informação Mestre de Saldos
+           MOVE "000"  TO WS-RUB
+           EXEC SQL
+                SELECT  CPRACI
+                     ,  CPGRE
+                     ,  CPRUB
+                     ,  CPMON
+                     ,  CPETAT
+                     ,  CPDTOU
+                     ,  CPDTMU
+                     ,  CPDTAN
+                     ,  CPNBRM
+                     ,  CPTRUB
+                     ,  CPACPT
+                     ,  CPNATU
+                     ,  CPFRBO
+                     ,  CPMLIM
+                     ,  CPDVDU
+                     ,  CPDVAU
+                     ,  CPFRAM
+                     ,  CPMTAM
+                     ,  CPDTAM
+                     ,  CPCPTI
+                     ,  CPCPTC
+                     ,  CPCPTF
+                     ,  CPBCAL
+                     ,  CPDVLT
+                     ,  CPDCBA
+                     ,  CPDTBA
+                     ,  CPDSIG
+                     ,  CPDMAR
+                     ,  CPDEFF
+                     ,  CPCCBA
+                     ,  CPCTBA
+                     ,  CPCSIG
+                     ,  CPCMAR
+                     ,  CPCEFF
+                     ,  CPCCOM
+                     ,  CPCBCL
+                     ,  CPAVOF
+                     ,  CPECHD
+                     ,  CPPRIF
+                     ,  CPCOFI
+                     ,  CPCDOR
+                     ,  CPDDOR
+                     ,  CPFAVI
+                     ,  CPFREL
+                     ,  CPFEXT
+                     ,  CPFANU
+                     ,  CPFBCL
+                     ,  CPFCOG
+                     ,  CPFCOM
+                     ,  CPSOLD
+                     ,  CPSMLC
+
+                INTO   :CPRACI
+                     , :CPGRE
+                     , :CPRUB
+                     , :CPMON
+                     , :CPETAT
+                     , :CPDTOU
+                     , :CPDTMU
+                     , :CPDTAN
+                     , :CPNBRM
+                     , :CPTRUB
+                     , :CPACPT
+                     , :CPNATU
+                     , :CPFRBO
+                     , :CPMLIM
+                     , :CPDVDU
+                     , :CPDVAU
+                     , :CPFRAM
+                     , :CPMTAM
+                     , :CPDTAM
+                     , :CPCPTI
+                     , :CPCPTC
+                     , :CPCPTF
+                     , :CPBCAL
+                     , :CPDVLT
+                     , :CPDCBA
+                     , :CPDTBA
+                     , :CPDSIG
+                     , :CPDMAR
+                     , :CPDEFF
+                     , :CPCCBA
+                     , :CPCTBA
+                     , :CPCSIG
+                     , :CPCMAR
+                     , :CPCEFF
+                     , :CPCCOM
+                     , :CPCBCL
+                     , :CPAVOF
+                     , :CPECHD
+                     , :CPPRIF
+                     , :CPCOFI
+                     , :CPCDOR
+                     , :CPDDOR
+                     , :CPFAVI
+                     , :CPFREL
+                     , :CPFEXT
+                     , :CPFANU
+                     , :CPFBCL
+                     , :CPFCOG
+                     , :CPFCOM
+                     , :CPSOLD
+                     , :CPSMLC
+                FROM  FDBCPT A
+                WHERE A.CPRACI = :WS-RACINE
+                 AND  A.CPGRE  = :WS-GRE
+                 AND  A.CPRUB  = :WS-RUB
+                 AND  A.CPMON  = :WS-MON
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET SIM-EXISTE-CPT       TO TRUE
+           WHEN SQLCODE-NOTFOUND
+              SET NAO-EXISTE-CPT       TO TRUE
+           WHEN OTHER
+              SET NAO-EXISTE-CPT       TO TRUE
+              MOVE "FDBCPT "           TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-MOVE-BPCJCCIN.
+     š*----------------------------------------------------------------
+     š*- INFTINST
+     š*- BPENV - E- Para Enviar
+           MOVE "E"                TO NEWCCIN-BPENV
+     š*- DTREFENT - data de Referencia
+           MOVE  BPCBCCIN-DTPROC   TO NEWCCIN-DTREFINST
+     š*- Audit Log
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP       END-EXEC.
+     š*- IDCNT  CTI/000  + SEQ/RACINE
+           MOVE WS-CTID-CTR        TO  WS-CTR-CONT
+           MOVE WS-CTCONT-CTR      TO  WS-SEQ-CONT
+           MOVE "-"                TO WS-FILLER1-CONT
+           MOVE WS-IDCONT          TO NEWCCIN-IDCONT
+     š*- IDINST   CTRACI + CTGRE + CTRUB + CTMON
+           MOVE WS-RACINE          TO WS-RACINE-INST
+           MOVE WS-GRE             TO WS-GRE-INST
+           MOVE WS-RUB             TO WS-RUB-INST
+           MOVE WS-MON             TO WS-MON-INST
+           MOVE WS-CTID            TO WS-CTID-INST
+           MOVE WS-CTCONT          TO WS-CTCONT-INST
+           MOVE "-"                TO WS-FILLER1
+           MOVE "-"                TO WS-FILLER2
+           MOVE "-"                TO WS-FILLER3
+           IF WS-CTID NOT EQUAL SPACES
+             MOVE "-"              TO WS-FILLER4
+           END-IF
+           IF WS-CTCONT NOT EQUAL SPACES
+             MOVE "-"              TO WS-FILLER5
+           END-IF
+           MOVE WS-IDINST          TO NEWCCIN-IDINST
+     š*- BALCAO
+           MOVE CTCENT OF R-FDBCTR TO WS-BALCAO
+           IF  WS-BALCAO      = SPACES  OR
+                              = "0000001"
+               MOVE "1"            TO WS-BALCAO
+           END-IF
+           MOVE WS-BALCAO          TO NEWCCIN-BALCAO
+     š*- PROJFINAN
+           MOVE "000"              TO NEWCCIN-PROJFINAN
+     š*- IDCONTSIND
+     š*- LITIGJUD  ( VERIFICAR FDBCLI.CLGERA  = "0001890" )
+           MOVE "000"              TO NEWCCIN-LITIGJUD
+     š*- IEB ( EUROSISTEMA )
+     š*- PAISLEGIS
+           MOVE "PRT"              TO NEWCCIN-PAISLEGIS
+     š*- CANALCOMER
+           MOVE "002"              TO NEWCCIN-CANALCOMER
+     š*- CLAUSRENUN
+           MOVE "000"              TO NEWCCIN-CLAUSRENUN
+     š*- SUBVPROTOCOLO
+           MOVE "000"              TO NEWCCIN-SUBVPROTOCOLO
+     š*- REFEXTINST
+           MOVE WS-IDINST          TO NEWCCIN-REFEXTINST
+     š*- TPINST ( 0180 - OUTROS CREDITOS )
+           IF WS-BTGRE = "001"
+             MOVE "0030"           TO NEWCCIN-TPINST
+           ELSE
+             MOVE "0050"           TO NEWCCIN-TPINST
+           END-IF
+     š*- MOEDA
+           PERFORM P300-MOEDA-ALFA
+           MOVE WS-MON-ALFA          TO NEWCCIN-MOEDA
+     š*- DTUTILFUND ( AAAA-MM-DD CTDAEX / CTDMEX /  CTDJEX )
+           MOVE CTDAEX               TO WS-ANOIN  OF WX-DATA-CONVER
+           MOVE CTDMEX               TO WS-MESIN  OF WX-DATA-CONVER
+           MOVE CTDJEX               TO WS-DIAIN  OF WX-DATA-CONVER
+           MOVE CORR  WX-DATA-CONVER TO WS-DATA-CONVER
+           MOVE WS-DATA-CONVER       TO WS-TST-DATE
+           PERFORM P450-VALIDA-DATE
+           MOVE WS-OUT-DATE          TO NEWCCIN-DTUTILFUND
+     š*- DTINIINST (  AAAA-MM-DD CTDTEA / CTDTEM /  CTDTEJ )
+           IF SIM-EXISTE-CTR
+            MOVE CTDTOU OF R-FDBCTR(1:2) TO WS-DIAIN  OF WX-DATA-CONVER
+            MOVE CTDTOU OF R-FDBCTR(3:2) TO WS-MESIN  OF WX-DATA-CONVER
+            MOVE CTDTOU OF R-FDBCTR(5:2) TO WS-ANO-34
+            MOVE "20"                    TO WS-ANO-12
+            MOVE WX-ANO-CONVER           TO WS-ANOIN  OF WX-DATA-CONVER
+
+            MOVE CORR  WX-DATA-CONVER TO WS-DATA-CONVER
+            MOVE WS-DATA-CONVER       TO WS-TST-DATE
+            PERFORM P450-VALIDA-DATE
+            MOVE WS-OUT-DATE          TO NEWCCIN-DTINIINST
+     š*- DTORIMAT
+            MOVE CTECHA               TO WS-ANOIN  OF WX-DATA-CONVER
+            MOVE CTECHM               TO WS-MESIN  OF WX-DATA-CONVER
+            MOVE CTECHJ               TO WS-DIAIN  OF WX-DATA-CONVER
+            MOVE CORR  WX-DATA-CONVER TO WS-DATA-CONVER
+            MOVE WS-DATA-CONVER       TO WS-TST-DATE
+            PERFORM P450-VALIDA-DATE
+            MOVE WS-OUT-DATE          TO NEWCCIN-DTORIMAT
+     š*- DTMAT
+            MOVE CTECHA               TO WS-ANOIN  OF WX-DATA-CONVER
+            MOVE CTECHM               TO WS-MESIN  OF WX-DATA-CONVER
+            MOVE CTECHJ               TO WS-DIAIN  OF WX-DATA-CONVER
+            MOVE CORR  WX-DATA-CONVER TO WS-DATA-CONVER
+            MOVE CORR  WX-DATA-CONVER TO WS-DATA-CONVER
+            MOVE WS-DATA-CONVER       TO WS-TST-DATE
+            PERFORM P450-VALIDA-DATE
+            MOVE WS-OUT-DATE          TO NEWCCIN-DTMAT
+           ELSE
+            PERFORM P400-DTINIC-DESC-BYVAL1
+            MOVE WS-DTINI-DESC        TO WW-DTINI-DESC
+            MOVE DTANO-DESC           TO WS-ANOIN  OF WX-DATA-CONVER
+            MOVE DTMES-DESC           TO WS-MESIN  OF WX-DATA-CONVER
+            MOVE DTDIA-DESC           TO WS-DIAIN  OF WX-DATA-CONVER
+            MOVE CORR  WX-DATA-CONVER TO WS-DATA-CONVER
+            MOVE WS-DATA-CONVER       TO WS-TST-DATE
+            PERFORM P450-VALIDA-DATE
+            MOVE WS-OUT-DATE          TO NEWCCIN-DTINIINST
+            MOVE "9999-12-31"         TO NEWCCIN-DTORIMAT
+            MOVE "9999-12-31"         TO NEWCCIN-DTMAT
+           END-IF
+     š*- Caso Raro em que dtiniinst = dtmat
+           IF SIM-EXISTE-CTR AND
+              NEWCCIN-DTMAT = NEWCCIN-DTINIINST
+              PERFORM P4000-GET-DTINIINST-BYMOV
+              MOVE WS-DTINI-DESC        TO WW-DTINI-DESC
+              MOVE DTANO-DESC           TO WS-ANOIN  OF WX-DATA-CONVER
+              MOVE DTMES-DESC           TO WS-MESIN  OF WX-DATA-CONVER
+              MOVE DTDIA-DESC           TO WS-DIAIN  OF WX-DATA-CONVER
+              MOVE CORR  WX-DATA-CONVER TO WS-DATA-CONVER
+              MOVE WS-DATA-CONVER       TO WS-TST-DATE
+              PERFORM P450-VALIDA-DATE
+              IF WS-OUT-DATE < NEWCCIN-DTINIINST AND
+                 WS-OUT-DATE NOT EQUAL "0001-01-01"
+                 MOVE WS-OUT-DATE       TO NEWCCIN-DTINIINST
+              END-IF
+           END-IF
+     š*- DTINICARJUR
+     š*- DTFIMCARJUR
+     š*- DTINICARCAP
+     š*- DTFIMCARCAP
+     š*- DIRREEMBLME
+           MOVE SPACES                TO NEWCCIN-DIRREEMBLME
+           PERFORM P500-GET-BPCJCENT
+           IF NEWCENT-TPENT = "001"
+             MOVE "001"                TO NEWCCIN-DIRREEMBLME
+           END-IF
+     š*- RECURSO
+           MOVE "000"              TO NEWCCIN-RECURSO
+     š*- TXREF indexante Necessita Conversão
+           IF (CTTAUV =  "Y") AND ( CTTYPT NOT EQUAL " " )
+             MOVE "TXR"             TO WS-CVTAB
+             MOVE CTTYPT            TO WS-CVCOD
+             EVALUATE TRUE
+               WHEN  WS-CVCOD(1:1) = "L"
+                MOVE "LIB"   TO  WS-CVCOD
+               WHEN  WS-CVCOD(1:1) = "E"
+                MOVE "EUR"   TO  WS-CVCOD
+               WHEN OTHER
+                MOVE "EUR"   TO  WS-CVCOD
+             END-EVALUATE
+             MOVE BPCBCCIN-CPMON    TO WS-CVMOED
+             MOVE CTRFRQTAU         TO WS-CVPRZ
+             PERFORM P400-CONVERTE-BP
+             IF  CODBP EQUAL SPACES
+               SET TAXA-FIXA          TO TRUE
+               MOVE " "               TO NEWCCIN-TXREF
+             ELSE
+               MOVE  CODBP            TO NEWCCIN-TXREF
+               SET TAXA-VAR           TO TRUE
+             END-IF
+           ELSE
+             SET TAXA-FIXA          TO TRUE
+             MOVE " "               TO NEWCCIN-TXREF
+           END-IF
+     š*- TPTXJUR  001 - Variável / 002 - Fixa / 003 - Mista / 004 - Out
+     š*- FREQATUALIZTX
+           IF TAXA-FIXA
+             MOVE  "002"            TO NEWCCIN-TPTXJUR
+             MOVE  "000"            TO NEWCCIN-FREQATUALIZTX
+           ELSE
+     š*- FREQATUALIZTX Rel.com a CTRFRQTAU
+             IF SIM-EXISTE-CTR  AND NOT TAXA-FIXA
+               EVALUATE CTRFRQTAU
+                 WHEN 60 MOVE "001"    TO NEWCCIN-FREQATUALIZTX
+                 WHEN 12 MOVE "002"    TO NEWCCIN-FREQATUALIZTX
+                 WHEN  4 MOVE "003"    TO NEWCCIN-FREQATUALIZTX
+                 WHEN  2 MOVE "004"    TO NEWCCIN-FREQATUALIZTX
+                 WHEN  1 MOVE "005"    TO NEWCCIN-FREQATUALIZTX
+                 WHEN  OTHER
+                       MOVE "007"    TO NEWCCIN-FREQATUALIZTX
+               END-EVALUATE
+             ELSE
+               IF TAXA-FIXA
+                 MOVE "000"    TO NEWCCIN-FREQATUALIZTX
+               ELSE
+                 MOVE "001"    TO NEWCCIN-FREQATUALIZTX
+               END-IF
+             END-IF
+           END-IF
+     š*- SPREAD
+           MOVE  WS-SPRTXJURD       TO NEWCCIN-SPREAD
+     š*- TXMAX
+     š*- TXMIN
+     š*- TAEG
+           MOVE CTTAUX              TO NEWCCIN-TAEG
+     š*- TAE
+           MOVE CTTAUX              TO NEWCCIN-TAE
+     š*- PERFIXTX - Dias Decorridos até primeira actualização de Taxa
+           IF NEWCCIN-TPTXJUR = "001"
+             MOVE 30                TO NEWCCIN-PERFIXTX
+           ELSE
+             MOVE  999999           TO NEWCCIN-PERFIXTX
+           END-IF
+     š*- DURPLANOFIN
+     š*- FINALIDADE
+           MOVE "0000"              TO NEWCCIN-FINALIDADE
+     š*- TPAMORT  ( para Crédito Habitação )
+             MOVE "006"             TO NEWCCIN-TPAMORT
+     š*- FREQPAGAM
+           IF NAO-EXISTE-CTR
+             MOVE  "007"            TO NEWCCIN-FREQPAGAM
+           ELSE
+             EVALUATE TRUE
+     š*- Anual
+             WHEN CTFRIN ="01"
+               MOVE  "004"          TO  NEWCCIN-FREQPAGAM
+     š*- Semestral
+             WHEN CTFRIN ="02"
+               MOVE  "003"          TO  NEWCCIN-FREQPAGAM
+     š*- Trimestral
+             WHEN CTFRIN ="04"
+               MOVE  "002"          TO  NEWCCIN-FREQPAGAM
+     š*- Mensal
+             WHEN CTFRIN ="12"
+               MOVE  "001"          TO  NEWCCIN-FREQPAGAM
+     š*- Irregular
+             WHEN OTHER
+               MOVE  "007"          TO  NEWCCIN-FREQPAGAM
+             END-EVALUATE
+           END-IF.
+     š*- DIVSUBOR
+           MOVE "000"               TO NEWCCIN-DIVSUBOR
+     š*- INSTFIDUC
+           MOVE "000"               TO NEWCCIN-INSTFIDUC
+     š*- MONTINI
+           IF SIM-EXISTE-CTR
+             MOVE CTCAPI            TO NEWCCIN-MONTINI
+             MOVE WS-IDCONT         TO NEWCCIN-IDCONT
+           END-IF
+     š*- VARFV
+     š*- DTRENEG
+     š*- TPNEG
+           MOVE "001"             TO NEWCCIN-TPNEG
+     š*- PERCDIFCAP
+     š*- TPTITULARIZ
+           MOVE "000"             TO NEWCCIN-TPTITULARIZ.
+     š*- SEGUROS
+           MOVE S-SYSTMST         TO NEWCCIN-TMSCRIA.
+           MOVE "BPCSCCIV"        TO NEWCCIN-USERCRIA.
+     š*- "002" - FIXA
+           IF NEWCCIN-TXREF   = " "   AND
+              NEWCCIN-TPTXJUR = "001"
+             MOVE  "000"            TO NEWCCIN-FREQATUALIZTX
+             MOVE  "002"            TO NEWCCIN-TPTXJUR
+           END-IF.
+           IF NEWCCIN-TXREF NOT EQUAL SPACES  AND
+              NEWCCIN-TPTXJUR = " "
+             MOVE  "001"            TO NEWCCIN-TPTXJUR
+           END-IF.
+           IF NEWCCIN-TXREF NOT EQUAL SPACES  AND
+              NEWCCIN-TPTXJUR  = "002"
+             MOVE  "001"            TO NEWCCIN-TPTXJUR
+           END-IF.
+           IF NEWCCIN-TXREF EQUAL SPACES
+             MOVE  "000"            TO NEWCCIN-FREQATUALIZTX
+             MOVE  "002"            TO NEWCCIN-TPTXJUR
+           END-IF.
+
+           IF NEWCCIN-FREQPAGAM = " "  AND SIM-EXISTE-CTR
+             MOVE "007"    TO NEWCCIN-FREQPAGAM
+           END-IF.
+           IF NEWCCIN-DTUTILFUND  = "0001-01-01"
+             MOVE NEWCCIN-DTINIINST    TO NEWCCIN-DTUTILFUND
+           END-IF.
+
+     š*----------------------------------------------------------------
+       P400-DTINIC-DESC-BYVAL1.
+     š*----------------------------------------------------------------
+     š*- Acede FDBMVT
+     š*- Chave FSVMVT MVRACI,MVGRE,MVRUB,MVMON,MVDTVA Desc,MVSEQC Desc
+           MOVE WS-DATA-DIA           TO WS-MVDTA
+           COMPUTE WS-MVDTA = WS-ANOIN-DIA * 10000 + WS-MESIN-DIA * 100
+                            + WS-DIAIN-DIA
+           EXEC SQL
+                SELECT  MAX(MVDTVA)
+                INTO   :WS-MVDTAX
+                FROM FSVMVT
+                       WHERE MVDTVA <= :WS-MVDTA
+                         AND MVRACI  = :WS-NURACI
+                         AND MVGRE   = "001"
+                         AND MVRUB   = "000"
+                         AND MVMON   = :WS-BTMON
+                  END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              MOVE ZEROS TO WS-MVDTA
+           END-EVALUATE.
+
+           IF WS-MVDTAX  IS NOT NUMERIC
+              MOVE ZEROS TO WS-MVDTAX
+           END-IF
+           MOVE WS-MVDTAX TO WS-DTINI-DESC.
+     š*-
+     š*----------------------------------------------------------------
+       P500-GET-BPCJCENT.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE WS-RACINE   TO NEWCENT-REFEXTENT
+
+           EXEC SQL
+             SELECT  IDENT
+                   , TPENT
+                   , REFEXTENT
+             INTO
+                    :NEWCENT-IDENT
+                   ,:NEWCENT-TPENT
+                   ,:NEWCENT-REFEXTENT
+             FROM  BPCJCENT
+               WHERE REFEXTENT= :NEWCENT-REFEXTENT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN SQLCODE-NOTFOUND
+              CONTINUE
+           WHEN OTHER
+              MOVE "BPCJCENT"          TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*-
+     š*----------------------------------------------------------------
+       P500-TRATA-BPCJCCIN.
+     š*----------------------------------------------------------------
+     š*- Verifica se o Registo Já Existe
+     š*-
+           IF SIM-ENVIADA
+             IF SIM-ALTER
+                MOVE "CIU"  TO NEWCCIN-INFTINST
+                PERFORM P500-INSERT-HIST-BPCJCCIN
+                PERFORM P500-UPDATE-BPCJCCIN
+             ELSE
+                CONTINUE
+             END-IF
+           ELSE
+             MOVE "CII"    TO NEWCCIN-INFTINST
+               PERFORM P500-INSERT-BPCJCCIN
+           END-IF.
+     š*-
+     š*----------------------------------------------------------------
+       P500-TRATA-BPCJCINT.
+     š*----------------------------------------------------------------
+     š*- Verifica se o Registo Já Existe
+           INITIALIZE                 BPCBCINT-LKPARMS.
+           MOVE WS-IDCONT         TO  BPCBCINT-IDCONT
+           MOVE WS-IDINST         TO  BPCBCINT-IDINST
+           MOVE WS-NURACI         TO  BPCBCINT-RACINE
+           MOVE WS-BTGRE          TO  BPCBCINT-CPGRE
+           MOVE WS-BTRUB          TO  BPCBCINT-CPRUB
+           MOVE WS-BTMON          TO  BPCBCINT-CPMON
+           MOVE WS-BTGRE          TO  BPCBCINT-CTID
+           MOVE WS-CTCONT         TO  BPCBCINT-CTCONT
+           MOVE WS-DATA-DIA       TO  BPCBCINT-DTPROC
+
+           CALL "BPCSCINT" USING  BPCBCINT-LKPARMS
+           IF BPCBCCIN-PROC-OK
+              CONTINUE
+           ELSE
+             INITIALIZE   KYCT900A
+             MOVE BPCBCINT-DESCERR  TO ERRMSG   OF  KYCT900A
+             MOVE BPCBCINT-CODERR   TO ERRCOD   OF  KYCT900A
+             MOVE "BPCSCINT"        TO ERRPRG   OF  KYCT900A
+             MOVE "BPC"             TO ERRAPL   OF  KYCT900A
+             MOVE BPCBCINT-IDMSGEXE TO ERROBJ   OF  KYCT900A
+             MOVE  1                TO ERRRTC   OF  KYCT900A
+             PERFORM P995-INSERT-ERROS
+           END-IF.
+     š*-
+     š*----------------------------------------------------------------
+       P500-TESTA-BPCJCCIN.
+     š*----------------------------------------------------------------
+     š*- Verifica se o Registo Já Existe
+
+           MOVE WS-TMS-NULA  TO NEWCCIN-TMSALT
+           MOVE "E"          TO NEWCCIN-BPENV
+
+           EXEC SQL
+             SELECT  DTREF
+                   , BPENV
+                   , INFTINST
+                   , IDCONT
+                   , IDINST
+                   , BALCAO
+                   , PROJFINAN
+                   , IDCONTSIND
+                   , LITIGJUD
+                   , IEB
+                   , PAISLEGIS
+                   , CANALCOMER
+                   , CLAUSRENUN
+                   , SUBVPROT
+                   , REFEXTINST
+                   , TPINST
+                   , MOEDA
+                   , DTUTILFUND
+                   , DTINIINST
+                   , DTORIMAT
+                   , DTMAT
+                   , DTINICRJUR
+                   , DTFIMCRJUR
+                   , DTINICRCAP
+                   , DTFIMCRCAP
+                   , DIRREMBIM
+                   , RECURSO
+                   , TPTXJUR
+                   , FREQACTTX
+                   , TXREF
+                   , SPREAD
+                   , TXMAX
+                   , TXMIN
+                   , TAEG
+                   , TAE
+                   , PERFIXTX
+                   , DURPLNFIN
+                   , FINALIDADE
+                   , TPAMORT
+                   , FREQPAGAM
+                   , DIVSUBOR
+                   , INSTFIDUC
+                   , MONTINI
+                   , VARFV
+                   , DTRENEG
+                   , TPNEG
+                   , PERCDIFCAP
+                   , TPTITUL
+                   , SEGUROS
+                   , TMSCRIA
+                   , USERCRIA
+                   , TMSALT
+                   , USERALT
+             INTO   :OLDCCIN-DTREFINST
+                   ,:OLDCCIN-BPENV
+                   ,:OLDCCIN-INFTINST
+                   ,:OLDCCIN-IDCONT
+                   ,:OLDCCIN-IDINST
+                   ,:OLDCCIN-BALCAO
+                   ,:OLDCCIN-PROJFINAN
+                   ,:OLDCCIN-IDCONTSIND
+                   ,:OLDCCIN-LITIGJUD
+                   ,:OLDCCIN-IEB
+                   ,:OLDCCIN-PAISLEGIS
+                   ,:OLDCCIN-CANALCOMER
+                   ,:OLDCCIN-CLAUSRENUN
+                   ,:OLDCCIN-SUBVPROTOCOLO
+                   ,:OLDCCIN-REFEXTINST
+                   ,:OLDCCIN-TPINST
+                   ,:OLDCCIN-MOEDA
+                   ,:OLDCCIN-DTUTILFUND
+                   ,:OLDCCIN-DTINIINST
+                   ,:OLDCCIN-DTORIMAT
+                   ,:OLDCCIN-DTMAT
+                   ,:OLDCCIN-DTINICARJUR
+                   ,:OLDCCIN-DTFIMCARJUR
+                   ,:OLDCCIN-DTINICARCAP
+                   ,:OLDCCIN-DTFIMCARCAP
+                   ,:OLDCCIN-DIRREEMBLME
+                   ,:OLDCCIN-RECURSO
+                   ,:OLDCCIN-TPTXJUR
+                   ,:OLDCCIN-FREQATUALIZTX
+                   ,:OLDCCIN-TXREF
+                   ,:OLDCCIN-SPREAD
+                   ,:OLDCCIN-TXMAX
+                   ,:OLDCCIN-TXMIN
+                   ,:OLDCCIN-TAEG
+                   ,:OLDCCIN-TAE
+                   ,:OLDCCIN-PERFIXTX
+                   ,:OLDCCIN-DURPLANOFIN
+                   ,:OLDCCIN-FINALIDADE
+                   ,:OLDCCIN-TPAMORT
+                   ,:OLDCCIN-FREQPAGAM
+                   ,:OLDCCIN-DIVSUBOR
+                   ,:OLDCCIN-INSTFIDUC
+                   ,:OLDCCIN-MONTINI
+                   ,:OLDCCIN-VARFV
+                   ,:OLDCCIN-DTRENEG
+                   ,:OLDCCIN-TPNEG
+                   ,:OLDCCIN-PERCDIFCAP
+                   ,:OLDCCIN-TPTITULARIZ
+                   ,:OLDCCIN-SEGUROS
+                   ,:OLDCCIN-TMSCRIA
+                   ,:OLDCCIN-USERCRIA
+                   ,:OLDCCIN-TMSALT
+                   ,:OLDCCIN-USERALT
+             FROM  BPCJCCIN
+               WHERE IDCONT   = :NEWCCIN-IDCONT
+                AND  IDINST   = :NEWCCIN-IDINST
+
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+     š*-Igual Campos para comparação Global
+              SET   SIM-ENVIADA       TO TRUE
+              MOVE  NEWCCIN-INFTINST  TO OLDCCIN-INFTINST
+              MOVE  NEWCCIN-DTREFINST TO OLDCCIN-DTREFINST
+              MOVE  NEWCCIN-BPENV     TO OLDCCIN-BPENV
+              MOVE  NEWCCIN-TMSCRIA   TO OLDCCIN-TMSCRIA
+              MOVE  NEWCCIN-USERCRIA  TO OLDCCIN-USERCRIA
+              MOVE  NEWCCIN-TMSALT    TO OLDCCIN-TMSALT
+              MOVE  NEWCCIN-USERALT   TO OLDCCIN-USERALT
+              IF    NEWCCIN-REC    = OLDCCIN-REC
+               SET NAO-ALTER TO TRUE
+              ELSE
+               SET SIM-ALTER TO TRUE
+              END-IF
+           WHEN SQLCODE-NOTFOUND
+              SET   NAO-ENVIADA TO TRUE
+              SET   NAO-ALTER   TO TRUE
+           WHEN OTHER
+              MOVE "BPCJCCIN"        TO W-OBJECT-NAME
+              SET CMD-SELECT         TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P500-INSERT-BPCJCCIN.
+     š*----------------------------------------------------------------
+     š*- Verifica se o Registo Já Existe
+     š*-
+           MOVE WS-TMS-NULA  TO NEWCCIN-TMSALT
+           MOVE "E"          TO NEWCCIN-BPENV
+           EXEC SQL
+                 INSERT INTO BPCJCCIN
+                 VALUES ( :NEWCCIN-DTREFINST
+                        , :NEWCCIN-BPENV
+                        , :NEWCCIN-INFTINST
+                        , :NEWCCIN-IDCONT
+                        , :NEWCCIN-IDINST
+                        , :NEWCCIN-BALCAO
+                        , :NEWCCIN-PROJFINAN
+                        , :NEWCCIN-IDCONTSIND
+                        , :NEWCCIN-LITIGJUD
+                        , :NEWCCIN-IEB
+                        , :NEWCCIN-PAISLEGIS
+                        , :NEWCCIN-CANALCOMER
+                        , :NEWCCIN-CLAUSRENUN
+                        , :NEWCCIN-SUBVPROTOCOLO
+                        , :NEWCCIN-REFEXTINST
+                        , :NEWCCIN-TPINST
+                        , :NEWCCIN-MOEDA
+                        , :NEWCCIN-DTUTILFUND
+                        , :NEWCCIN-DTINIINST
+                        , :NEWCCIN-DTORIMAT
+                        , :NEWCCIN-DTMAT
+                        , :NEWCCIN-DTINICARJUR
+                        , :NEWCCIN-DTFIMCARJUR
+                        , :NEWCCIN-DTINICARCAP
+                        , :NEWCCIN-DTFIMCARCAP
+                        , :NEWCCIN-DIRREEMBLME
+                        , :NEWCCIN-RECURSO
+                        , :NEWCCIN-TPTXJUR
+                        , :NEWCCIN-FREQATUALIZTX
+                        , :NEWCCIN-TXREF
+                        , :NEWCCIN-SPREAD
+                        , :NEWCCIN-TXMAX
+                        , :NEWCCIN-TXMIN
+                        , :NEWCCIN-TAEG
+                        , :NEWCCIN-TAE
+                        , :NEWCCIN-PERFIXTX
+                        , :NEWCCIN-DURPLANOFIN
+                        , :NEWCCIN-FINALIDADE
+                        , :NEWCCIN-TPAMORT
+                        , :NEWCCIN-FREQPAGAM
+                        , :NEWCCIN-DIVSUBOR
+                        , :NEWCCIN-INSTFIDUC
+                        , :NEWCCIN-MONTINI
+                        , :NEWCCIN-VARFV
+                        , :NEWCCIN-DTRENEG
+                        , :NEWCCIN-TPNEG
+                        , :NEWCCIN-PERCDIFCAP
+                        , :NEWCCIN-TPTITULARIZ
+                        , :NEWCCIN-SEGUROS
+                        , :NEWCCIN-TMSCRIA
+                        , :NEWCCIN-USERCRIA
+                        , :NEWCCIN-TMSALT
+                        , :NEWCCIN-USERALT )
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "BPCJCCIN"          TO W-OBJECT-NAME
+              SET CMD-INSERT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P500-INSERT-HIST-BPCJCCIN.
+     š*----------------------------------------------------------------
+     š*- Guarda em Histórico a Informação
+     š*-
+           MOVE WS-TMS-NULA  TO NEWCCIN-TMSALT
+           MOVE "E"          TO NEWCCIN-BPENV
+           EXEC SQL
+                 INSERT INTO BPCJHCCIN
+                 VALUES ( :OLDCCIN-DTREFINST
+                        , :OLDCCIN-BPENV
+                        , :OLDCCIN-INFTINST
+                        , :OLDCCIN-IDCONT
+                        , :OLDCCIN-IDINST
+                        , :OLDCCIN-BALCAO
+                        , :OLDCCIN-PROJFINAN
+                        , :OLDCCIN-IDCONTSIND
+                        , :OLDCCIN-LITIGJUD
+                        , :OLDCCIN-IEB
+                        , :OLDCCIN-PAISLEGIS
+                        , :OLDCCIN-CANALCOMER
+                        , :OLDCCIN-CLAUSRENUN
+                        , :OLDCCIN-SUBVPROTOCOLO
+                        , :OLDCCIN-REFEXTINST
+                        , :OLDCCIN-TPINST
+                        , :OLDCCIN-MOEDA
+                        , :OLDCCIN-DTUTILFUND
+                        , :OLDCCIN-DTINIINST
+                        , :OLDCCIN-DTORIMAT
+                        , :OLDCCIN-DTMAT
+                        , :OLDCCIN-DTINICARJUR
+                        , :OLDCCIN-DTFIMCARJUR
+                        , :OLDCCIN-DTINICARCAP
+                        , :OLDCCIN-DTFIMCARCAP
+                        , :OLDCCIN-DIRREEMBLME
+                        , :OLDCCIN-RECURSO
+                        , :OLDCCIN-TPTXJUR
+                        , :OLDCCIN-FREQATUALIZTX
+                        , :OLDCCIN-TXREF
+                        , :OLDCCIN-SPREAD
+                        , :OLDCCIN-TXMAX
+                        , :OLDCCIN-TXMIN
+                        , :OLDCCIN-TAEG
+                        , :OLDCCIN-TAE
+                        , :OLDCCIN-PERFIXTX
+                        , :OLDCCIN-DURPLANOFIN
+                        , :OLDCCIN-FINALIDADE
+                        , :OLDCCIN-TPAMORT
+                        , :OLDCCIN-FREQPAGAM
+                        , :OLDCCIN-DIVSUBOR
+                        , :OLDCCIN-INSTFIDUC
+                        , :OLDCCIN-MONTINI
+                        , :OLDCCIN-VARFV
+                        , :OLDCCIN-DTRENEG
+                        , :OLDCCIN-TPNEG
+                        , :OLDCCIN-PERCDIFCAP
+                        , :OLDCCIN-TPTITULARIZ
+                        , :OLDCCIN-SEGUROS
+                        , :OLDCCIN-TMSCRIA
+                        , :OLDCCIN-USERCRIA
+                        , :OLDCCIN-TMSALT
+                        , :OLDCCIN-USERALT
+                        ,  CURRENT TIMESTAMP )
+           END-EXEC.
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "BPCJCCIN"          TO W-OBJECT-NAME
+              SET CMD-INSERT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P500-UPDATE-BPCJCCIN.
+     š*----------------------------------------------------------------
+     š*- Verifica se o Registo Já Existe
+     š*-
+           MOVE "CIU"          TO NEWCCIN-INFTINST
+           MOVE "E  "          TO NEWCCIN-BPENV
+           MOVE "BPCCCINV"     TO NEWCCIN-USERALT
+
+           EXEC SQL
+                 UPDATE BPCJCCIN
+                 SET     INFTINST      = :NEWCCIN-INFTINST
+                      ,  BPENV         = :NEWCCIN-BPENV
+                      ,  DTREF         = :NEWCCIN-DTREFINST
+                      ,  BALCAO        = :NEWCCIN-BALCAO
+                      ,  PROJFINAN     = :NEWCCIN-PROJFINAN
+                      ,  IDCONTSIND    = :NEWCCIN-IDCONTSIND
+                      ,  LITIGJUD      = :NEWCCIN-LITIGJUD
+                      ,  IEB           = :NEWCCIN-IEB
+                      ,  PAISLEGIS     = :NEWCCIN-PAISLEGIS
+                      ,  CANALCOMER    = :NEWCCIN-CANALCOMER
+                      ,  CLAUSRENUN    = :NEWCCIN-CLAUSRENUN
+                      ,  SUBVPROT      = :NEWCCIN-SUBVPROTOCOLO
+                      ,  REFEXTINST    = :NEWCCIN-REFEXTINST
+                      ,  TPINST        = :NEWCCIN-TPINST
+                      ,  MOEDA         = :NEWCCIN-MOEDA
+                      ,  DTUTILFUND    = :NEWCCIN-DTUTILFUND
+                      ,  DTINIINST     = :NEWCCIN-DTINIINST
+                      ,  DTORIMAT      = :NEWCCIN-DTORIMAT
+                      ,  DTMAT         = :NEWCCIN-DTMAT
+                      ,  DTINICRJUR    = :NEWCCIN-DTINICARJUR
+                      ,  DTFIMCRJUR    = :NEWCCIN-DTFIMCARJUR
+                      ,  DTINICRCAP    = :NEWCCIN-DTINICARCAP
+                      ,  DTFIMCRCAP    = :NEWCCIN-DTFIMCARCAP
+                      ,  DIRREMBIM     = :NEWCCIN-DIRREEMBLME
+                      ,  RECURSO       = :NEWCCIN-RECURSO
+                      ,  TPTXJUR       = :NEWCCIN-TPTXJUR
+                      ,  FREQACTTX     = :NEWCCIN-FREQATUALIZTX
+                      ,  TXREF         = :NEWCCIN-TXREF
+                      ,  SPREAD        = :NEWCCIN-SPREAD
+                      ,  TXMAX         = :NEWCCIN-TXMAX
+                      ,  TXMIN         = :NEWCCIN-TXMIN
+                      ,  TAEG          = :NEWCCIN-TAEG
+                      ,  TAE           = :NEWCCIN-TAE
+                      ,  PERFIXTX      = :NEWCCIN-PERFIXTX
+                      ,  DURPLNFIN     = :NEWCCIN-DURPLANOFIN
+                      ,  FINALIDADE    = :NEWCCIN-FINALIDADE
+                      ,  TPAMORT       = :NEWCCIN-TPAMORT
+                      ,  FREQPAGAM     = :NEWCCIN-FREQPAGAM
+                      ,  DIVSUBOR      = :NEWCCIN-DIVSUBOR
+                      ,  INSTFIDUC     = :NEWCCIN-INSTFIDUC
+                      ,  MONTINI       = :NEWCCIN-MONTINI
+                      ,  VARFV         = :NEWCCIN-VARFV
+                      ,  DTRENEG       = :NEWCCIN-DTRENEG
+                      ,  TPNEG         = :NEWCCIN-TPNEG
+                      ,  PERCDIFCAP    = :NEWCCIN-PERCDIFCAP
+                      ,  TPTITUL       = :NEWCCIN-TPTITULARIZ
+                      ,  SEGUROS       = :NEWCCIN-SEGUROS
+                      ,  TMSALT        = CURRENT TIMESTAMP
+                      ,  USERALT       = :NEWCCIN-USERALT
+
+                  WHERE IDCONT   = :NEWCCIN-IDCONT
+                   AND  IDINST   = :NEWCCIN-IDINST
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "BPCJCCIN"          TO W-OBJECT-NAME
+              SET CMD-UPDATE           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-MOEDA-ALFA.
+     š*----------------------------------------------------------------
+     š*- Descodifica MON  pela Tabela 040
+     š*-
+           INITIALIZE  R-FDBTAB
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           MOVE WS-MON  TO WS-TBCODE
+           MOVE WS-MON  TO WS-MON-ALFA
+
+           EXEC SQL
+                 SELECT SUBSTR(A.TBCOMP, 1, 3 )
+                  INTO :WS-MON-ALFA
+                  FROM  FDBTAB A
+                  WHERE A.TBID   = "040"
+                   AND  A.TBCODE = :WS-TBCODE
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN SQLCODE-NOTFOUND
+             CONTINUE
+           WHEN OTHER
+              MOVE "FDBTAB"            TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*----------------------------------------------------------------
+       P400-CONVERTE-BP.
+     š*----------------------------------------------------------------
+     š*- Descodifica TXREF PELA pela Tabela BPCT199
+     š*-
+           INITIALIZE  R-BPCT199
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           EXEC SQL
+            SELECT      CTAB
+                     ,  CODORG
+                     ,  MOEDA
+                     ,  MOEDAX
+                     ,  PRZORG
+                     ,  CODBP
+                     ,  DESC
+                 INTO  :CTAB
+                     , :CODORG
+                     , :MOEDA
+                     , :MOEDAX
+                     , :PRZORG
+                     , :CODBP
+                     , :DESC
+                 FROM   BPCT199 A
+                 WHERE  A.CTAB   =  :WS-CVTAB
+                  AND   A.CODORG =  :WS-CVCOD
+                  AND   A.MOEDA  =  :WS-CVMOED
+                  AND   A.PRZORG =  :WS-CVPRZ
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN SQLCODE-DUPROWS
+             CONTINUE
+           WHEN SQLCODE-NOTFOUND
+             CONTINUE
+           WHEN OTHER
+              MOVE "FDBBCT"            TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*----------------------------------------------------------------
+       P4000-GET-DTINIINST-BYMOV.
+     š*----------------------------------------------------------------
+     š*- Acede FDBMVT
+
+           EXEC SQL
+                SELECT  MAX(MVDTVA)
+                INTO   :WS-MVDTAX
+                FROM FSVMVT
+                       WHERE MVRACI  = :WS-NURACI
+                         AND MVGRE   = :WS-BTGRE
+                         AND MVRUB   = :WS-BTRUB
+                         AND MVMON   = :WS-BTMON
+                         AND MVNORS  = :WS-CTCONT
+                  END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              MOVE ZEROS TO WS-MVDTAX
+           END-EVALUATE.
+
+           IF WS-MVDTAX IS NOT NUMERIC
+              MOVE ZEROS TO WS-MVDTAX
+           END-IF
+           MOVE WS-MVDTAX TO WS-DTINI-DESC.
+
+     š*----------------------------------------------------------------
+       P450-VALIDA-DATE.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+               SET :WS-VAL-DATE  = DATE(:WS-TST-DATE)
+           END-EXEC
+           EVALUATE SQLCODE
+              WHEN +0
+                  MOVE  WS-TST-DATE TO WS-OUT-DATE
+              WHEN -180
+                  MOVE "0001-01-01" TO WS-OUT-DATE
+           END-EVALUATE.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           INITIALIZE   KYCT900A
+           MOVE WS-RACINE       TO RACINE   OF  KYCT900A
+           MOVE W-SQLCODE       TO ERRCOD   OF  KYCT900A
+           MOVE "SQL"           TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE  2              TO ERRRTC   OF  KYCT900A
+           SET BPCBCCIN-MSGSGBD  TO TRUE
+           MOVE W-OBJECT-NAME   TO BPCBCCIN-IDPARERR
+           MOVE W-SQLCODE       TO BPCBCCIN-CODERR
+           MOVE MSG-ERRO-SQL    TO BPCBCCIN-DESCERR
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "BPCSCCINV"    TO  ERRPRG OF KYCT900A.
+           MOVE   WS-NURACI      TO  RACINE OF KYCT900A.
+
+           EXEC SQL  INSERT
+                INTO KYCT900A
+                VALUES  (
+                           :KYCT900A.RACINE
+                         , :KYCT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :KYCT900A.ERRRTC
+                         , :KYCT900A.ERRCOD
+                         , :KYCT900A.ERRMSG
+                         , :KYCT900A.ERRPRG
+                         , :KYCT900A.ERRAPL
+                         , :KYCT900A.ERROBJ
+                         , :KYCT900A.ERRFLD
+                         , :KYCT900A.ERRCMD
+                         , :KYCT900A.ERRKEY1
+                         , :KYCT900A.ERRVAL1
+                         , :KYCT900A.ERRKEY2
+                         , :KYCT900A.ERRVAL2 )
+           END-EXEC.
+
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "INSERT-T900A"   TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+
+
+     š*****************************************************************
+       P999-FIMPGM.
+     š*****************************************************************
+           GOBACK.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA BPCSCCIN
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *

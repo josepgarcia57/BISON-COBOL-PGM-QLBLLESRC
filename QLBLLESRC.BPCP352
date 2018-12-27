@@ -1,0 +1,549 @@
+      *================================================================*
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.     BPCP352.
+      *----------------------------------------------------------------*
+      * APLICACAO : GESTAO DE CRC
+      * PROGRAMA .: BPCP352
+      * OBJECTIVO : GERIR O ECRAN DE DIALOGO "BPCE352"
+      * CRIADO EM : 2005/FEVEREIRO
+      * POR ......: FERNANDO SILVA (CAPGEMINI PORTUGAL)
+      *----------------------------------------------------------------*
+
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       CONFIGURATION               SECTION.
+      *----------------------------------------------------------------*
+       SPECIAL-NAMES.  DECIMAL-POINT  IS COMMA
+                       SYSTEM-CONSOLE IS VIDEO
+                       LOCAL-DATA     IS LDATA
+                       ATTRIBUTE-DATA IS ATTRB.
+
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT                SECTION.
+      *----------------------------------------------------------------*
+       FILE-CONTROL.
+
+           SELECT BPCE352
+                  ASSIGN        TO WORKSTATION-BPCE352-SI
+                  ORGANIZATION  IS TRANSACTION
+                  FILE STATUS   IS FS-BPCE352
+                  CONTROL-AREA  IS CA-BPCE352.
+
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       FILE                        SECTION.
+      *----------------------------------------------------------------*
+       FD  BPCE352
+           LABEL RECORD OMITTED.
+       01  BPCE352-HDR.
+           COPY DDS-BPCE352HDR OF BPCE352.
+       01  BPCE352-D01.
+           COPY DDS-BPCE352D01 OF BPCE352.
+       01  BPCE352-FTR.
+           COPY DDS-BPCE352FTR OF BPCE352.
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE             SECTION.
+      *----------------------------------------------------------------*
+       01  FS-BPCE352                  PIC 99.
+           88  BPCE352-OK                          VALUE ZERO.
+
+       01  CA-BPCE352.
+           05  IDTECLAF                PIC 99.
+           05  IDTERMNL                PIC X(10).
+           05  FRMTREGT                PIC X(10).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-VARSTRAB.
+           05  WS-ARRYNDX1             PIC S9(4)       BINARY.
+           05  WS-DTHR-N14             PIC 9(14).
+           05  FILLER      REDEFINES WS-DTHR-N14.
+               10  WS-DATA-N08         PIC 9(08).
+               10  WS-HORA-N06         PIC 9(06).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-CNSTANTS.
+           05  KV-IDDIALOG             PIC X(08)   VALUE "BPCE352".
+           05  KV-IDFMTDLG-HDR         PIC X(10)   VALUE "BPCE352HDR".
+           05  KV-IDFMTDLG-D01         PIC X(10)   VALUE "BPCE352D01".
+           05  KV-IDFMTDLG-FTR         PIC X(10)   VALUE "BPCE352FTR".
+           05  KV-IDPROT-HI            PIC 99      VALUE 25.
+           05  KV-IDPROT-PC            PIC 99      VALUE 26.
+           05  KV-IDPROT-PR            PIC 99      VALUE 27.
+           05  KV-TPPROT-HI            PIC 99      VALUE 31.
+           05  KV-TPPROT-PC            PIC 99      VALUE 32.
+           05  KV-TPPROT-PR            PIC 99      VALUE 33.
+           05  KV-IDENTPROT-HI         PIC 99      VALUE 34.
+           05  KV-IDENTPROT-PC         PIC 99      VALUE 35.
+           05  KV-IDENTPROT-PR         PIC 99      VALUE 36.
+           05  KV-TYPER-HI             PIC 99      VALUE 37.
+           05  KV-TYPER-PC             PIC 99      VALUE 38.
+           05  KV-TYPER-PR             PIC 99      VALUE 39.
+           05  KV-REFEXTPROT-HI        PIC 99      VALUE 40.
+           05  KV-REFEXTPROT-PC        PIC 99      VALUE 41.
+           05  KV-REFEXTPROT-PR        PIC 99      VALUE 42.
+           05  KV-PAISLPROT-HI         PIC 99      VALUE 43.
+           05  KV-PAISLPROT-PC         PIC 99      VALUE 44.
+           05  KV-PAISLPROT-PR         PIC 99      VALUE 45.
+           05  KV-REGLOCPROT-HI        PIC 99      VALUE 46.
+           05  KV-REGLOCPROT-PC        PIC 99      VALUE 47.
+           05  KV-REGLOCPROT-PR        PIC 99      VALUE 48.
+           05  KV-DTMATPROT-HI         PIC 99      VALUE 49.
+           05  KV-DTMATPROT-PC         PIC 99      VALUE 50.
+           05  KV-DTMATPROT-PR         PIC 99      VALUE 51.
+           05  KV-NUMREGPROT-HI        PIC 99      VALUE 52.
+           05  KV-NUMREGPROT-PC        PIC 99      VALUE 53.
+           05  KV-NUMREGPROT-PR        PIC 99      VALUE 54.
+           05  KV-HIERQPROT-HI         PIC 99      VALUE 55.
+           05  KV-HIERQPROT-PC         PIC 99      VALUE 56.
+           05  KV-HIERQPROT-PR         PIC 99      VALUE 57.
+           05  KV-VALORIPROT-HI        PIC 99      VALUE 58.
+           05  KV-VALORIPROT-PC        PIC 99      VALUE 59.
+           05  KV-VALORIPROT-PR        PIC 99      VALUE 60.
+           05  KV-DTVALPRTO-HI         PIC 99      VALUE 61.
+           05  KV-DTVALPRTO-PC         PIC 99      VALUE 62.
+           05  KV-DTVALPRTO-PR         PIC 99      VALUE 63.
+           05  KV-VALPROT-HI           PIC 99      VALUE 64.
+           05  KV-VALPROT-PC           PIC 99      VALUE 65.
+           05  KV-VALPROT-PR           PIC 99      VALUE 66.
+           05  KV-DTULTAVAL-HI         PIC 99      VALUE 67.
+           05  KV-DTULTAVAL-PC         PIC 99      VALUE 68.
+           05  KV-DTULTAVAL-PR         PIC 99      VALUE 69.
+           05  KV-TPVALPROT-HI         PIC 99      VALUE 70.
+           05  KV-TPVALPROT-PC         PIC 99      VALUE 71.
+           05  KV-TPVALPROT-PR         PIC 99      VALUE 72.
+           05  KV-TPAVAL-HI            PIC 99      VALUE 73.
+           05  KV-TPAVAL-PC            PIC 99      VALUE 74.
+           05  KV-TPAVAL-PR            PIC 99      VALUE 75.
+           05  KV-DTEXECPROT-HI        PIC 99      VALUE 76.
+           05  KV-DTEXECPROT-PC        PIC 99      VALUE 77.
+           05  KV-DTEXECPROT-PR        PIC 99      VALUE 78.
+           05  KV-VALACEXEC-HI         PIC 99      VALUE 79.
+           05  KV-VALACEXEC-PC         PIC 99      VALUE 80.
+           05  KV-VALACEXEC-PR         PIC 99      VALUE 81.
+           05  KV-STATEXPROT-HI        PIC 99      VALUE 82.
+           05  KV-STATEXPROT-PC        PIC 99      VALUE 83.
+           05  KV-STATEXPROT-PR        PIC 99      VALUE 84.
+           05  KV-PRECOAQUIS-HI        PIC 99      VALUE 85.
+           05  KV-PRECOAQUIS-PC        PIC 99      VALUE 86.
+           05  KV-PRECOAQUIS-PR        PIC 99      VALUE 87.
+           05  KV-DHCRIREG-ND          PIC 99      VALUE 90.
+           05  KV-DHMDFREG-ND          PIC 99      VALUE 90.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           COPY BPCB352.
+
+      *----------------------------------------------------------------*
+       LINKAGE                     SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB000.
+
+      *================================================================*
+       PROCEDURE DIVISION USING CREB000-LKGERAL.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       P0000-RAIZ                  SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P1000-INICIO
+
+           PERFORM P2000-PROCESSO
+
+           PERFORM P3000-FIM
+           .
+       P0000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P1000-INICIO                SECTION.
+      *----------------------------------------------------------------*
+
+           INITIALIZE FS-BPCE352, CA-BPCE352
+           .
+       P1000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P2000-PROCESSO              SECTION.
+      *----------------------------------------------------------------*
+
+           IF  CREB000-STDIALOG-OFF
+               PERFORM P2100-OPEN-DIALOG
+           END-IF
+
+           EVALUATE TRUE
+           WHEN NOT BPCE352-OK
+               CONTINUE
+           WHEN CREB000-EXECPRC
+               PERFORM P2200-PROC-DIALOG
+           WHEN OTHER
+               PERFORM P2300-CLSE-DIALOG
+           END-EVALUATE
+           .
+       P2000-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2100-OPEN-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           OPEN I-O BPCE352
+
+           IF  NOT BPCE352-OK
+               MOVE FS-BPCE352      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-OPEN-IO TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2100-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2200-PROC-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE CREB000-MSGDLG-V(CREB000-MSGDLG-P:) TO BPCB352-MSGDIALG
+
+           PERFORM P2210-PREP-ATRIBS
+           PERFORM P2220-WRIT-REGHDR
+           IF  BPCE352-OK
+               PERFORM P2230-WRIT-REGFTR
+           END-IF
+           IF  BPCE352-OK
+               PERFORM P2240-WRIT-REGDET
+           END-IF
+           IF  BPCE352-OK
+               PERFORM P2250-READ-REGDET
+           END-IF
+
+           MOVE BPCB352-MSGDIALG TO CREB000-MSGDLG-V(CREB000-MSGDLG-P:)
+           .
+       P2200-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2210-PREP-ATRIBS           SECTION.
+
+           IF  BPCB352-IDPROT-PR
+               SET  CREB000-INDICDLG-ON (KV-IDPROT-PR)   TO TRUE
+           END-IF
+      *
+           IF  BPCB352-TPPROT-PR
+               SET  CREB000-INDICDLG-ON (KV-TPPROT-PR)   TO TRUE
+           END-IF
+      *
+           IF  BPCB352-IDENTPROT-PR
+               SET  CREB000-INDICDLG-ON (KV-IDENTPROT-PR) TO TRUE
+           END-IF
+      *
+           IF  BPCB352-TYPER-PR
+               SET  CREB000-INDICDLG-ON (KV-TYPER-PR)     TO TRUE
+           END-IF
+      *
+           IF  BPCB352-REFEXTPROT-PR
+               SET  CREB000-INDICDLG-ON (KV-REFEXTPROT-PR) TO TRUE
+           END-IF
+      *
+           IF   BPCB352-PAISLPROT-PR
+               SET  CREB000-INDICDLG-ON (KV-PAISLPROT-PR)  TO TRUE
+           END-IF
+      *
+           IF   BPCB352-REGLOCPROT-PR
+               SET  CREB000-INDICDLG-ON (KV-REGLOCPROT-PR) TO TRUE
+           END-IF
+      *
+           IF   BPCB352-DTMATPROT-PR
+               SET  CREB000-INDICDLG-ON (KV-DTMATPROT-PR)  TO TRUE
+           END-IF
+      *
+           IF   BPCB352-NUMREGPROT-PR
+               SET  CREB000-INDICDLG-ON (KV-NUMREGPROT-PR)  TO TRUE
+           END-IF
+      *
+           IF   BPCB352-HIERQPROT-PR
+               SET  CREB000-INDICDLG-ON (KV-HIERQPROT-PR)  TO TRUE
+           END-IF
+      *
+           IF   BPCB352-VALORIPROT-PR
+               SET  CREB000-INDICDLG-ON (KV-VALORIPROT-PR)  TO TRUE
+           END-IF
+      *
+           IF   BPCB352-DTVALPRTO-PR
+               SET  CREB000-INDICDLG-ON (KV-DTVALPRTO-PR)  TO TRUE
+           END-IF
+      *
+           IF   BPCB352-VALPROT-PR
+               SET  CREB000-INDICDLG-ON (KV-VALPROT-PR)     TO TRUE
+           END-IF
+      *
+           IF   BPCB352-DTULTAVAL-PR
+               SET  CREB000-INDICDLG-ON (KV-DTULTAVAL-PR)   TO TRUE
+           END-IF
+      *
+           IF   BPCB352-TPVALPROT-PR
+               SET  CREB000-INDICDLG-ON (KV-TPVALPROT-PR)   TO TRUE
+           END-IF
+      *
+           IF   BPCB352-TPAVAL-PR
+               SET  CREB000-INDICDLG-ON (KV-TPAVAL-PR)      TO TRUE
+           END-IF
+      *
+           IF   BPCB352-DTEXECPROT-PR
+               SET  CREB000-INDICDLG-ON (KV-DTEXECPROT-PR)  TO TRUE
+           END-IF
+      *
+           IF   BPCB352-VALACEXEC-PR
+               SET  CREB000-INDICDLG-ON (KV-VALACEXEC-PR)   TO TRUE
+           END-IF
+      *
+           IF   BPCB352-STATEXPROT-PR
+               SET  CREB000-INDICDLG-ON (KV-STATEXPROT-PR)  TO TRUE
+           END-IF
+      *
+           IF   BPCB352-PRECOAQUIS-PR
+               SET  CREB000-INDICDLG-ON (KV-PRECOAQUIS-PR)  TO TRUE
+           END-IF
+      *
+           EVALUATE TRUE
+           WHEN CREB000-PROC-OK
+               CONTINUE
+           WHEN BPCB352-IDPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-IDPROT-PC)     TO TRUE
+           WHEN BPCB352-TPPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-TPPROT-PC)     TO TRUE
+           WHEN BPCB352-IDENTPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-IDENTPROT-PC)  TO TRUE
+           WHEN BPCB352-TYPER-PC
+               SET  CREB000-INDICDLG-ON   (KV-TYPER-PC)      TO TRUE
+           WHEN BPCB352-REFEXTPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-REFEXTPROT-PC) TO TRUE
+           WHEN BPCB352-PAISLPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-PAISLPROT-PC)  TO TRUE
+           WHEN BPCB352-REGLOCPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-REGLOCPROT-PC) TO TRUE
+           WHEN BPCB352-DTMATPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-DTMATPROT-PC)  TO TRUE
+           WHEN BPCB352-NUMREGPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-NUMREGPROT-PC) TO TRUE
+           WHEN BPCB352-HIERQPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-HIERQPROT-PC)  TO TRUE
+           WHEN BPCB352-VALORIPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-VALORIPROT-PC) TO TRUE
+           WHEN BPCB352-VALPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-VALPROT-PC)    TO TRUE
+           WHEN BPCB352-DTULTAVAL-PC
+               SET  CREB000-INDICDLG-ON   (KV-DTULTAVAL-PC)  TO TRUE
+           WHEN BPCB352-TPVALPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-TPVALPROT-PC)  TO TRUE
+           WHEN BPCB352-TPAVAL-PC
+               SET  CREB000-INDICDLG-ON   (KV-TPAVAL-PC)     TO TRUE
+           WHEN BPCB352-DTEXECPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-DTEXECPROT-PC) TO TRUE
+           WHEN BPCB352-VALACEXEC-PC
+               SET  CREB000-INDICDLG-ON   (KV-VALACEXEC-PC)  TO TRUE
+           WHEN BPCB352-STATEXPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-STATEXPROT-PC) TO TRUE
+           WHEN BPCB352-PRECOAQUIS-PC
+               SET  CREB000-INDICDLG-ON   (KV-PRECOAQUIS-PC) TO TRUE
+           WHEN BPCB352-IDPROT-UP
+               SET  CREB000-INDICDLG-ON   (KV-IDPROT-PC)     TO TRUE
+           END-EVALUATE
+      *
+           EVALUATE TRUE
+           WHEN CREB000-PROC-OK
+               CONTINUE
+           WHEN BPCB352-IDPROT-PC
+               SET  CREB000-INDICDLG-ON  (KV-IDPROT-HI)     TO TRUE
+           WHEN BPCB352-TPPROT-PC
+               SET  CREB000-INDICDLG-ON  (KV-TPPROT-HI)     TO TRUE
+           WHEN BPCB352-IDENTPROT-PC
+               SET  CREB000-INDICDLG-ON  (KV-IDENTPROT-HI)  TO TRUE
+           WHEN BPCB352-TYPER-PC
+               SET  CREB000-INDICDLG-ON  (KV-TYPER-HI)      TO TRUE
+           WHEN BPCB352-REFEXTPROT-PC
+               SET  CREB000-INDICDLG-ON  (KV-REFEXTPROT-HI) TO TRUE
+           WHEN BPCB352-PAISLPROT-PC
+               SET  CREB000-INDICDLG-ON  (KV-PAISLPROT-HI)  TO TRUE
+           WHEN BPCB352-REGLOCPROT-PC
+               SET  CREB000-INDICDLG-ON  (KV-REGLOCPROT-HI) TO TRUE
+           WHEN BPCB352-DTMATPROT-PC
+               SET  CREB000-INDICDLG-ON  (KV-DTMATPROT-HI)  TO TRUE
+           WHEN BPCB352-HIERQPROT-PC
+               SET  CREB000-INDICDLG-ON  (KV-HIERQPROT-HI)  TO TRUE
+           WHEN BPCB352-VALORIPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-VALORIPROT-HI) TO TRUE
+           WHEN BPCB352-VALPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-VALPROT-HI)    TO TRUE
+           WHEN BPCB352-DTULTAVAL-PC
+               SET  CREB000-INDICDLG-ON   (KV-DTULTAVAL-HI)  TO TRUE
+           WHEN BPCB352-TPVALPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-TPVALPROT-HI)  TO TRUE
+           WHEN BPCB352-TPAVAL-PC
+               SET  CREB000-INDICDLG-ON   (KV-TPAVAL-HI)     TO TRUE
+           WHEN BPCB352-DTEXECPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-DTEXECPROT-HI) TO TRUE
+           WHEN BPCB352-VALACEXEC-PC
+               SET  CREB000-INDICDLG-ON   (KV-VALACEXEC-HI)  TO TRUE
+           WHEN BPCB352-STATEXPROT-PC
+               SET  CREB000-INDICDLG-ON   (KV-STATEXPROT-HI) TO TRUE
+           WHEN BPCB352-PRECOAQUIS-PC
+               SET  CREB000-INDICDLG-ON   (KV-PRECOAQUIS-HI) TO TRUE
+           END-EVALUATE
+      *
+           IF  BPCB352-DHCRIREG-ND
+               SET  CREB000-INDICDLG-ON (KV-DHCRIREG-ND) TO TRUE
+           END-IF
+      *
+           IF  BPCB352-DHMDFREG-ND
+               SET  CREB000-INDICDLG-ON (KV-DHMDFREG-ND) TO TRUE
+           END-IF
+           .
+       P2210-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2220-WRIT-REGHDR           SECTION.
+
+           MOVE SPACES              TO BPCE352-HDR
+           MOVE CREB000-SGEMPRSA    TO SGEMPRSA OF BPCE352HDR-O
+           MOVE CREB000-DSAPLICA    TO DSAPLICA OF BPCE352HDR-O
+           MOVE CREB000-DTPRCAPL    TO DTACTUAL OF BPCE352HDR-O
+           MOVE CREB000-IDPRCAPL    TO IDPRCAPL OF BPCE352HDR-O
+           MOVE CREB000-IDDIALOG    TO IDDIALOG OF BPCE352HDR-O
+           MOVE CREB000-DSPRCAPL    TO DSPRCAPL OF BPCE352HDR-O
+           MOVE CREB000-NMFUNDLG    TO NMFUNDLG OF BPCE352HDR-O
+           WRITE BPCE352-HDR
+                 FORMAT KV-IDFMTDLG-HDR INDIC CREB000-TBINDARA
+
+           IF  NOT BPCE352-OK
+               MOVE FS-BPCE352      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2220-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2230-WRIT-REGFTR           SECTION.
+
+           MOVE SPACES              TO BPCE352-FTR
+           MOVE CREB000-DSTECLAS    TO DSTECLAS OF BPCE352FTR-O
+           MOVE CREB000-DSMSGAPL    TO DSMSGAPL OF BPCE352FTR-O
+           WRITE BPCE352-FTR
+                 FORMAT KV-IDFMTDLG-FTR INDIC CREB000-TBINDARA
+
+           IF  NOT BPCE352-OK
+               MOVE FS-BPCE352      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2230-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2240-WRIT-REGDET           SECTION.
+
+           MOVE SPACES               TO BPCE352-D01
+           MOVE BPCB352-IDPROT-V     TO IDPROT        OF BPCE352D01-O
+           MOVE BPCB352-TPPROT-V     TO TPPROT        OF BPCE352D01-O
+           MOVE BPCB352-IDENTPROT-V  TO IDENTPROT     OF BPCE352D01-O
+           MOVE BPCB352-TYPER-V      TO TYPER         OF BPCE352D01-O
+           MOVE BPCB352-REFEXTPROT-V TO REFEXTPROT    OF BPCE352D01-O
+           MOVE BPCB352-PAISLPROT-V  TO PAISLPROT     OF BPCE352D01-O
+           MOVE BPCB352-REGLOCPROT-V TO REGLOCPROT    OF BPCE352D01-O
+           MOVE BPCB352-DTMATPROT-V  TO DTMATPROT     OF BPCE352D01-O
+           MOVE BPCB352-NUMREGPROT-V TO NUMREGPROT    OF BPCE352D01-O
+           MOVE BPCB352-HIERQPROT-V  TO HIERQPROT     OF BPCE352D01-O
+           MOVE BPCB352-VALORIPROT-V TO VALORIPROT    OF BPCE352D01-O
+           MOVE BPCB352-DTVALPRTO-V  TO DTVALPRTO     OF BPCE352D01-O
+           MOVE BPCB352-VALPROT-V    TO VALPROT       OF BPCE352D01-O
+           MOVE BPCB352-DTULTAVAL-V  TO DTULTAVAL     OF BPCE352D01-O
+           MOVE BPCB352-TPVALPROT-V  TO TPVALPROT     OF BPCE352D01-O
+           MOVE BPCB352-TPAVAL-V     TO TPAVAL        OF BPCE352D01-O
+           MOVE BPCB352-DTEXECPROT-V TO DTEXECPROT    OF BPCE352D01-O
+           MOVE BPCB352-VALACEXEC-V  TO VALACEXEC     OF BPCE352D01-O
+           MOVE BPCB352-STATEXPROT-V TO STATEXPROT    OF BPCE352D01-O
+           MOVE BPCB352-PRECOAQUIS-V TO PRECOAQUIS    OF BPCE352D01-O
+           MOVE BPCB352-NMPROT-V     TO NMPROT        OF BPCE352D01-O
+           MOVE BPCB352-NMTPPROT-V   TO NMTPPROT      OF BPCE352D01-O
+           MOVE BPCB352-NMIDENT-V    TO NMIDENT       OF BPCE352D01-O
+           MOVE BPCB352-NMTYPER-V    TO NMTYPER       OF BPCE352D01-O
+           MOVE BPCB352-NMTPVAL-V    TO NMTPVAL       OF BPCE352D01-O
+           MOVE BPCB352-NMTPAVAL-V   TO NMTPAVAL      OF BPCE352D01-O
+           MOVE BPCB352-NMSTATEX-V   TO NMSTATEX      OF BPCE352D01-O
+           MOVE BPCB352-DHCRIREG-V   TO DHCRIREG      OF BPCE352D01-O
+           MOVE BPCB352-DHMDFREG-V   TO DHMDFREG      OF BPCE352D01-O
+
+           WRITE BPCE352-D01
+                 FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+
+           IF  NOT BPCE352-OK
+               MOVE FS-BPCE352      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2240-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2250-READ-REGDET           SECTION.
+
+           READ BPCE352
+                FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+                AT END CONTINUE
+           END-READ
+
+           IF  BPCE352-OK
+               MOVE IDPROT      OF BPCE352D01-I TO BPCB352-IDPROT-V
+               MOVE TPPROT      OF BPCE352D01-I TO BPCB352-TPPROT-V
+               MOVE IDENTPROT   OF BPCE352D01-I TO BPCB352-IDENTPROT-V
+               MOVE TYPER       OF BPCE352D01-I TO BPCB352-TYPER-V
+               MOVE REFEXTPROT  OF BPCE352D01-I TO BPCB352-REFEXTPROT-V
+               MOVE PAISLPROT   OF BPCE352D01-I TO BPCB352-PAISLPROT-V
+               MOVE REGLOCPROT  OF BPCE352D01-I TO BPCB352-REGLOCPROT-V
+               MOVE DTMATPROT   OF BPCE352D01-I TO BPCB352-DTMATPROT-V
+               MOVE NUMREGPROT  OF BPCE352D01-I TO BPCB352-NUMREGPROT-V
+               MOVE HIERQPROT   OF BPCE352D01-I TO BPCB352-HIERQPROT-V
+               MOVE VALORIPROT  OF BPCE352D01-I TO BPCB352-VALORIPROT-V
+               MOVE DTVALPRTO   OF BPCE352D01-I TO BPCB352-DTVALPRTO-V
+               MOVE VALPROT     OF BPCE352D01-I TO BPCB352-VALPROT-V
+               MOVE DTULTAVAL   OF BPCE352D01-I TO BPCB352-DTULTAVAL-V
+               MOVE TPVALPROT   OF BPCE352D01-I TO BPCB352-TPVALPROT-V
+               MOVE TPAVAL      OF BPCE352D01-I TO BPCB352-TPAVAL-V
+               MOVE DTEXECPROT  OF BPCE352D01-I TO BPCB352-DTEXECPROT-V
+               MOVE VALACEXEC   OF BPCE352D01-I TO BPCB352-VALACEXEC-V
+               MOVE STATEXPROT  OF BPCE352D01-I TO BPCB352-STATEXPROT-V
+               MOVE PRECOAQUIS  OF BPCE352D01-I TO BPCB352-PRECOAQUIS-V
+
+               MOVE IDVARCSR    OF BPCE352D01-I TO CREB000-IDVARCSR
+               MOVE IDTECLAF    OF CA-BPCE352   TO CREB000-IDTECLAF
+           ELSE
+               MOVE FS-BPCE352               TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG              TO CREB000-NMOBJECT
+               SET  CREB000-READ             TO TRUE
+               SET  CREB000-MSGDLOG          TO TRUE
+           END-IF
+           .
+       P2250-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2300-CLSE-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           CLOSE BPCE352
+
+           IF  NOT BPCE352-OK
+               MOVE FS-BPCE352      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-CLSE    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2300-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P3000-FIM                   SECTION.
+      *----------------------------------------------------------------*
+
+           GOBACK
+           .
+       P3000-EXIT.                 EXIT.
+      *--- FIM DO PROGRAMA BPCP352 ------------------------------------*

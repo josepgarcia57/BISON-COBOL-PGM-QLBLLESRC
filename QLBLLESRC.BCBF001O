@@ -1,0 +1,988 @@
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201802001.CCNT.20180312.154407.XML
+550 Permission denied
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201802001.CCNT.20180312.154407.XML
+O ficheiro BCBFCCNT da biblioteca QGPL não foi encontrado.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       CD MIG_
+550 CWD failed. "/MIG_": directory not found.
+Introduza um subcomando de FTP.
+>       DELETE X.XML
+550 Permission denied
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT X.XML
+O ficheiro BCBFCCNT da biblioteca QGPL não foi encontrado.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       DELETE X.XML
+550 Permission denied
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT X.XML
+229 Entering Extended Passive Mode (|||2591|)
+550 Permission denied
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE
+O número de argumentos não é válido para o subcomando DELETE.
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT
+229 Entering Extended Passive Mode (|||2149|)
+150 Connection accepted
+226 Transfer OK
+205936 bytes transferidos em 0,299 segundos. A velocidade de transferência é
+ 689,145 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE
+O número de argumentos não é válido para o subcomando DELETE.
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT
+229 Entering Extended Passive Mode (|||1869|)
+150 Connection accepted
+226 Transfer OK
+205936 bytes transferidos em 1,178 segundos. A velocidade de transferência é
+ 174,858 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201803001.CCNT.20180410.162822.XML
+250 File deleted successfully
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201803001.CCNT.20180410.162822.XML
+229 Entering Extended Passive Mode (|||2427|)
+150 Connection accepted
+226 Transfer OK
+205936 bytes transferidos em 0,289 segundos. A velocidade de transferência é
+ 712,427 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201804001.CCNT.20180508.140137.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201804001.CCNT.20180508.140137.XML
+229 Entering Extended Passive Mode (|||4138|)
+150 Connection accepted
+226 Transfer OK
+3015930 bytes transferidos em 13,065 segundos. A velocidade de transferência é
+ 230,833 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201804001.CCNT.20180508.140137.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201804001.CCNT.20180508.140137.XML
+229 Entering Extended Passive Mode (|||3858|)
+150 Connection accepted
+226 Transfer OK
+2999996 bytes transferidos em 11,323 segundos. A velocidade de transferência é
+ 264,941 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201804001.CCNT.20180508.140137.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201804001.CCNT.20180508.140137.XML
+229 Entering Extended Passive Mode (|||3477|)
+150 Connection accepted
+226 Transfer OK
+3000336 bytes transferidos em 10,595 segundos. A velocidade de transferência é
+ 283,191 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201805001.CCNT.20180607.145143.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201805001.CCNT.20180607.145143.XML
+229 Entering Extended Passive Mode (|||3441|)
+150 Connection accepted
+226 Transfer OK
+1035752 bytes transferidos em 4,104 segundos. A velocidade de transferência é
+ 252,406 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201805001.CCNT.20180607.145143.XML
+250 File deleted successfully
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201805001.CCNT.20180607.145143.XML
+229 Entering Extended Passive Mode (|||4672|)
+150 Connection accepted
+226 Transfer OK
+1035866 bytes transferidos em 2,584 segundos. A velocidade de transferência é
+ 400,879 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201805001.CCNT.20180607.171952.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201805001.CCNT.20180607.171952.XML
+229 Entering Extended Passive Mode (|||4948|)
+150 Connection accepted
+226 Transfer OK
+1821857 bytes transferidos em 10,144 segundos. A velocidade de transferência é
+ 179,607 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201806001.CCNT.20180709.095926.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201806001.CCNT.20180709.095926.XML
+229 Entering Extended Passive Mode (|||3476|)
+150 Connection accepted
+226 Transfer OK
+121611 bytes transferidos em 0,305 segundos. A velocidade de transferência é
+ 399,134 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201807001.CCNT.20180816.092506.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201807001.CCNT.20180816.092506.XML
+229 Entering Extended Passive Mode (|||3200|)
+150 Connection accepted
+226 Transfer OK
+ 49831 bytes transferidos em 0,128 segundos. A velocidade de transferência é
+ 389,519 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  ..
+250 CWD successful. "/" is current directory.
+Introduza um subcomando de FTP.
+>       CD  './CRC Centralização Responsabilidades'
+550 CWD failed. "/CRC CentralizaÃ§Ã£o Responsabilidades": directory not found.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201807001.CCNT.20180816.092506.XML
+250 File deleted successfully
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201807001.CCNT.20180816.092506.XML
+229 Entering Extended Passive Mode (|||3501|)
+150 Connection accepted
+226 Transfer OK
+ 49831 bytes transferidos em 0,355 segundos. A velocidade de transferência é
+ 140,184 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  ..
+250 CWD successful. "/" is current directory.
+Introduza um subcomando de FTP.
+>       CD  './CRC Centralizacao Responsabilidades'
+550 CWD failed. "/CRC Centralizacao Responsabilidades": directory not found.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201807001.CCNT.20180816.092506.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201807001.CCNT.20180816.092506.XML
+229 Entering Extended Passive Mode (|||3517|)
+150 Connection accepted
+226 Transfer OK
+ 49831 bytes transferidos em 0,077 segundos. A velocidade de transferência é
+ 645,911 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  ..
+250 CWD successful. "/" is current directory.
+Introduza um subcomando de FTP.
+>       CD  CRC Centralizacao Responsabilidades
+550 CWD failed. "/CRC Centralizacao Responsabilidades": directory not found.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201807001.CCNT.20180816.092506.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201807001.CCNT.20180816.092506.XML
+229 Entering Extended Passive Mode (|||3522|)
+150 Connection accepted
+226 Transfer OK
+ 49831 bytes transferidos em 0,046 segundos. A velocidade de transferência é
+ 1085,680 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  CRC Centralizacao Responsabilidades
+250 CWD successful. "/CRC Centralizacao Responsabilidades" is current
+ directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/CRC Centralizacao Responsabilidades/SEND" is current
+ directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201807001.CCNT.20180816.092506.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201807001.CCNT.20180816.092506.XML
+229 Entering Extended Passive Mode (|||3555|)
+150 Connection accepted
+226 Transfer OK
+ 49831 bytes transferidos em 0,051 segundos. A velocidade de transferência é
+ 981,287 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  CRC Centralizacao Responsabilidades
+550 CWD failed. "/CRC Centralizacao Responsabilidades": directory not found.
+Introduza um subcomando de FTP.
+>       CD  SEND
+550 CWD failed. "/SEND": directory not found.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201807001.CCNT.20180816.092506.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201807001.CCNT.20180816.092506.XML
+229 Entering Extended Passive Mode (|||3567|)
+150 Connection accepted
+550 can't access file.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  CRC Centralizacao Responsabilidades
+250 CWD successful. "/CRC Centralizacao Responsabilidades" is current
+ directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/CRC Centralizacao Responsabilidades/SEND" is current
+ directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201807001.CCNT.20180816.092506.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201807001.CCNT.20180816.092506.XML
+229 Entering Extended Passive Mode (|||3571|)
+150 Connection accepted
+226 Transfer OK
+ 49831 bytes transferidos em 0,076 segundos. A velocidade de transferência é
+ 654,192 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  SEND
+550 CWD failed. "/SEND": directory not found.
+Introduza um subcomando de FTP.
+>       DELETE AMLJ001
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLJ001 AMLJ001
+229 Entering Extended Passive Mode (|||4088|)
+150 Connection accepted
+226 Transfer OK
+4088235 bytes transferidos em 0,366 segundos. A velocidade de transferência é
+ 11163,607 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  SEND
+550 CWD failed. "/SEND": directory not found.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001
+229 Entering Extended Passive Mode (|||4286|)
+150 Connection accepted
+226 Transfer OK
+4422615 bytes transferidos em 0,716 segundos. A velocidade de transferência é
+ 6178,387 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  SEND
+550 CWD failed. "/SEND": directory not found.
+Introduza um subcomando de FTP.
+>       DELETE AMLF001
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT AMLF001 AMLF001
+229 Entering Extended Passive Mode (|||4372|)
+150 Connection accepted
+226 Transfer OK
+4422615 bytes transferidos em 1,062 segundos. A velocidade de transferência é
+ 4166,291 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  SEND
+550 CWD failed. "/SEND": directory not found.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201807002.CCNT.20180823.094243.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201807002.CCNT.20180823.094243.XML
+229 Entering Extended Passive Mode (|||2795|)
+150 Connection accepted
+226 Transfer OK
+924452 bytes transferidos em 1,541 segundos. A velocidade de transferência é
+ 599,898 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  BCB Base Dados Clientes BP
+250 CWD successful. "/BCB Base Dados Clientes BP" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/BCB Base Dados Clientes BP/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201808001.CCNT.20180903.092720.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201808001.CCNT.20180903.092720.XML
+229 Entering Extended Passive Mode (|||4286|)
+150 Connection accepted
+226 Transfer OK
+1289317 bytes transferidos em 2,536 segundos. A velocidade de transferência é
+ 508,379 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  BCB Base Dados Clientes BP
+250 CWD successful. "/BCB Base Dados Clientes BP" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/BCB Base Dados Clientes BP/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201808001.CCNT.20180903.092720.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201808001.CCNT.20180903.092720.XML
+229 Entering Extended Passive Mode (|||4468|)
+150 Connection accepted
+226 Transfer OK
+1291148 bytes transferidos em 1,751 segundos. A velocidade de transferência é
+ 737,387 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  BCB Base Dados Clientes BP
+250 CWD successful. "/BCB Base Dados Clientes BP" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/BCB Base Dados Clientes BP/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201808001.CCNT.20180903.174329.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201808001.CCNT.20180903.174329.XML
+229 Entering Extended Passive Mode (|||1944|)
+150 Connection accepted
+226 Transfer OK
+902463 bytes transferidos em 0,807 segundos. A velocidade de transferência é
+ 1118,792 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  BCB Base Dados Clientes BP
+250 CWD successful. "/BCB Base Dados Clientes BP" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/BCB Base Dados Clientes BP/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201808001.CCNT.20180903.174953.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201808001.CCNT.20180903.174953.XML
+229 Entering Extended Passive Mode (|||2000|)
+150 Connection accepted
+226 Transfer OK
+822496 bytes transferidos em 0,594 segundos. A velocidade de transferência é
+ 1385,256 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  BCB Base Dados Clientes BP
+250 CWD successful. "/BCB Base Dados Clientes BP" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/BCB Base Dados Clientes BP/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201808001.CCNT.20180903.181756.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201808001.CCNT.20180903.181756.XML
+229 Entering Extended Passive Mode (|||2329|)
+150 Connection accepted
+226 Transfer OK
+822496 bytes transferidos em 0,885 segundos. A velocidade de transferência é
+ 929,620 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  BCB Base Dados Clientes BP
+250 CWD successful. "/BCB Base Dados Clientes BP" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/BCB Base Dados Clientes BP/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201809001.CCNT.20181009.182246.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201809001.CCNT.20181009.182246.XML
+229 Entering Extended Passive Mode (|||2754|)
+150 Connection accepted
+226 Transfer OK
+898585 bytes transferidos em 1,993 segundos. A velocidade de transferência é
+ 450,833 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT
+A saída foi redireccionada para um ficheiro.
+A entrada de dados foi lida a partir do ficheiro de substituição especificado.
+A ligar ao sistema central remoto 10.61.55.25 utilizando a porta 2658.
+220-FileZilla Server version 0.9.41 beta
+220-written by Tim Kosse (Tim.Kosse@gmx.de)
+220 Please visit http://sourceforge.net/projects/filezilla/
+Introduza o ID de início de sessão (pgarcia):
+331 Password required for asftp
+230 Logged on
+UNIX emulated by FileZilla
+Introduza um subcomando de FTP.
+>       LCD KYCDES
+O directório de trabalho local é KYCDES
+Introduza um subcomando de FTP.
+>       CD  BCB Base Dados Clientes BP
+250 CWD successful. "/BCB Base Dados Clientes BP" is current directory.
+Introduza um subcomando de FTP.
+>       CD  SEND
+250 CWD successful. "/BCB Base Dados Clientes BP/SEND" is current directory.
+Introduza um subcomando de FTP.
+>       DELETE BCB.0063.201810001.CCNT.20181112.160914.XML
+550 File not found
+Introduza um subcomando de FTP.
+>       PUT BCBFCCNT BCB.0063.201810001.CCNT.20181112.160914.XML
+229 Entering Extended Passive Mode (|||1404|)
+150 Connection accepted
+226 Transfer OK
+ 52039 bytes transferidos em 0,153 segundos. A velocidade de transferência é
+ 339,414 KB/seg.
+Introduza um subcomando de FTP.
+> CLOSE
+221 Goodbye
+Introduza um subcomando de FTP.
+> QUIT

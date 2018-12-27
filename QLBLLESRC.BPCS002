@@ -1,0 +1,151 @@
+      *================================================================*
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.     BPCS002.
+      *----------------------------------------------------------------*
+      * APLICACAO : GESTAO DE CENTRALIZAÇÃO BP
+      * PROGRAMA .: BPCS002
+      * OBJECTIVO : IMPLEMENTAR UMA FUNCAO UNICA PARA RETORNO DE DESCRI
+      *             TIVOS COM ORIGEM NA BPCT099
+      * CRIADO EM : 2005/MAIO
+      * POR ......: CAPGEMINI PORTUGAL
+      *----------------------------------------------------------------*
+
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       CONFIGURATION               SECTION.
+      *----------------------------------------------------------------*
+       SPECIAL-NAMES.  DECIMAL-POINT  IS COMMA.
+
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE             SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB950.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           EXEC SQL INCLUDE SQLCA                              END-EXEC.
+
+           EXEC SQL BEGIN DECLARE  SECTION                     END-EXEC.
+       01  WS-DBGBVARS.
+           COPY DDS-BPCT099 OF BPCT099.
+
+       01  WS-DBLCVARS.
+           05  DB-VARDUMMY             PIC S9(4)       BINARY.
+           EXEC SQL END   DECLARE  SECTION                     END-EXEC.
+
+      *----------------------------------------------------------------*
+       LINKAGE                     SECTION.
+      *----------------------------------------------------------------*
+           COPY BPCB002.
+
+      *================================================================*
+       PROCEDURE DIVISION USING BPCB002-LKPARMS.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       P0000-RAIZ                  SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P1000-INICIO
+
+           PERFORM P2000-PROCESSO
+
+           PERFORM P3000-FIM
+           .
+       P0000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P1000-INICIO                SECTION.
+      *----------------------------------------------------------------*
+
+           INITIALIZE BPCB002-VARSOUT, BPCB002-VARSCTL
+           .
+       P1000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P2000-PROCESSO              SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P2100-VRFY-VARSINP
+
+           IF  BPCB002-PROC-OK
+               PERFORM P2200-READ-BPCT099
+           END-IF
+           .
+       P2000-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2100-VRFY-VARSINP          SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           EVALUATE TRUE
+           WHEN BPCB002-CACC    = SPACES
+               SET  BPCB002-CACC-NINFORM  TO TRUE
+               SET  BPCB002-MSGSROT       TO TRUE
+               MOVE "BPCS002"             TO BPCB002-NMOBJECT
+           END-EVALUATE
+           .
+       P2100-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2200-READ-BPCT099          SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE BPCB002-CTAB            TO CTAB    OF BPCT099
+           MOVE BPCB002-CACC            TO CACC    OF BPCT099
+
+           EXEC SQL SELECT DESC
+                         , CAMPO1
+                         , CAMPO2
+                         , CAMPO3
+                         , CAMPO4
+                         , CAMPO5
+                      INTO :BPCT099.DESC
+                         , :BPCT099.CAMPO1
+                         , :BPCT099.CAMPO2
+                         , :BPCT099.CAMPO3
+                         , :BPCT099.CAMPO4
+                         , :BPCT099.CAMPO5
+                      FROM BPCT099
+                     WHERE CTAB    = :BPCT099.CTAB
+                     AND   CACC    = :BPCT099.CACC
+           END-EXEC.
+           MOVE SQLCODE TO CREB950-SQLCODE
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+               MOVE DESC     OF BPCT099 TO BPCB002-DESC
+               MOVE CAMPO1   OF BPCT099 TO BPCB002-CAMPO1
+               MOVE CAMPO2   OF BPCT099 TO BPCB002-CAMPO2
+               MOVE CAMPO3   OF BPCT099 TO BPCB002-CAMPO3
+               MOVE CAMPO4   OF BPCT099 TO BPCB002-CAMPO4
+               MOVE CAMPO5   OF BPCT099 TO BPCB002-CAMPO5
+           WHEN SQLCODE-NOTFOUND
+               MOVE CREB950-DSABRVNF    TO BPCB002-DESC
+                                           BPCB002-CAMPO1
+                                           BPCB002-CAMPO2
+                                           BPCB002-CAMPO3
+                                           BPCB002-CAMPO4
+                                           BPCB002-CAMPO5
+               SET  BPCB002-PROC-NF     TO TRUE
+               MOVE CREB950-SQLCODE     TO BPCB002-CDRETORN
+           WHEN OTHER
+               MOVE CREB950-SQLCODE     TO BPCB002-CDRETORN
+               MOVE "002.T099"          TO BPCB002-NMOBJECT
+               SET  BPCB002-SLCT        TO TRUE
+               SET  BPCB002-MSGSGBD     TO TRUE
+           END-EVALUATE
+           .
+       P2200-EXIT.                 EXIT.
+      *----------------------------------------------------------------*
+       P3000-FIM                   SECTION.
+      *----------------------------------------------------------------*
+
+           GOBACK
+           .
+       P3000-EXIT.                 EXIT.
+      *--- FIM DO PROGRAMA BPCS002 -----------------------------------*

@@ -1,0 +1,1306 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    BPCSCENT   INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2017-MAR-13.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: BPC - Centralização de Responsabilidades   *
+     š*   OBJECTIVO ......: Este Interface destina-se a Extrair Info   *
+     š*                     Estática de Clientes a enviar ao BP        *
+     š*   ANALISTA .......: PEDRO GARCIA                               *
+     š*   PROGRAMADOR.....:                                            *
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 EXISTE-INFO                PIC 9(01).
+          88 SIM-EXISTE              VALUE 1.
+          88 NAO-EXISTE              VALUE 0.
+      *
+       01 EXISTE-DUP                 PIC 9(01).
+          88 SIM-DUP                 VALUE 1.
+          88 NAO-DUP                 VALUE 0.
+      *
+       01 ENVIADA-INFO               PIC 9(01).
+          88 SIM-ENVIADA             VALUE 1.
+          88 NAO-ENVIADA             VALUE 0.
+      *
+       01 ENVIADA-INFO-DOC           PIC 9(01).
+          88 SIM-ENVIADA-DOC         VALUE 1.
+          88 NAO-ENVIADA-DOC         VALUE 0.
+      *
+       01 IND-RUA                    PIC 9(01).
+          88 SIM-RUA                 VALUE 1.
+          88 NAO-RUA                 VALUE 0.
+      *
+       01 EXISTE-ALTER               PIC 9(01).
+          88 SIM-ALTER               VALUE 1.
+          88 NAO-ALTER               VALUE 0.
+      *
+       01 EXISTE-DOC                 PIC 9(01).
+          88 SIM-DOC                 VALUE 1.
+          88 NAO-DOC                 VALUE 0.
+      *
+       01 EXISTE-ALTER-DOC           PIC 9(01).
+          88 SIM-ALTER-DOC           VALUE 1.
+          88 NAO-ALTER-DOC           VALUE 0.
+      *
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-ANOIN                PIC X(04).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-DIAIN                PIC X(02).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01 WX-ANO-CONVER.
+          03 WS-ANO-12               PIC X(02).
+          03 WS-ANO-34               PIC X(02).
+
+       01  W-CONSTANTS.
+           05  K-APLICACAO           PIC X(3)    VALUE "BPC".
+           05  K-PROGRAMA            PIC X(8)    VALUE "BPCSCENT".
+
+     š* Indice para Pesquisa de String
+       01 S-CHAR-L                   PIC S9(4)   COMP.
+       01 S-CHAR-V                   PIC X(50).
+       01 W-CHAR.
+          03 W-NOMECHR               PIC X       OCCURS 50.
+       01 WS-POS-NOMI                PIC S9(4)   COMP   VALUE 0.
+       01 WS-NOM-L                   PIC S9(4)   COMP   VALUE 0.
+       01 WS-NOM.
+          03 W-NOM                   PIC X       OCCURS 35.
+       01 WS-POS-PRNMI               PIC S9(4)   COMP   VALUE 0.
+       01 WS-PRNM-L                  PIC S9(4)   COMP   VALUE 0.
+       01 WS-PRNM.
+          03 W-PRNM                  PIC X       OCCURS 35.
+       01 WS-NOM-COMPLETO            PIC X(80).
+
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+     š* Parametros p/ Interface Clientes
+           COPY BPCBCENT1.
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+       01  DB-VARDUMMY     PIC S9(4)       BINARY.
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+
+       01 WS-TST-DATE      PIC X(10).
+       01 WS-VAL-DATE      PIC X(10).
+
+     š* Copy : Tabela de Clientes NOVA
+           EXEC SQL
+               INCLUDE BPCHCENTN
+           END-EXEC.
+
+     š* Copy : Tabela de Clientes ANTIGA
+           EXEC SQL
+               INCLUDE BPCHCENTO
+           END-EXEC.
+
+     š* Copy : Tabela de Clientes Docs Antigos
+           EXEC SQL
+               INCLUDE BPCHCENT1N
+           END-EXEC.
+
+     š* Copy : Tabela de Clientes Docs Antigos
+           EXEC SQL
+               INCLUDE BPCHCENT1O
+           END-EXEC.
+
+     š* Copy : Tabela de Clientes
+       01  R-FDBCLI.
+           COPY DDS-ALL-FORMATS OF FDBCLI.
+
+     š* Copy : Tabela de Other Numbering
+       01  R-FDBNUM.
+           COPY DDS-ALL-FORMATS OF FDBNUM.
+
+     š* Copy : Tabela de KYCT900A
+       01  R-KYCT900A.
+           COPY DDS-ALL-FORMATS OF KYCT900A.
+       01 WS-NURACI                PIC X(07).
+       01 WS-TBCODE                PIC X(73).
+       01 WS-TBDES1                PIC X(35).
+       01 WS-TBDES4                PIC X(35).
+       01 WS-PAIS-ALFA             PIC X(03).
+       01 WS-PAIS-ISO              PIC X(03).
+       01 WS-CLDESI                PIC X(03).
+       01 WS-TBCOMP                PIC X(73).
+       01 WS-TITULO-ALFA           PIC X(30).
+       01 WS-SEXO                  PIC X(01).
+       01 WS-NUREFE-013-SINST      PIC X(50).
+     š* W- Numeros de Contribuinte
+       01 WS-NUREFE-022-NIF        PIC X(50).
+       01 WS-NUREFE-933-NIFE       PIC X(50).
+       01 WS-NUREFE-998-PNIFE      PIC X(50).
+       01 WS-NUREFE-976-INDNIFE    PIC X(50).
+       01 WS-NUREFE-978-NIFEST2    PIC X(50).
+       01 WS-NUREFE-997-PNIFE2     PIC X(50).
+     š* W- Morada Base
+       01 WS-000-MORB-ADLI01       PIC X(35).
+       01 WS-000-MORB-ADLI02       PIC X(35).
+       01 WS-000-MORB-ADLI03       PIC X(35).
+       01 WS-000-MORB-ADLI04       PIC X(35).
+       01 WS-000-MORB-ADLI05       PIC X(35).
+       01 WS-000-MORB-ADLI06       PIC X(35).
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+           COPY BPCBCENT.
+      *================================================================*
+       PROCEDURE DIVISION USING BPCBCENT-LKPARMS.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+           PERFORM P001-INICIO
+           PERFORM P300-GET-FDBCLI
+           IF NAO-EXISTE
+             PERFORM P999-FIMPGM
+           END-IF
+
+           IF SIM-EXISTE
+     š*- NIF
+             PERFORM P300-GET-DOC-NIF
+             PERFORM P300-VALIDA-DUP
+           END-IF
+
+           IF SIM-EXISTE AND NAO-DUP
+             PERFORM P010-GET-DADOS-CLIENTES
+             IF BPCBCENT-PROC-OK
+               PERFORM P400-MOVE-BPCJCENT
+               PERFORM P500-TESTA-BPCJCENT
+             END-IF
+             IF BPCBCENT-PROC-OK
+               PERFORM P400-CALL-BPCSCENT1
+             END-IF
+
+             IF BPCBCENT-PROC-OK AND BPCBCENT1-PROC-OK
+               PERFORM P500-TRATA-BPCJCENT
+             END-IF
+           END-IF.
+
+           PERFORM P999-FIMPGM.
+     š*---------------------------------------------------------------------
+       P001-INICIO.
+     š*---------------------------------------------------------------------
+           INITIALIZE  NEWCENT-REC
+                    ,  OLDCENT-REC
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10) TO WS-DATA-DIA.
+           MOVE ZERO TO EXISTE-ALTER-1 EXISTE-ALTER.
+     š*-
+     š*---------------------------------------------------------------------
+       P010-GET-DADOS-CLIENTES.
+     š*---------------------------------------------------------------------
+           PERFORM P300-GET-SECT-INST
+     š*- NIF
+           PERFORM P300-GET-IND-NIF-ESTR
+           PERFORM P300-GET-NIF-ESTR
+           PERFORM P300-GET-PAIS-NIF-ESTR
+           PERFORM P300-GET-NIF-ESTR2
+           PERFORM P300-GET-PAIS-NIF-ESTR2
+     š*- Morada
+           PERFORM P300-GET-MOR-BASE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-FDBCLI.
+     š*----------------------------------------------------------------
+     š*-
+     š*- Obtem Informação Mestre de Clientes
+     š*-
+           MOVE  BPCBCENT-RACINE  TO WS-NURACI
+           EXEC SQL
+                SELECT  CLRACI
+                     ,  CLETAT
+                     ,  CLDTOU
+                     ,  CLDTMU
+                     ,  CLDTAN
+                     ,  CLNBRM
+                     ,  CLOPRN
+                     ,  CLGRPE
+                     ,  CLAGNT
+                     ,  CLCENT
+                     ,  CLGERA
+                     ,  CLETCV
+                     ,  CLNOM
+                     ,  CLPRNM
+                     ,  CLORIG
+                     ,  CLTYPE
+                     ,  CLNOMC
+                     ,  CLDTNA
+                     ,  CLDTDC
+                     ,  CLSRCD
+                     ,  CLLNGE
+                     ,  CLCDEX
+                     ,  CLDESI
+                     ,  CLAD01
+                     ,  CLAD02
+                     ,  CLAD03
+                     ,  CLAD04
+                     ,  CLAD05
+                     ,  CLAD06
+                     ,  CLDOMI
+                     ,  CLREGI
+                     ,  CLNATI
+                     ,  CLACTI
+                     ,  CLSECT
+                     ,  CLRGMA
+                     ,  CLSYMP
+                     ,  CLMONE
+                     ,  CLMONP
+                     ,  CLTLPH
+                     ,  CLTLEX
+                     ,  CLTLFX
+                     ,  CLSWFT
+                     ,  CLSIC
+                     ,  CLAUTR
+                     ,  CLGIRO
+                     ,  CLPROF
+                     ,  CLGEST
+                     ,  CLOBJE
+                     ,  CLGRPG
+                     ,  CLGER2
+                     ,  CLGER3
+                     ,  CLNACP
+                     ,  CLDOMR
+
+                INTO   :CLRACI
+                     , :CLETAT
+                     , :CLDTOU
+                     , :CLDTMU
+                     , :CLDTAN
+                     , :CLNBRM
+                     , :CLOPRN
+                     , :CLGRPE
+                     , :CLAGNT
+                     , :CLCENT
+                     , :CLGERA
+                     , :CLETCV
+                     , :CLNOM
+                     , :CLPRNM
+                     , :CLORIG
+                     , :CLTYPE
+                     , :CLNOMC
+                     , :CLDTNA
+                     , :CLDTDC
+                     , :CLSRCD
+                     , :CLLNGE
+                     , :CLCDEX
+                     , :CLDESI
+                     , :CLAD01
+                     , :CLAD02
+                     , :CLAD03
+                     , :CLAD04
+                     , :CLAD05
+                     , :CLAD06
+                     , :CLDOMI
+                     , :CLREGI
+                     , :CLNATI
+                     , :CLACTI
+                     , :CLSECT
+                     , :CLRGMA
+                     , :CLSYMP
+                     , :CLMONE
+                     , :CLMONP
+                     , :CLTLPH
+                     , :CLTLEX
+                     , :CLTLFX
+                     , :CLSWFT
+                     , :CLSIC
+                     , :CLAUTR
+                     , :CLGIRO
+                     , :CLPROF
+                     , :CLGEST
+                     , :CLOBJE
+                     , :CLGRPG
+                     , :CLGER2
+                     , :CLGER3
+                     , :CLNACP
+                     , :CLDOMR
+                FROM  FDBCLI A
+                WHERE A.CLRACI = :WS-NURACI
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET SIM-EXISTE           TO TRUE
+           WHEN SQLCODE-NOTFOUND
+              SET NAO-EXISTE           TO TRUE
+           WHEN OTHER
+              MOVE "FDBCLI "           TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-MOVE-BPCJCENT.
+     š*----------------------------------------------------------------
+     š*- INFTYPE
+     š*- BPENV - E- Para Enviar
+     š*- DTREFENT - data de Referencia
+           MOVE  BPCBCENT-DTPROC  TO NEWCENT-DTREFENT
+     š*- IDENT  NIF / NIPC Entidade ID
+           MOVE  WS-NUREFE-022-NIF TO NEWCENT-IDENT
+     š*- TYPER - Residente i1 - Residentes / i2 - N.Residentes
+           MOVE WS-NURACI         TO   NEWCENT-IDENT
+           IF CLNACP       OF R-FDBCLI = "003"
+                                      OR "005"
+                                      OR "101"
+              MOVE "i2"              TO   NEWCENT-TYPER
+              MOVE WS-NURACI         TO   NEWCENT-IDENT
+           ELSE
+              MOVE "i1"              TO   NEWCENT-TYPER
+              MOVE WS-NUREFE-022-NIF TO   NEWCENT-IDENT
+           END-IF
+     š*- NIF'S Especiais de Não Residentes
+           IF WS-NUREFE-022-NIF(17:2) = "71"
+              MOVE "i2"              TO   NEWCENT-TYPER
+           END-IF
+     š*- TYPER - Residente i1 - Residentes / i2 - N.Residentes
+      *-   IF WS-NUREFE-022-NIF EQUAL SPACES
+      *-       MOVE "i2"           TO NEWCENT-TYPER
+      *-       MOVE WS-NURACI      TO NEWCENT-IDENT
+      *-   ELSE
+      *-      MOVE "i1"           TO NEWCENT-TYPER
+      *-      MOVE  WS-NUREFE-022-NIF TO NEWCENT-IDENT
+      *-   END-IF.
+     š*- LEI - Legal Entity Identifier
+           MOVE  " "              TO NEWCENT-LEI
+     š*- REFEXTENT
+           MOVE  WS-NURACI        TO NEWCENT-REFEXTENT
+     š*- NOME
+           PERFORM P300-NOM-PRENOM-CLIENTE
+           MOVE  CLNOMC    OF R-FDBCLI
+                                  TO NEWCENT-NOME
+     š*- PAISRESD
+           PERFORM P300-CONV-COD-PAIS
+           MOVE WS-PAIS-ALFA
+                                  TO NEWCENT-PAISRESD
+           IF WS-NUREFE-022-NIF = " "
+              AND NEWCENT-PAISRESD not equal "PRT"
+              MOVE "i2"              TO   NEWCENT-TYPER
+              MOVE WS-NURACI         TO   NEWCENT-IDENT
+           END-IF
+     š*- TPENT - PJuridica  001-Colectiva/002-Sing/003-Fund/004-Out
+           EVALUATE TRUE
+           WHEN  CLTYPE  OF R-FDBCLI = "A"
+             MOVE  "001"          TO NEWCENT-TPENT
+           WHEN  CLTYPE  OF R-FDBCLI = "D"
+             MOVE  "001"          TO NEWCENT-TPENT
+           WHEN  CLTYPE  OF R-FDBCLI = "B"
+             MOVE  "001"          TO NEWCENT-TPENT
+           WHEN  CLTYPE  OF R-FDBCLI = "S"
+             MOVE  "001"          TO NEWCENT-TPENT
+           WHEN  CLTYPE  OF R-FDBCLI = "U"
+             MOVE  "003"          TO NEWCENT-TPENT
+           WHEN  CLTYPE  OF R-FDBCLI = "Q"
+             MOVE  "004"          TO NEWCENT-TPENT
+           WHEN  CLTYPE  OF R-FDBCLI = "P"
+             MOVE  "002"          TO NEWCENT-TPENT
+           WHEN  CLTYPE  OF R-FDBCLI = "L"
+             MOVE  "002"          TO NEWCENT-TPENT
+           WHEN  CLTYPE  OF R-FDBCLI = "E"
+             MOVE  "002"          TO NEWCENT-TPENT
+           WHEN OTHER
+              MOVE "004"          TO NEWCENT-TPENT
+           END-EVALUATE
+     š*- TYPES -  t1 - Singular/ t2 - Colectiva
+           IF CLTYPE  OF R-FDBCLI  = "A"
+                                  OR "B"
+                                  OR "S"
+                                  OR "U"
+                                  OR "Q"
+                                  OR "D"
+
+              MOVE "t2"           TO NEWCENT-TYPES
+           END-IF
+           IF CLTYPE  OF R-FDBCLI  = "P"
+                                  OR "L"
+                                  OR "E"
+              MOVE "t1"           TO NEWCENT-TYPES
+           END-IF.
+     š*- DtNasc - Data de Nascimento
+           IF CLDTNA  OF R-FDBCLI NOT EQUAL SPACES
+             MOVE CLDTNA OF R-FDBCLI(1:2) TO WS-DIAIN  OF WX-DATA-CONVER
+             MOVE CLDTNA OF R-FDBCLI(3:2) TO WS-MESIN  OF WX-DATA-CONVER
+             MOVE CLDTNA OF R-FDBCLI(5:4) TO WS-ANOIN  OF WX-DATA-CONVER
+             MOVE CORR  WX-DATA-CONVER    TO WS-DATA-CONVER
+             MOVE WS-DATA-CONVER
+                                  TO NEWCENT-DTNASC
+           ELSE
+             MOVE "0001-01-01"
+                                  TO NEWCENT-DTNASC
+           END-IF
+     š*- Genero - Genero
+           MOVE "000" TO  NEWCENT-GENERO
+           PERFORM P300-CONV-TIT-HONORIFICO
+           IF WS-SEXO = "F"
+             MOVE "001" TO  NEWCENT-GENERO
+           END-IF
+           IF WS-SEXO = "M"
+             MOVE "001" TO  NEWCENT-GENERO
+           END-IF
+
+     š*- Nacionalidade - Nacionalidade  CLNATI
+
+           PERFORM P300-CONV-COD-PAIS-NAC
+           MOVE WS-PAIS-ALFA      TO NEWCENT-NACIONALIDADE
+
+     š*- SItProf - Situação Profissional
+     š*- AgregFam - Agregado Familiar
+     š*- HABLIT - Habilitações Literárias
+     š*- FORMJURID - Forma Juridica para não Residentes Empresas
+           IF CLTYPE  OF R-FDBCLI NOT EQUAL "P"
+                AND      R-FDBCLI NOT EQUAL "E"
+                AND      R-FDBCLI NOT EQUAL "L"
+                AND      NEWCENT-TYPER  = 'i2'
+            EVALUATE TRUE
+            WHEN  CLRGMA  OF R-FDBCLI = "100"
+              MOVE  "RW500"        TO NEWCENT-FORMJURID
+            WHEN  CLRGMA  OF R-FDBCLI = "101"
+              MOVE  "RW500"        TO NEWCENT-FORMJURID
+            WHEN OTHER
+               MOVE "RW100"        TO NEWCENT-FORMJURID
+            END-EVALUATE
+           END-IF
+     š*- PSE -
+           MOVE  " "               TO NEWCENT-PSE.
+     š*- SI - Codigo de Sector Institucional BP
+           MOVE  WS-NUREFE-013-SINST TO NEWCENT-SI.
+     š*- Rua / Localidade / Cod Postal
+     š*- Testa Informação Numerica
+           SET NAO-RUA TO TRUE
+     š*- TESTE ITEM 2
+           MOVE WS-000-MORB-ADLI02   TO S-CHAR-V W-CHAR
+           PERFORM P400-TESTA-MORADA
+           IF S-CHAR-L < 50
+              IF NAO-RUA
+               MOVE S-CHAR-V  TO  NEWCENT-RUA
+               SET SIM-RUA TO TRUE
+              ELSE
+               MOVE S-CHAR-V  TO  NEWCENT-CODPOST
+              END-IF
+           END-IF
+     š*- TESTE ITEM 3
+           MOVE WS-000-MORB-ADLI03   TO S-CHAR-V W-CHAR
+           PERFORM P400-TESTA-MORADA
+           IF S-CHAR-L < 50
+              IF NAO-RUA
+               MOVE S-CHAR-V  TO  NEWCENT-RUA
+               SET SIM-RUA TO TRUE
+              ELSE
+               MOVE S-CHAR-V  TO  NEWCENT-CODPOST
+              END-IF
+           END-IF
+     š*- TESTE ITEM 4
+           MOVE WS-000-MORB-ADLI04   TO S-CHAR-V W-CHAR
+           PERFORM P400-TESTA-MORADA
+           IF S-CHAR-L < 50
+              IF NAO-RUA
+               MOVE S-CHAR-V  TO  NEWCENT-RUA
+               SET SIM-RUA TO TRUE
+              ELSE
+               MOVE S-CHAR-V  TO  NEWCENT-CODPOST
+              END-IF
+           END-IF
+     š*- TESTE ITEM 5
+           MOVE WS-000-MORB-ADLI05   TO S-CHAR-V W-CHAR
+           PERFORM P400-TESTA-MORADA
+           IF S-CHAR-L < 50
+              IF NAO-RUA
+               MOVE S-CHAR-V  TO  NEWCENT-RUA
+               SET SIM-RUA TO TRUE
+              ELSE
+               MOVE S-CHAR-V  TO NEWCENT-CODPOST
+              END-IF
+           END-IF
+     š*- LOCALIDADE
+           MOVE WS-000-MORB-ADLI06
+                              TO NEWCENT-LOCALIDADE
+           IF NEWCENT-TYPER = "i2"
+              AND NEWCENT-LOCALIDADE EQUAL SPACES
+              MOVE WS-000-MORB-ADLI05
+                              TO NEWCENT-LOCALIDADE
+           END-IF
+           IF NEWCENT-TYPER = "i2"
+              AND NEWCENT-LOCALIDADE EQUAL SPACES
+              MOVE WS-000-MORB-ADLI04
+                              TO NEWCENT-LOCALIDADE
+           END-IF
+     š*- Entidade Colectiva do Sector Publico
+     š*- Audit Log
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP       END-EXEC.
+
+           MOVE S-SYSTMST         TO NEWCENT-TMSCRIA.
+           MOVE "BPCSCENT"        TO NEWCENT-USERCRIA.
+     š*-
+     š*----------------------------------------------------------------
+       P500-TRATA-BPCJCENT.
+     š*----------------------------------------------------------------
+     š*- Verifica se o Registo Já Existe
+     š*-
+           IF SIM-ENVIADA
+             IF SIM-ALTER OR SIM-ALTER-1
+                MOVE "EU"  TO NEWCENT-INFTYPE
+                PERFORM P500-INSERT-HIST-BPCJCENT
+                PERFORM P500-UPDATE-BPCJCENT
+             ELSE
+                CONTINUE
+             END-IF
+           ELSE
+             MOVE "EI"     TO NEWCENT-INFTYPE
+               PERFORM P500-INSERT-BPCJCENT
+           END-IF.
+     š*----------------------------------------------------------------
+       P500-TESTA-BPCJCENT.
+     š*----------------------------------------------------------------
+     š*- Verifica se o Registo Já Existe
+
+           MOVE WS-TMS-NULA  TO NEWCENT-TMSALT
+           MOVE "E"          TO NEWCENT-BPENV
+           EXEC SQL
+             SELECT  DTREFENT
+                   , BPENV
+                   , INFTYPE
+                   , IDENT
+                   , TYPER
+                   , TPENT
+                   , LEI
+                   , REFEXTENT
+                   , NOME
+                   , PAISRESD
+                   , TYPES
+                   , DTNASC
+                   , GENERO
+                   , NACIONAL
+                   , SITPROF
+                   , AGREGFAM
+                   , HABLIT
+                   , FORMJURID
+                   , PSE
+                   , SI
+                   , RUA
+                   , LOCALIDADE
+                   , CODPOST
+                   , TMSCRIA
+                   , USERCRIA
+                   , TMSALT
+                   , USERALT
+             INTO   :OLDCENT-DTREFENT
+                   ,:OLDCENT-BPENV
+                   ,:OLDCENT-INFTYPE
+                   ,:OLDCENT-IDENT
+                   ,:OLDCENT-TYPER
+                   ,:OLDCENT-TPENT
+                   ,:OLDCENT-LEI
+                   ,:OLDCENT-REFEXTENT
+                   ,:OLDCENT-NOME
+                   ,:OLDCENT-PAISRESD
+                   ,:OLDCENT-TYPES
+                   ,:OLDCENT-DTNASC
+                   ,:OLDCENT-GENERO
+                   ,:OLDCENT-NACIONALIDADE
+                   ,:OLDCENT-SITPROF
+                   ,:OLDCENT-AGREGFAM
+                   ,:OLDCENT-HABLIT
+                   ,:OLDCENT-FORMJURID
+                   ,:OLDCENT-PSE
+                   ,:OLDCENT-SI
+                   ,:OLDCENT-RUA
+                   ,:OLDCENT-LOCALIDADE
+                   ,:OLDCENT-CODPOST
+                   ,:OLDCENT-TMSCRIA
+                   ,:OLDCENT-USERCRIA
+                   ,:OLDCENT-TMSALT
+                   ,:OLDCENT-USERALT
+             FROM  BPCJCENT
+               WHERE REFEXTENT= :NEWCENT-REFEXTENT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+     š*-Igual Campos para comparação Global
+              SET   SIM-ENVIADA      TO TRUE
+              MOVE  NEWCENT-INFTYPE  TO OLDCENT-INFTYPE
+              MOVE  NEWCENT-DTREFENT TO OLDCENT-DTREFENT
+              MOVE  NEWCENT-BPENV    TO OLDCENT-BPENV
+              MOVE  NEWCENT-TMSCRIA  TO OLDCENT-TMSCRIA
+              MOVE  NEWCENT-USERCRIA TO OLDCENT-USERCRIA
+              MOVE  NEWCENT-TMSALT   TO OLDCENT-TMSALT
+              MOVE  NEWCENT-USERALT  TO OLDCENT-USERALT
+              IF    NEWCENT-REC    = OLDCENT-REC
+               SET NAO-ALTER TO TRUE
+              ELSE
+               SET SIM-ALTER TO TRUE
+              END-IF
+           WHEN SQLCODE-NOTFOUND
+              SET   NAO-ENVIADA TO TRUE
+              SET   NAO-ALTER   TO TRUE
+           WHEN OTHER
+              MOVE "BPCJCENT"        TO W-OBJECT-NAME
+              SET CMD-SELECT         TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-CALL-BPCSCENT1.
+     š*----------------------------------------------------------------
+           INITIALIZE                 BPCBCENT1-LKPARMS.
+           MOVE NEWCENT-IDENT     TO  BPCBCENT1-NUMDOC
+           MOVE NEWCENT-REFEXTENT TO  BPCBCENT1-RACINE
+           CALL "BPCSCENT1" USING     BPCBCENT1-LKPARMS
+           IF BPCBCENT1-PROC-OK
+              CONTINUE
+           ELSE
+             INITIALIZE   KYCT900A
+             MOVE BPCBCENT1-DESCERR   TO ERRMSG   OF  KYCT900A
+             MOVE BPCBCENT1-CODERR    TO ERRCOD   OF  KYCT900A
+             MOVE "BPCSCENT1"         TO ERRPRG   OF  KYCT900A
+             MOVE "BPC"               TO ERRAPL   OF  KYCT900A
+             MOVE BPCBCENT1-IDMSGEXE  TO ERROBJ   OF  KYCT900A
+             MOVE  1                  TO ERRRTC   OF  KYCT900A
+             PERFORM P995-INSERT-ERROS
+           END-IF.
+     š*-
+     š*----------------------------------------------------------------
+       P400-TESTA-MORADA.
+     š*----------------------------------------------------------------
+           PERFORM
+           VARYING S-CHAR-L FROM 1 BY 1
+              UNTIL W-NOMECHR(S-CHAR-L) = "1" OR "2" OR "3" OR "4"
+                                       OR "5" OR "6" OR "7" OR "8"
+                                       OR "9" OR "0"
+                OR S-CHAR-L             = LENGTH OF W-CHAR
+                CONTINUE
+           END-PERFORM.
+     š*-
+     š*----------------------------------------------------------------
+       P500-INSERT-BPCJCENT.
+     š*----------------------------------------------------------------
+     š*- Verifica se o Registo Já Existe
+     š*-
+           MOVE WS-TMS-NULA  TO NEWCENT-TMSALT
+           MOVE "E"          TO NEWCENT-BPENV
+           EXEC SQL
+                 INSERT INTO BPCJCENT
+
+                 VALUES ( :NEWCENT-DTREFENT
+                        , :NEWCENT-BPENV
+                        , :NEWCENT-INFTYPE
+                        , :NEWCENT-IDENT
+                        , :NEWCENT-TYPER
+                        , :NEWCENT-TPENT
+                        , :NEWCENT-LEI
+                        , :NEWCENT-REFEXTENT
+                        , :NEWCENT-NOME
+                        , :NEWCENT-PAISRESD
+                        , :NEWCENT-TYPES
+                        , :NEWCENT-DTNASC
+                        , :NEWCENT-GENERO
+                        , :NEWCENT-NACIONALIDADE
+                        , :NEWCENT-SITPROF
+                        , :NEWCENT-AGREGFAM
+                        , :NEWCENT-HABLIT
+                        , :NEWCENT-FORMJURID
+                        , :NEWCENT-PSE
+                        , :NEWCENT-SI
+                        , :NEWCENT-RUA
+                        , :NEWCENT-LOCALIDADE
+                        , :NEWCENT-CODPOST
+                        , :NEWCENT-TMSCRIA
+                        , :NEWCENT-USERCRIA
+                        , :NEWCENT-TMSALT
+                        , :NEWCENT-USERALT)
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "BPCJCENT"          TO W-OBJECT-NAME
+              SET CMD-INSERT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P500-INSERT-HIST-BPCJCENT.
+     š*----------------------------------------------------------------
+     š*- Guarda em Histórico a Informação
+     š*-
+           EXEC SQL
+                 INSERT INTO BPCJHCENT
+                 VALUES ( :OLDCENT-DTREFENT
+                         ,:OLDCENT-BPENV
+                         ,:OLDCENT-INFTYPE
+                         ,:OLDCENT-IDENT
+                         ,:OLDCENT-TYPER
+                         ,:OLDCENT-TPENT
+                         ,:OLDCENT-LEI
+                         ,:OLDCENT-REFEXTENT
+                         ,:OLDCENT-NOME
+                         ,:OLDCENT-PAISRESD
+                         ,:OLDCENT-TYPES
+                         ,:OLDCENT-DTNASC
+                         ,:OLDCENT-GENERO
+                         ,:OLDCENT-NACIONALIDADE
+                         ,:OLDCENT-SITPROF
+                         ,:OLDCENT-AGREGFAM
+                         ,:OLDCENT-HABLIT
+                         ,:OLDCENT-FORMJURID
+                         ,:OLDCENT-PSE
+                         ,:OLDCENT-SI
+                         ,:OLDCENT-RUA
+                         ,:OLDCENT-LOCALIDADE
+                         ,:OLDCENT-CODPOST
+                         ,:OLDCENT-TMSCRIA
+                         ,:OLDCENT-USERCRIA
+                         ,:OLDCENT-TMSALT
+                         ,:OLDCENT-USERALT
+                         , CURRENT TIMESTAMP )
+           END-EXEC.
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "BPCJCENT"          TO W-OBJECT-NAME
+              SET CMD-UPDATE           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P500-UPDATE-BPCJCENT.
+     š*----------------------------------------------------------------
+     š*- Verifica se o Registo Já Existe
+     š*-
+           MOVE "E"     TO NEWCENT-BPENV
+           EXEC SQL
+                 UPDATE BPCJCENT
+                 SET     INFTYPE       = :NEWCENT-INFTYPE
+                      ,  BPENV         = :NEWCENT-BPENV
+                      ,  IDENT         = :NEWCENT-IDENT
+                      ,  TYPER         = :NEWCENT-TYPER
+                      ,  DTREFENT      = :NEWCENT-DTREFENT
+                      ,  TPENT         = :NEWCENT-TPENT
+                      ,  LEI           = :NEWCENT-LEI
+                      ,  REFEXTENT     = :NEWCENT-REFEXTENT
+                      ,  NOME          = :NEWCENT-NOME
+                      ,  PAISRESD      = :NEWCENT-PAISRESD
+                      ,  TYPES         = :NEWCENT-TYPES
+                      ,  DTNASC        = :NEWCENT-DTNASC
+                      ,  GENERO        = :NEWCENT-GENERO
+                      ,  NACIONAL      = :NEWCENT-NACIONALIDADE
+                      ,  SITPROF       = :NEWCENT-SITPROF
+                      ,  AGREGFAM      = :NEWCENT-AGREGFAM
+                      ,  HABLIT        = :NEWCENT-HABLIT
+                      ,  FORMJURID     = :NEWCENT-FORMJURID
+                      ,  PSE           = :NEWCENT-PSE
+                      ,  SI            = :NEWCENT-SI
+                      ,  RUA           = :NEWCENT-RUA
+                      ,  LOCALIDADE    = :NEWCENT-LOCALIDADE
+                      ,  CODPOST       = :NEWCENT-CODPOST
+                      ,  TMSALT        = CURRENT TIMESTAMP
+                      ,  USERALT       = "BPCSCENT"
+                 WHERE IDENT     = :NEWCENT-IDENT
+                  AND  REFEXTENT = :NEWCENT-REFEXTENT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "BPCJCENT"          TO W-OBJECT-NAME
+              SET CMD-UPDATE           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-SECT-INST.
+     š*----------------------------------------------------------------
+     š*- Descodifica SINST pela Tabela 13
+     š*-
+           MOVE  CLSECT OF R-FDBCLI TO WS-TBCODE.
+           EXEC SQL
+              SELECT FDBTAB.TBDES1
+                  INTO :WS-TBDES1
+                  FROM  FDBTAB
+                  WHERE FDBTAB.TBID   = "013"
+                   AND  FDBTAB.TBCODE = :WS-TBCODE
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             MOVE WS-TBDES1 TO S-CHAR-V W-CHAR
+             PERFORM
+             VARYING S-CHAR-L FROM 1 BY 1
+                UNTIL W-NOMECHR(S-CHAR-L) = SPACES
+                  OR S-CHAR-L             = LENGTH OF W-CHAR
+                  CONTINUE
+             END-PERFORM
+             SUBTRACT 1 FROM S-CHAR-L
+             MOVE WS-TBDES1(1:S-CHAR-L) TO WS-NUREFE-013-SINST
+             CONTINUE
+           WHEN OTHER
+             MOVE SPACES TO WS-NUREFE-013-SINST
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-PAIS-NIF-ESTR.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                 SELECT FDBNUM.NUREFE
+                  INTO :WS-NUREFE-998-PNIFE
+                  FROM  FDBNUM
+                  WHERE FDBNUM.NURACI = :WS-NURACI
+                   AND  FDBNUM.NUETAT = " "
+                   AND  FDBNUM.NUTYPE = "998"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+             MOVE SPACES TO WS-NUREFE-998-PNIFE
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-PAIS-NIF-ESTR2.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                 SELECT FDBNUM.NUREFE
+                  INTO :WS-NUREFE-997-PNIFE2
+                  FROM  FDBNUM
+                  WHERE FDBNUM.NURACI = :WS-NURACI
+                   AND  FDBNUM.NUETAT = " "
+                   AND  FDBNUM.NUTYPE = "997"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+             MOVE SPACES TO WS-NUREFE-997-PNIFE2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-DOC-NIF.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                 SELECT FDBNUM.NUREFE
+                  INTO :WS-NUREFE-022-NIF
+                  FROM  FDBNUM
+                  WHERE FDBNUM.NURACI = :WS-NURACI
+                   AND  FDBNUM.NUETAT = " "
+                   AND  FDBNUM.NUTYPE = "022"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+             MOVE SPACES TO WS-NUREFE-022-NIF
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-VALIDA-DUP.
+     š*----------------------------------------------------------------
+     š*-
+           IF CLNACP       OF R-FDBCLI = "003"
+                                      OR "005"
+                                      OR "008"
+                                      OR "021"
+                                      OR "022"
+              MOVE WS-NURACI         TO NEWCENT-IDENT
+           ELSE
+              MOVE WS-NUREFE-022-NIF TO NEWCENT-IDENT
+              IF  WS-NUREFE-022-NIF EQUAL SPACES
+                MOVE WS-NURACI       TO NEWCENT-IDENT
+              END-IF
+           END-IF.
+
+           EXEC SQL
+                 SELECT COUNT(IDENT)
+                  INTO :DB-VARDUMMY
+                  FROM  BPCJCENT
+                 WHERE IDENT      = :NEWCENT-IDENT
+                  AND  REFEXTENT <> :WS-NURACI
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             IF DB-VARDUMMY > 0
+               SET SIM-DUP TO TRUE
+             END-IF
+           WHEN OTHER
+             SET NAO-DUP TO TRUE
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-IND-NIF-ESTR.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                 SELECT FDBNUM.NUREFE
+                  INTO :WS-NUREFE-976-INDNIFE
+                  FROM  FDBNUM
+                  WHERE FDBNUM.NURACI = :WS-NURACI
+                   AND  FDBNUM.NUETAT = " "
+                   AND  FDBNUM.NUTYPE = "976"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+             MOVE SPACES TO WS-NUREFE-976-INDNIFE
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-NIF-ESTR.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                 SELECT FDBNUM.NUREFE
+                  INTO :WS-NUREFE-933-NIFE
+                  FROM  FDBNUM
+                  WHERE FDBNUM.NURACI = :WS-NURACI
+                   AND  FDBNUM.NUETAT = " "
+                   AND  FDBNUM.NUTYPE = "933"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+             MOVE SPACES TO WS-NUREFE-933-NIFE
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-NIF-ESTR2.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                 SELECT FDBNUM.NUREFE
+                  INTO :WS-NUREFE-978-NIFEST2
+                  FROM  FDBNUM
+                  WHERE FDBNUM.NURACI = :WS-NURACI
+                   AND  FDBNUM.NUETAT = " "
+                   AND  FDBNUM.NUTYPE = "978"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+             MOVE SPACES TO WS-NUREFE-978-NIFEST2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-MOR-BASE.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE CLAD01 OF R-FDBCLI  TO WS-000-MORB-ADLI01
+           MOVE CLAD02 OF R-FDBCLI  TO WS-000-MORB-ADLI02
+           MOVE CLAD03 OF R-FDBCLI  TO WS-000-MORB-ADLI03
+           MOVE CLAD04 OF R-FDBCLI  TO WS-000-MORB-ADLI04
+           MOVE CLAD05 OF R-FDBCLI  TO WS-000-MORB-ADLI05
+           MOVE CLAD06 OF R-FDBCLI  TO WS-000-MORB-ADLI06.
+     š*-
+     š*----------------------------------------------------------------
+       P300-NOM-PRENOM-CLIENTE.
+     š*----------------------------------------------------------------
+           MOVE  CLNOM     OF R-FDBCLI   TO WS-NOM
+           MOVE  CLPRNM    OF R-FDBCLI   TO WS-PRNM
+
+           INSPECT FUNCTION REVERSE(WS-NOM)
+                   TALLYING WS-POS-NOMI     FOR LEADING SPACE.
+           COMPUTE  WS-NOM-L    = LENGTH OF WS-NOM  -  WS-POS-NOMI.
+
+           INSPECT FUNCTION REVERSE(WS-PRNM)
+                   TALLYING WS-POS-PRNMI    FOR LEADING SPACE.
+           COMPUTE  WS-PRNM-L   = LENGTH OF WS-PRNM - WS-POS-PRNMI.
+
+           MOVE SPACES                    TO WS-NOM-COMPLETO
+           IF WS-PRNM-L > 0
+             MOVE WS-PRNM(1 :WS-PRNM-L)   TO WS-NOM-COMPLETO
+           END-IF
+           IF WS-NOM-L  > 0
+             ADD 1 TO WS-PRNM-L
+             MOVE WS-NOM(1:WS-NOM-L)
+                             TO WS-NOM-COMPLETO(WS-PRNM-L:WS-NOM-L)
+           END-IF.
+     š*-
+     š*----------------------------------------------------------------
+       P300-CONV-COD-PAIS.
+     š*----------------------------------------------------------------
+     š*- Descodifica Codigo ISO de pais em Alfa
+     š*-
+           MOVE CLDOMI OF R-FDBCLI TO  WS-PAIS-ISO
+
+           EXEC SQL
+              SELECT FDBTAB.TBCOMP
+                 INTO :WS-TBCOMP
+                 FROM FDBTAB
+                 WHERE TBID  = "020"
+                 AND  TBCODE = :WS-PAIS-ISO
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             MOVE WS-TBCOMP(71:3)    TO  WS-PAIS-ALFA
+           WHEN OTHER
+             MOVE CLDOMI OF R-FDBCLI TO  WS-PAIS-ALFA
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-CONV-COD-PAIS-NAC.
+     š*----------------------------------------------------------------
+     š*- Descodifica Codigo ISO de pais em Alfa
+     š*-
+           MOVE CLNATI OF R-FDBCLI TO  WS-PAIS-ISO
+
+           EXEC SQL
+              SELECT FDBTAB.TBCOMP
+                 INTO :WS-TBCOMP
+                 FROM FDBTAB
+                 WHERE TBID  = "020"
+                 AND  TBCODE = :WS-PAIS-ISO
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             MOVE WS-TBCOMP(71:3)    TO  WS-PAIS-ALFA
+           WHEN OTHER
+             MOVE CLNATI OF R-FDBCLI TO  WS-PAIS-ALFA
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-CONV-TIT-HONORIFICO.
+     š*----------------------------------------------------------------
+     š*- Obtem o Titulo Honorifico e o Sexo
+     š*-
+           MOVE CLDESI    OF R-FDBCLI  TO WS-CLDESI
+
+           EXEC SQL
+              SELECT FDBTAB.TBDES1
+                   , FDBTAB.TBDES4
+                 INTO :WS-TBDES1
+                     ,:WS-TBDES4
+                 FROM FDBTAB
+                 WHERE TBID  = "010"
+                 AND  TBCODE = :CLDESI
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             MOVE WS-TBDES1(1:30) TO  WS-TITULO-ALFA
+             MOVE WS-TBDES4(1:1)  TO  WS-SEXO
+             IF WS-SEXO EQUAL "M" OR WS-SEXO EQUAL "F"
+               CONTINUE
+             ELSE
+               MOVE SPACES TO WS-SEXO
+             END-IF
+           WHEN OTHER
+             MOVE SPACES TO WS-TITULO-ALFA WS-SEXO
+           END-EVALUATE.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           MOVE WS-NURACI       TO RACINE   OF  KYCT900A
+           MOVE MSG-ERRO-SQL    TO ERRMSG   OF  KYCT900A
+           MOVE W-SQLCODE       TO ERRCOD   OF  KYCT900A
+           MOVE "SQL"           TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE  2              TO ERRRTC   OF  KYCT900A
+           SET BPCBCENT-MSGSGBD  TO TRUE
+           MOVE W-OBJECT-NAME   TO BPCBCENT-IDPARERR
+           MOVE W-SQLCODE       TO BPCBCENT-CODERR
+           MOVE MSG-ERRO-SQL    TO BPCBCENT-DESCERR
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "BPCSCENT"     TO  ERRPRG OF KYCT900A.
+           MOVE   WS-NURACI      TO  RACINE OF KYCT900A.
+
+           EXEC SQL  INSERT
+                INTO KYCT900A
+                VALUES  (
+                           :KYCT900A.RACINE
+                         , :KYCT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :KYCT900A.ERRRTC
+                         , :KYCT900A.ERRCOD
+                         , :KYCT900A.ERRMSG
+                         , :KYCT900A.ERRPRG
+                         , :KYCT900A.ERRAPL
+                         , :KYCT900A.ERROBJ
+                         , :KYCT900A.ERRFLD
+                         , :KYCT900A.ERRCMD
+                         , :KYCT900A.ERRKEY1
+                         , :KYCT900A.ERRVAL1
+                         , :KYCT900A.ERRKEY2
+                         , :KYCT900A.ERRVAL2 )
+           END-EXEC.
+
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "INSERT-T900A"   TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+
+
+     š*****************************************************************
+       P999-FIMPGM.
+     š*****************************************************************
+           GOBACK.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA BPCSCENT
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *

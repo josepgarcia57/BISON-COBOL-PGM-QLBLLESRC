@@ -1,0 +1,500 @@
+      *================================================================*
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.     BPCP358.
+      *----------------------------------------------------------------*
+      * APLICACAO : GESTAO DE CRC
+      * PROGRAMA .: BPCP358
+      * OBJECTIVO : GERIR O ECRAN DE DIALOGO "BPCE358"
+      * CRIADO EM : 2005/FEVEREIRO
+      * POR ......: FERNANDO SILVA (CAPGEMINI PORTUGAL)
+      *----------------------------------------------------------------*
+
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       CONFIGURATION               SECTION.
+      *----------------------------------------------------------------*
+       SPECIAL-NAMES.  DECIMAL-POINT  IS COMMA
+                       SYSTEM-CONSOLE IS VIDEO
+                       LOCAL-DATA     IS LDATA
+                       ATTRIBUTE-DATA IS ATTRB.
+
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT                SECTION.
+      *----------------------------------------------------------------*
+       FILE-CONTROL.
+
+           SELECT BPCE358
+                  ASSIGN        TO WORKSTATION-BPCE358-SI
+                  ORGANIZATION  IS TRANSACTION
+                  FILE STATUS   IS FS-BPCE358
+                  CONTROL-AREA  IS CA-BPCE358.
+
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       FILE                        SECTION.
+      *----------------------------------------------------------------*
+       FD  BPCE358
+           LABEL RECORD OMITTED.
+       01  BPCE358-HDR.
+           COPY DDS-BPCE358HDR OF BPCE358.
+       01  BPCE358-D01.
+           COPY DDS-BPCE358D01 OF BPCE358.
+       01  BPCE358-FTR.
+           COPY DDS-BPCE358FTR OF BPCE358.
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE             SECTION.
+      *----------------------------------------------------------------*
+       01  FS-BPCE358                  PIC 99.
+           88  BPCE358-OK                          VALUE ZERO.
+
+       01  CA-BPCE358.
+           05  IDTECLAF                PIC 99.
+           05  IDTERMNL                PIC X(10).
+           05  FRMTREGT                PIC X(10).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-VARSTRAB.
+           05  WS-ARRYNDX1             PIC S9(4)       BINARY.
+           05  WS-DTHR-N14             PIC 9(14).
+           05  FILLER      REDEFINES WS-DTHR-N14.
+               10  WS-DATA-N08         PIC 9(08).
+               10  WS-HORA-N06         PIC 9(06).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-CNSTANTS.
+           05  KV-IDDIALOG             PIC X(08)   VALUE "BPCE358".
+           05  KV-IDFMTDLG-HDR         PIC X(10)   VALUE "BPCE358HDR".
+           05  KV-IDFMTDLG-D01         PIC X(10)   VALUE "BPCE358D01".
+           05  KV-IDFMTDLG-FTR         PIC X(10)   VALUE "BPCE358FTR".
+           05  KV-IDINST-HI            PIC 99      VALUE 25.
+           05  KV-IDINST-PC            PIC 99      VALUE 26.
+           05  KV-IDINST-PR            PIC 99      VALUE 27.
+           05  KV-IDCONT-HI            PIC 99      VALUE 28.
+           05  KV-IDCONT-PC            PIC 99      VALUE 29.
+           05  KV-IDCONT-PR            PIC 99      VALUE 30.
+           05  KV-CLSCTBINST-HI        PIC 99      VALUE 31.
+           05  KV-CLSCTBINST-PC        PIC 99      VALUE 32.
+           05  KV-CLSCTBINST-PR        PIC 99      VALUE 33.
+           05  KV-RECBAL-HI            PIC 99      VALUE 34.
+           05  KV-RECBAL-PC            PIC 99      VALUE 35.
+           05  KV-RECBAL-PR            PIC 99      VALUE 36.
+           05  KV-FCONSTONUS-HI        PIC 99      VALUE 37.
+           05  KV-FCONSTONUS-PC        PIC 99      VALUE 38.
+           05  KV-FCONSTONUS-PR        PIC 99      VALUE 39.
+           05  KV-METVALIMP-HI         PIC 99      VALUE 40.
+           05  KV-METVALIMP-PC         PIC 99      VALUE 41.
+           05  KV-METVALIMP-PR         PIC 99      VALUE 42.
+           05  KV-TPIMP-HI             PIC 99      VALUE 43.
+           05  KV-TPIMP-PC             PIC 99      VALUE 44.
+           05  KV-TPIMP-PR             PIC 99      VALUE 45.
+           05  KV-PERFSTAT-HI          PIC 99      VALUE 46.
+           05  KV-PERFSTAT-PC          PIC 99      VALUE 47.
+           05  KV-PERFSTAT-PR          PIC 99      VALUE 48.
+           05  KV-DTPERFSTAT-HI        PIC 99      VALUE 49.
+           05  KV-DTPERFSTAT-PC        PIC 99      VALUE 50.
+           05  KV-DTPERFSTAT-PR        PIC 99      VALUE 51.
+           05  KV-SITDIFREN-HI         PIC 99      VALUE 52.
+           05  KV-SITDIFREN-PC         PIC 99      VALUE 53.
+           05  KV-SITDIFREN-PR         PIC 99      VALUE 54.
+           05  KV-DESTDIFREN-HI        PIC 99      VALUE 55.
+           05  KV-DESTDIFREN-PC        PIC 99      VALUE 56.
+           05  KV-DESTDIFREN-PR        PIC 99      VALUE 57.
+           05  KV-CARTPRUD-HI          PIC 99      VALUE 58.
+           05  KV-CARTPRUD-PC          PIC 99      VALUE 59.
+           05  KV-CARTPRUD-PR          PIC 99      VALUE 60.
+           05  KV-VARACUMRC-HI         PIC 99      VALUE 61.
+           05  KV-VARACUMRC-PC         PIC 99      VALUE 62.
+           05  KV-VARACUMRC-PR         PIC 99      VALUE 63.
+           05  KV-PROVPREXTP-HI        PIC 99      VALUE 64.
+           05  KV-PROVPREXTP-PC        PIC 99      VALUE 65.
+           05  KV-PROVPREXTP-PR        PIC 99      VALUE 66.
+           05  KV-RECACUMINC-HI        PIC 99      VALUE 67.
+           05  KV-RECACUMINC-PC        PIC 99      VALUE 68.
+           05  KV-RECACUMINC-PR        PIC 99      VALUE 69.
+           05  KV-MONTESCRIT-HI        PIC 99      VALUE 70.
+           05  KV-MONTESCRIT-PC        PIC 99      VALUE 71.
+           05  KV-MONTESCRIT-PR        PIC 99      VALUE 72.
+           05  KV-MNTACUMIMP-HI        PIC 99      VALUE 73.
+           05  KV-MNTACUMIMP-PC        PIC 99      VALUE 74.
+           05  KV-MNTACUMIMP-PR        PIC 99      VALUE 75.
+
+           05  KV-DHCRIREG-ND          PIC 99      VALUE 60.
+           05  KV-DHMDFREG-ND          PIC 99      VALUE 60.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           COPY BPCB358.
+
+      *----------------------------------------------------------------*
+       LINKAGE                     SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB000.
+
+      *================================================================*
+       PROCEDURE DIVISION USING CREB000-LKGERAL.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       P0000-RAIZ                  SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P1000-INICIO
+
+           PERFORM P2000-PROCESSO
+
+           PERFORM P3000-FIM
+           .
+       P0000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P1000-INICIO                SECTION.
+      *----------------------------------------------------------------*
+
+           INITIALIZE FS-BPCE358, CA-BPCE358
+           .
+       P1000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P2000-PROCESSO              SECTION.
+      *----------------------------------------------------------------*
+
+           IF  CREB000-STDIALOG-OFF
+               PERFORM P2100-OPEN-DIALOG
+           END-IF
+
+           EVALUATE TRUE
+           WHEN NOT BPCE358-OK
+               CONTINUE
+           WHEN CREB000-EXECPRC
+               PERFORM P2200-PROC-DIALOG
+           WHEN OTHER
+               PERFORM P2300-CLSE-DIALOG
+           END-EVALUATE
+           .
+       P2000-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2100-OPEN-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           OPEN I-O BPCE358
+
+           IF  NOT BPCE358-OK
+               MOVE FS-BPCE358      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-OPEN-IO TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2100-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2200-PROC-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE CREB000-MSGDLG-V(CREB000-MSGDLG-P:) TO BPCB358-MSGDIALG
+
+           PERFORM P2210-PREP-ATRIBS
+           PERFORM P2220-WRIT-REGHDR
+           IF  BPCE358-OK
+               PERFORM P2230-WRIT-REGFTR
+           END-IF
+           IF  BPCE358-OK
+               PERFORM P2240-WRIT-REGDET
+           END-IF
+           IF  BPCE358-OK
+               PERFORM P2250-READ-REGDET
+           END-IF
+
+           MOVE BPCB358-MSGDIALG TO CREB000-MSGDLG-V(CREB000-MSGDLG-P:)
+           .
+       P2200-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2210-PREP-ATRIBS           SECTION.
+
+           IF  BPCB358-IDINST-PR
+               SET  CREB000-INDICDLG-ON (KV-IDINST-PR)   TO TRUE
+           END-IF
+      *
+           IF  BPCB358-IDCONT-PR
+               SET  CREB000-INDICDLG-ON (KV-IDCONT-PR)   TO TRUE
+           END-IF
+      *
+           IF  BPCB358-CLSCTBINST-PR
+               SET  CREB000-INDICDLG-ON (KV-CLSCTBINST-PR) TO TRUE
+           END-IF
+      *
+           IF  BPCB358-RECBAL-PR
+               SET  CREB000-INDICDLG-ON (KV-RECBAL-PR )  TO TRUE
+           END-IF
+      *
+           IF  BPCB358-FCONSTONUS-PR
+               SET  CREB000-INDICDLG-ON (KV-FCONSTONUS-PR )TO TRUE
+           END-IF
+      *
+           IF  BPCB358-MNTACUMIMP-PR
+               SET  CREB000-INDICDLG-ON (KV-MNTACUMIMP-PR) TO TRUE
+           END-IF
+      *
+           IF   BPCB358-VARACUMRC-PR
+               SET  CREB000-INDICDLG-ON (KV-VARACUMRC-PR) TO TRUE
+           END-IF
+      *
+           IF   BPCB358-PERFSTAT-PR
+               SET  CREB000-INDICDLG-ON (KV-PERFSTAT-PR  ) TO TRUE
+           END-IF
+      *
+           IF   BPCB358-DTPERFSTAT-PR
+               SET  CREB000-INDICDLG-ON (KV-DTPERFSTAT-PR) TO TRUE
+           END-IF
+      *
+           IF   BPCB358-PROVPREXTP-PR
+               SET  CREB000-INDICDLG-ON (KV-PROVPREXTP-PR) TO TRUE
+           END-IF
+      *
+           IF   BPCB358-SITDIFREN-PR
+               SET  CREB000-INDICDLG-ON (KV-SITDIFREN-PR ) TO TRUE
+           END-IF
+      *
+           IF   BPCB358-RECACUMINC-PR
+               SET  CREB000-INDICDLG-ON (KV-RECACUMINC-PR) TO TRUE
+           END-IF
+      *
+           IF   BPCB358-CARTPRUD-PR
+               SET  CREB000-INDICDLG-ON (KV-CARTPRUD-PR)   TO TRUE
+           END-IF
+      *
+           IF   BPCB358-MONTESCRIT-PR
+               SET  CREB000-INDICDLG-ON (KV-MONTESCRIT-PR) TO TRUE
+           END-IF
+      *
+           EVALUATE TRUE
+           WHEN BPCB358-IDCONT-PC
+               SET  CREB000-INDICDLG-ON   (KV-IDCONT-PC)     TO TRUE
+           WHEN BPCB358-CLSCTBINST-PC
+               SET  CREB000-INDICDLG-ON   (KV-CLSCTBINST-PC) TO TRUE
+           WHEN BPCB358-RECBAL-PC
+               SET  CREB000-INDICDLG-ON   (KV-RECBAL-PC )    TO TRUE
+           WHEN BPCB358-FCONSTONUS-PC
+               SET  CREB000-INDICDLG-ON   (KV-FCONSTONUS-PC) TO TRUE
+           WHEN BPCB358-MNTACUMIMP-PC
+               SET  CREB000-INDICDLG-ON   (KV-MNTACUMIMP-PC) TO TRUE
+           WHEN BPCB358-TPIMP-PC
+               SET  CREB000-INDICDLG-ON   (KV-TPIMP-PC )     TO TRUE
+           WHEN BPCB358-METVALIMP-PC
+               SET  CREB000-INDICDLG-ON   (KV-METVALIMP-PC ) TO TRUE
+           WHEN BPCB358-VARACUMRC-PC
+               SET  CREB000-INDICDLG-ON   (KV-VARACUMRC-PC)  TO TRUE
+           WHEN BPCB358-PERFSTAT-PC
+               SET  CREB000-INDICDLG-ON   (KV-PERFSTAT-PC)   TO TRUE
+           WHEN BPCB358-DTPERFSTAT-PC
+               SET  CREB000-INDICDLG-ON   (KV-DTPERFSTAT-PC) TO TRUE
+           WHEN BPCB358-PROVPREXTP-PC
+               SET  CREB000-INDICDLG-ON   (KV-PROVPREXTP-PC) TO TRUE
+           WHEN BPCB358-SITDIFREN-PC
+               SET  CREB000-INDICDLG-ON   (KV-SITDIFREN-PC ) TO TRUE
+           WHEN BPCB358-DESTDIFREN-PC
+               SET  CREB000-INDICDLG-ON   (KV-DESTDIFREN-PC) TO TRUE
+           WHEN BPCB358-RECACUMINC-PC
+               SET  CREB000-INDICDLG-ON   (KV-RECACUMINC-PC) TO TRUE
+           WHEN BPCB358-CARTPRUD-PC
+               SET  CREB000-INDICDLG-ON   (KV-CARTPRUD-PC  ) TO TRUE
+           WHEN BPCB358-MONTESCRIT-PC
+               SET  CREB000-INDICDLG-ON   (KV-MONTESCRIT-PC) TO TRUE
+           WHEN BPCB358-IDINST-UP
+               SET  CREB000-INDICDLG-ON   (KV-IDINST-PC)    TO TRUE
+           END-EVALUATE
+      *
+           EVALUATE TRUE
+           WHEN CREB000-PROC-OK
+               CONTINUE
+           WHEN BPCB358-IDCONT-PC
+               SET  CREB000-INDICDLG-ON   (KV-IDCONT-HI)     TO TRUE
+           WHEN BPCB358-CLSCTBINST-PC
+               SET  CREB000-INDICDLG-ON   (KV-CLSCTBINST-HI) TO TRUE
+           WHEN BPCB358-RECBAL-PC
+               SET  CREB000-INDICDLG-ON   (KV-RECBAL-HI)     TO TRUE
+           WHEN BPCB358-FCONSTONUS-PC
+               SET  CREB000-INDICDLG-ON   (KV-FCONSTONUS-HI) TO TRUE
+           WHEN BPCB358-MNTACUMIMP-PC
+               SET  CREB000-INDICDLG-ON   (KV-MNTACUMIMP-HI) TO TRUE
+           WHEN BPCB358-TPIMP-PC
+               SET  CREB000-INDICDLG-ON   (KV-TPIMP-HI)      TO TRUE
+           WHEN BPCB358-METVALIMP-PC
+               SET  CREB000-INDICDLG-ON   (KV-METVALIMP-HI)  TO TRUE
+           WHEN BPCB358-VARACUMRC-PC
+               SET  CREB000-INDICDLG-ON   (KV-VARACUMRC-HI)  TO TRUE
+           WHEN BPCB358-PERFSTAT-PC
+               SET  CREB000-INDICDLG-ON   (KV-PERFSTAT-HI)   TO TRUE
+           WHEN BPCB358-DTPERFSTAT-PC
+               SET  CREB000-INDICDLG-ON   (KV-DTPERFSTAT-HI) TO TRUE
+           WHEN BPCB358-PROVPREXTP-PC
+               SET  CREB000-INDICDLG-ON   (KV-PROVPREXTP-HI) TO TRUE
+           WHEN BPCB358-SITDIFREN-PC
+               SET  CREB000-INDICDLG-ON   (KV-SITDIFREN-HI)  TO TRUE
+           WHEN BPCB358-DESTDIFREN-PC
+               SET  CREB000-INDICDLG-ON   (KV-DESTDIFREN-HI) TO TRUE
+           WHEN BPCB358-RECACUMINC-PC
+               SET  CREB000-INDICDLG-ON   (KV-RECACUMINC-HI) TO TRUE
+           WHEN BPCB358-CARTPRUD-PC
+               SET  CREB000-INDICDLG-ON   (KV-CARTPRUD-HI)   TO TRUE
+           WHEN BPCB358-MONTESCRIT-PC
+               SET  CREB000-INDICDLG-ON   (KV-MONTESCRIT-HI) TO TRUE
+           END-EVALUATE
+      *
+           IF  BPCB358-DHCRIREG-ND
+               SET  CREB000-INDICDLG-ON (KV-DHCRIREG-ND) TO TRUE
+           END-IF
+      *
+           IF  BPCB358-DHMDFREG-ND
+               SET  CREB000-INDICDLG-ON (KV-DHMDFREG-ND) TO TRUE
+           END-IF
+           .
+       P2210-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2220-WRIT-REGHDR           SECTION.
+
+           MOVE SPACES              TO BPCE358-HDR
+           MOVE CREB000-SGEMPRSA    TO SGEMPRSA OF BPCE358HDR-O
+           MOVE CREB000-DSAPLICA    TO DSAPLICA OF BPCE358HDR-O
+           MOVE CREB000-DTPRCAPL    TO DTACTUAL OF BPCE358HDR-O
+           MOVE CREB000-IDPRCAPL    TO IDPRCAPL OF BPCE358HDR-O
+           MOVE CREB000-IDDIALOG    TO IDDIALOG OF BPCE358HDR-O
+           MOVE CREB000-DSPRCAPL    TO DSPRCAPL OF BPCE358HDR-O
+           MOVE CREB000-NMFUNDLG    TO NMFUNDLG OF BPCE358HDR-O
+           WRITE BPCE358-HDR
+                 FORMAT KV-IDFMTDLG-HDR INDIC CREB000-TBINDARA
+
+           IF  NOT BPCE358-OK
+               MOVE FS-BPCE358      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2220-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2230-WRIT-REGFTR           SECTION.
+
+           MOVE SPACES              TO BPCE358-FTR
+           MOVE CREB000-DSTECLAS    TO DSTECLAS OF BPCE358FTR-O
+           MOVE CREB000-DSMSGAPL    TO DSMSGAPL OF BPCE358FTR-O
+           WRITE BPCE358-FTR
+                 FORMAT KV-IDFMTDLG-FTR INDIC CREB000-TBINDARA
+
+           IF  NOT BPCE358-OK
+               MOVE FS-BPCE358      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2230-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2240-WRIT-REGDET           SECTION.
+
+           MOVE SPACES               TO BPCE358-D01
+           MOVE BPCB358-IDINST-V     TO IDINST     OF BPCE358D01-O
+           MOVE BPCB358-IDCONT-V     TO IDCONT     OF BPCE358D01-O
+           MOVE BPCB358-CLSCTBINST-V TO CLSCTBINST OF BPCE358D01-O
+           MOVE BPCB358-RECBAL-V     TO RECBAL     OF BPCE358D01-O
+           MOVE BPCB358-FCONSTONUS-V TO FCONSTONUS OF BPCE358D01-O
+           MOVE BPCB358-MNTACUMIMP-V TO MNTACUMIMP OF BPCE358D01-O
+           MOVE BPCB358-TPIMP-V      TO TPIMP      OF BPCE358D01-O
+           MOVE BPCB358-METVALIMP-V  TO METVALIMP  OF BPCE358D01-O
+           MOVE BPCB358-VARACUMRC-V  TO VARACUMRC  OF BPCE358D01-O
+           MOVE BPCB358-PERFSTAT-V   TO PERFSTAT   OF BPCE358D01-O
+           MOVE BPCB358-DTPERFSTAT-V TO DTPERFSTAT OF BPCE358D01-O
+           MOVE BPCB358-PROVPREXTP-V TO PROVPREXTP OF BPCE358D01-O
+           MOVE BPCB358-SITDIFREN-V  TO SITDIFREN  OF BPCE358D01-O
+           MOVE BPCB358-DESTDIFREN-V TO DESTDIFREN OF BPCE358D01-O
+           MOVE BPCB358-RECACUMINC-V TO RECACUMINC OF BPCE358D01-O
+           MOVE BPCB358-CARTPRUD-V   TO CARTPRUD   OF BPCE358D01-O
+           MOVE BPCB358-MONTESCRIT-V TO MONTESCRIT OF BPCE358D01-O
+           MOVE BPCB358-NMRACINE-V   TO NMRACINE   OF BPCE358D01-O
+           MOVE BPCB358-NMCLSCTB-V   TO NMCLSCTB   OF BPCE358D01-O
+           MOVE BPCB358-NMRECBAL-V   TO NMRECBAL   OF BPCE358D01-O
+           MOVE BPCB358-NMFCONUS-V   TO NMFCONUS   OF BPCE358D01-O
+           MOVE BPCB358-NMMVIMP-V    TO NMMVIMP    OF BPCE358D01-O
+           MOVE BPCB358-NMTPIMP-V    TO NMTPIMP    OF BPCE358D01-O
+           MOVE BPCB358-NMPFSTATUS-V TO NMPFSTATUS OF BPCE358D01-O
+           MOVE BPCB358-NMSITDR-V    TO NMSITDR    OF BPCE358D01-O
+           MOVE BPCB358-NMCARTPRUD-V TO NMCARTPRUD OF BPCE358D01-O
+           MOVE BPCB358-DHCRIREG-V   TO DHCRIREG   OF BPCE358D01-O
+           MOVE BPCB358-DHMDFREG-V   TO DHMDFREG   OF BPCE358D01-O
+           WRITE BPCE358-D01
+                 FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+
+           IF  NOT BPCE358-OK
+               MOVE FS-BPCE358      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2240-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2250-READ-REGDET           SECTION.
+
+           READ BPCE358
+                FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+                AT END CONTINUE
+           END-READ
+
+           IF  BPCE358-OK
+               MOVE IDINST      OF BPCE358D01-I TO BPCB358-IDINST-V
+               MOVE IDCONT      OF BPCE358D01-I TO BPCB358-IDCONT-V
+               MOVE CLSCTBINST  OF BPCE358D01-I TO BPCB358-CLSCTBINST-V
+               MOVE RECBAL      OF BPCE358D01-I TO BPCB358-RECBAL-V
+               MOVE FCONSTONUS  OF BPCE358D01-I TO BPCB358-FCONSTONUS-V
+               MOVE MNTACUMIMP  OF BPCE358D01-I TO BPCB358-MNTACUMIMP-V
+               MOVE TPIMP       OF BPCE358D01-I TO BPCB358-TPIMP-V
+               MOVE METVALIMP   OF BPCE358D01-I TO BPCB358-METVALIMP-V
+               MOVE VARACUMRC   OF BPCE358D01-I TO BPCB358-VARACUMRC-V
+               MOVE PERFSTAT    OF BPCE358D01-I TO BPCB358-PERFSTAT-V
+               MOVE DTPERFSTAT  OF BPCE358D01-I TO BPCB358-DTPERFSTAT-V
+               MOVE PROVPREXTP  OF BPCE358D01-I TO BPCB358-PROVPREXTP-V
+               MOVE SITDIFREN   OF BPCE358D01-I TO BPCB358-SITDIFREN-V
+               MOVE DESTDIFREN  OF BPCE358D01-I TO BPCB358-DESTDIFREN-V
+               MOVE RECACUMINC  OF BPCE358D01-I TO BPCB358-RECACUMINC-V
+               MOVE CARTPRUD    OF BPCE358D01-I TO BPCB358-CARTPRUD-V
+               MOVE MONTESCRIT  OF BPCE358D01-I TO BPCB358-MONTESCRIT-V
+
+               MOVE IDVARCSR    OF BPCE358D01-I TO CREB000-IDVARCSR
+               MOVE IDTECLAF    OF CA-BPCE358   TO CREB000-IDTECLAF
+           ELSE
+               MOVE FS-BPCE358               TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG              TO CREB000-NMOBJECT
+               SET  CREB000-READ             TO TRUE
+               SET  CREB000-MSGDLOG          TO TRUE
+           END-IF
+           .
+       P2250-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2300-CLSE-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           CLOSE BPCE358
+
+           IF  NOT BPCE358-OK
+               MOVE FS-BPCE358      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-CLSE    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2300-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P3000-FIM                   SECTION.
+      *----------------------------------------------------------------*
+
+           GOBACK
+           .
+       P3000-EXIT.                 EXIT.
+      *--- FIM DO PROGRAMA BPCP358 ------------------------------------*

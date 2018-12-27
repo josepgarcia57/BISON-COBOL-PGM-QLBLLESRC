@@ -1,0 +1,769 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    BCBPRSPC.
+       AUTHOR.        PEDRO GARCIA.
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2017-MAR-20.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: BCB - Centralização de Responsabilidades   *
+     š*   OBJECTIVO ......: Este programa destina-se a Ler o Ficheiro  *
+     š*                     de Retorno recebido do Banco de Portugal   *
+     š*   ANALISTA .......: PEDRO GARCIA                               *
+     š*   PROGRAMADOR.....:                                            *
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES. DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+     *** BCBFRSPC: Resposta do Banco de Portugal. ***
+           SELECT BCBFRSPC ASSIGN TO DATABASE-BCBFRSPC
+                  ORGANIZATION IS SEQUENTIAL
+                  ACCESS MODE  IS SEQUENTIAL
+                  FILE STATUS  IS ST-FRSPC.
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+       FD  BCBFRSPC.
+       01  R-FRSPC.
+           COPY DDS-ALL-FORMATS OF BCBFRSPC.
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *----------------------------------------------------------------*
+       01 NR-READ                    PIC 9(06) VALUE ZEROS.
+       01 NR-PROC                    PIC 9(06) VALUE ZEROS.
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+      *
+       01 IND-ERRO                   PIC  X(01).
+          88 COM-ERRO                VALUE "1".
+          88 SEM-ERRO                VALUE "0".
+      *
+       01 IND-REJEITADO              PIC  X(01).
+          88 FICH-REJ                VALUE "1".
+          88 FICH-ACEITE             VALUE "0".
+     ‚* Status de ficheiros. *
+     ‚*
+       01 ST-FRSPC                   PIC XX.
+       01 ST-F307                   PIC XX.
+     ‚*
+     ‚* Campos auxiliares. *
+     ‚*
+       01 W-CURRENT-ELEMENT         PIC X(30).
+       01 W-XMLDOC-LENGTH           PIC 999 COMP.
+     ‚*
+     ‚* Redefinição dos regs do ficheiro. *
+     ‚*
+      * Flag fich.rejeitado/fich.aceite(rejeicao/alerta) (X/R/A) *
+       01 W-FLG-RESP-1              PIC X.
+      * Flag actInt/actConta (I/C) *
+       01 W-FLG-RESP-2              PIC X.
+
+      * Cod. Msg. *
+       01 W-CODMSG                  PIC X(4).
+      * Text Msg. *
+       01 W-TXTMSG                  PIC X(250).
+
+      * TIPO * (Tipo de Erro no Fich. Rejeitado)
+       01 W-TIPO                    PIC X.
+      * NIF *
+       01 W-NIF                     PIC X(9).
+      * CHVID *
+       01 W-REFORIG                 PIC X(10).
+      * Conta *
+       01 W-CONTA                   PIC X(20).
+
+       01 W-DTREF         FORMAT DATE "@Y-%m-%d" VALUE "0001-01-01".
+       01 W-DT08                    PIC 9(8).
+       01 W-ANO                     PIC 9(4)    VALUE ZEROS.
+       01 W-MES                     PIC 99      VALUE ZEROS.
+       01 W-ANOK                    PIC 9(4)    VALUE ZEROS.
+       01 W-MESK                    PIC 99      VALUE ZEROS.
+       01 W-NUMV                    PIC XXX.
+       01 W-Nre                     PIC 9999.
+       01 W-Nrj                     PIC 9999.
+       01 W-Nri                     PIC 9999.
+       01 W-Nra                     PIC 9999.
+
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+     š* Copy : Tabela de Erros
+       01  R-JRSPC.
+           COPY DDS-ALL-FORMATS OF BCBJRSPC.
+
+     š* Copy : Tabela de Controlo
+       01  R-JCNTL.
+           COPY DDS-ALL-FORMATS OF BCBJCNTL.
+
+     š* Copy : Tabela de Contas
+       01  R-JCCNT.
+           COPY DDS-ALL-FORMATS OF BCBJCCNT.
+
+     š* Copy : Tabela de Clientes
+       01  R-JCINT.
+           COPY DDS-ALL-FORMATS OF BCBJCINT.
+
+     š* Copy : Tabela de KYCT900A
+       01  R-KYCT900A.
+           COPY DDS-ALL-FORMATS OF KYCT900A.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       PROCEDURE DIVISION.
+      *================================================================*
+       INICIO.
+           SET SEM-ERRO    TO TRUE
+           SET FICH-ACEITE TO TRUE
+           OPEN INPUT BCBFRSPC
+           INITIALIZE BCBJRSPC , BCBJCNTL
+                      REPLACING ALPHANUMERIC BY SPACES
+                                   NUMERIC BY ZEROS.
+       MEIO.
+           PERFORM SR-CICLO THRU F-CICLO
+             UNTIL ST-FRSPC NOT= "00".
+
+       TERM.
+           IF SEM-ERRO
+             IF FICH-ACEITE
+               PERFORM UPDATE-ERR-CONTAS
+               PERFORM UPDATE-OK-CONTAS
+               PERFORM UPDATE-ERR-CLIENTES
+               PERFORM UPDATE-OK-CLIENTES
+               PERFORM UPDATE-ERR-INTERV1
+               PERFORM UPDATE-ERR-INTERV2
+               PERFORM UPDATE-CNTL-RET
+             ELSE
+               PERFORM UPDATE-CNTL-REJ
+             END-IF
+           END-IF.
+       FIM.
+           CLOSE BCBFRSPC.
+           GOBACK.
+     ‚********************
+     ‚* Ciclo principal. *
+       SR-CICLO.
+     ‚********************
+           READ BCBFRSPC AT END
+                   GO TO F-CICLO.
+           XML PARSE R-FRSPC
+                 PROCESSING PROCEDURE SR-EVENTOS
+               ON EXCEPTION
+                  GO TO F-CICLO
+           END-XML.
+       F-CICLO.
+           EXIT.
+     ‚*********************
+     ‚* Controla Eventos. *
+       SR-EVENTOS.
+     ‚*********************
+           EVALUATE XML-EVENT
+     ‚* Open Bracket
+     ‚* XML-TEXT Element Name
+               WHEN "START-OF-ELEMENT"
+                    MOVE XML-TEXT TO W-CURRENT-ELEMENT
+                    EVALUATE W-CURRENT-ELEMENT
+     ‚* Rejeição Integral
+                        WHEN "rejeitado"
+                             PERFORM SR-CLRVARS THRU F-CLRVARS
+                             SET FICH-REJ TO TRUE
+                             MOVE "X" TO W-FLG-RESP-1
+     ‚* Ficheiro Aceite
+                        WHEN "rejeicao"
+                             PERFORM SR-CLRVARS THRU F-CLRVARS
+                             MOVE "R" TO W-FLG-RESP-1
+                        WHEN "alerta"
+                             PERFORM SR-CLRVARS THRU F-CLRVARS
+                             MOVE "A" TO W-FLG-RESP-1
+                        WHEN "correctInt"
+                             MOVE "T" TO W-FLG-RESP-2
+                        WHEN "actInt"
+                             MOVE "I" TO W-FLG-RESP-2
+                        WHEN "actConta"
+                             MOVE "C" TO W-FLG-RESP-2
+                        WHEN "elimConta"
+                             MOVE "E" TO W-FLG-RESP-2
+                    END-EVALUATE
+     ‚* Close Bracket
+               WHEN "CONTENT-CHARACTERS"
+                    EVALUATE W-CURRENT-ELEMENT
+                        WHEN "numNosRecebidos"
+                          COMPUTE w-Nre= function numval(XML-TEXT)
+                        WHEN "numNosRejeitados"
+                          COMPUTE w-Nrj= function numval(XML-TEXT)
+                        WHEN "numNosIntegrados"
+                          COMPUTE w-Nri= function numval(XML-TEXT)
+                        WHEN "numNosComAlerta"
+                          COMPUTE w-Nra= function numval(XML-TEXT)
+                        WHEN "ano"
+                             IF W-ANO NOT EQUAL 0
+                               MOVE XML-TEXT TO W-ANOK
+                             ELSE
+                               MOVE XML-TEXT TO W-ANO
+                             END-IF
+                        WHEN "mes"
+                             IF W-MES NOT EQUAL 0
+                               MOVE XML-TEXT TO W-MESK
+                              ELSE
+                               MOVE XML-TEXT TO W-MES
+                              END-IF
+                        WHEN "numVersao"
+                             MOVE XML-TEXT TO W-NUMV
+                        WHEN "tipo"
+                             MOVE XML-TEXT TO W-TIPO
+     ‚* Rejeição Integral
+                        WHEN "codigo"
+                             MOVE SPACES TO W-CODMSG, W-TXTMSG
+                             MOVE XML-TEXT TO W-CODMSG
+                        WHEN "texto"
+                             MOVE XML-TEXT TO W-TXTMSG
+                             PERFORM P500-INSERT-BCBJRSPC
+     ‚* Ficheiro Aceite
+                        WHEN "nifNipc"
+                             MOVE XML-TEXT TO W-NIF
+                        WHEN "refOrig"
+                             MOVE XML-TEXT TO W-REFORIG
+                        WHEN "num"
+                             MOVE XML-TEXT TO W-CONTA
+                        WHEN "codMsg"
+                             MOVE SPACES TO W-CODMSG, W-TXTMSG
+                             MOVE XML-TEXT TO W-CODMSG
+                        WHEN "txtMsg"
+                             MOVE XML-TEXT TO W-TXTMSG
+                             PERFORM P500-INSERT-BCBJRSPC
+                    END-EVALUATE
+     ‚* Close Bracket
+               WHEN "END-OF-ELEMENT"
+                    MOVE SPACES TO W-CURRENT-ELEMENT
+           END-EVALUATE.
+       F-EVENTOS.
+           EXIT.
+     ‚********************
+     ‚* Limpa variaveis. *
+       SR-CLRVARS.
+     ‚********************
+           MOVE SPACES TO W-FLG-RESP-1
+                        , W-FLG-RESP-2
+                        , W-CODMSG
+                        , W-TXTMSG
+                        , W-NIF
+                        , W-TIPO
+                        , W-REFORIG
+                        , W-MESK
+                        , W-ANOK
+       F-CLRVARS.
+           EXIT.
+     š*-
+     š*----------------------------------------------------------------
+       P500-INSERT-BCBJRSPC.
+     š*----------------------------------------------------------------
+     š*- Tag
+           EVALUATE W-FLG-RESP-2
+               WHEN "T"
+                    MOVE "correctInt" TO TAGNAME  OF BCBJRSPC
+               WHEN "I"
+                    MOVE "actInt"     TO TAGNAME  OF BCBJRSPC
+               WHEN "C"
+                    MOVE "actConta"   TO TAGNAME  OF BCBJRSPC
+               WHEN "E"
+                    MOVE "elimConta"  TO TAGNAME  OF BCBJRSPC
+               WHEN OTHER
+                    CONTINUE
+           END-EVALUATE.
+     š*- Tipo de Mensagem
+           EVALUATE W-FLG-RESP-1
+               WHEN "X"
+                    MOVE "REJEITADO" TO MSGTYPE  OF BCBJRSPC
+               WHEN "R"
+                    MOVE "REJEIÇÃO"  TO MSGTYPE  OF BCBJRSPC
+               WHEN "A"
+                    MOVE "ALERTA"    TO MSGTYPE  OF BCBJRSPC
+               WHEN OTHER
+                    CONTINUE
+           END-EVALUATE.
+     š*- Chaves
+           MOVE W-ANO     TO ANO     OF BCBJRSPC
+           MOVE W-MES     TO MES     OF BCBJRSPC
+           MOVE W-ANOK    TO ANOK    OF BCBJRSPC
+           MOVE W-MESK    TO MESK    OF BCBJRSPC
+           MOVE W-NUMV    TO VERSAO  OF BCBJRSPC
+           MOVE W-CONTA   TO CONTA   OF BCBJRSPC
+           MOVE W-TIPO    TO TIPO    OF BCBJRSPC
+           MOVE W-NIF     TO NIFNIPC OF BCBJRSPC
+           MOVE W-REFORIG TO REFORIG OF BCBJRSPC
+     š*- Mensagem
+           MOVE W-TXTMSG  TO TXTMSG  OF BCBJRSPC
+           MOVE W-CODMSG  TO CODMSG  OF BCBJRSPC
+     š
+           EXEC SQL
+                 INSERT INTO BCBJRSPC
+                 VALUES ( :BCBJRSPC.TAGNAME
+                        , :BCBJRSPC.MSGTYPE
+                        , :BCBJRSPC.ANO
+                        , :BCBJRSPC.MES
+                        , :BCBJRSPC.VERSAO
+                        , :BCBJRSPC.CONTA
+                        , :BCBJRSPC.TIPO
+                        , :BCBJRSPC.ANOK
+                        , :BCBJRSPC.MESK
+                        , :BCBJRSPC.REFORIG
+                        , :BCBJRSPC.NIFNIPC
+                        , :BCBJRSPC.CODMSG
+                        , :BCBJRSPC.TXTMSG
+                        , CURRENT TIMESTAMP )
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              INITIALIZE  BCBJRSPC
+                         REPLACING ALPHANUMERIC BY SPACES
+                                      NUMERIC BY ZEROS
+              MOVE SPACES  TO W-TXTMSG
+           WHEN OTHER
+              SET COM-ERRO             TO TRUE
+              MOVE "BCBJRSPC"          TO W-OBJECT-NAME
+              SET CMD-INSERT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       UPDATE-ERR-CONTAS.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE  W-ANO  TO  ANO      OF BCBJCNTL
+           MOVE  W-MES  TO  MES      OF BCBJCNTL
+           MOVE  W-NUMV TO  VERSAO   OF BCBJCNTL
+
+           EXEC SQL
+                 UPDATE BCBJCCNT A
+                 SET BPENV = "R"
+                   , CODERRO = ( SELECT MAX(CODMSG)
+                                 FROM BCBJRSPC B
+                                 WHERE A.ANO     =  B.ANO
+                                  AND  A.MES     =  B.MES
+                                  AND  A.VERSAO  =  B.VERSAO
+                                  AND  (A.CONTA  =  B.CONTA
+                                    OR  A.IBAN   =  B.CONTA ))
+                 WHERE A.ANO    = :BCBJCNTL.ANO
+                   AND A.MES    = :BCBJCNTL.MES
+                   AND A.VERSAO = :BCBJCNTL.VERSAO
+                   AND A.CONTA <> " "
+                   AND EXISTS (  SELECT 1
+                                  FROM BCBJRSPC B
+                                  WHERE A.ANO     =  B.ANO
+                                   AND  A.MES     =  B.MES
+                                   AND  A.VERSAO  =  B.VERSAO
+                                   AND  (A.CONTA  =  B.CONTA
+                                     OR  A.IBAN   =  B.CONTA ))
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN SQLCODE-NOTFOUND
+             CONTINUE
+           WHEN OTHER
+              MOVE "BCBJCCNT"          TO W-OBJECT-NAME
+              SET CMD-UPDATE           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       UPDATE-OK-CONTAS.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE  W-ANO  TO  ANO      OF BCBJCNTL
+           MOVE  W-MES  TO  MES      OF BCBJCNTL
+           MOVE  W-NUMV TO  VERSAO   OF BCBJCNTL
+
+           EXEC SQL
+                 UPDATE BCBJCCNT A
+                 SET BPENV = " "
+                  ,  CODERRO = " "
+                 WHERE
+                       A.ANO    = :BCBJCNTL.ANO
+                   AND A.MES    = :BCBJCNTL.MES
+                   AND A.VERSAO = :BCBJCNTL.VERSAO
+                   AND A.CONTA <> " "
+                   AND NOT EXISTS
+                       ( SELECT 1
+                         FROM BCBJRSPC B
+                         WHERE A.ANO     =  B.ANO
+                          AND  A.MES     =  B.MES
+                          AND  A.VERSAO  =  B.VERSAO
+                          AND  (A.CONTA  =  B.CONTA
+                            OR  A.IBAN   =  B.CONTA ))
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN SQLCODE-NOTFOUND
+             CONTINUE
+           WHEN OTHER
+              MOVE "BCBJCCNT"          TO W-OBJECT-NAME
+              SET CMD-UPDATE           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       UPDATE-ERR-CLIENTES.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE  W-ANO  TO  ANO      OF BCBJCNTL
+           MOVE  W-MES  TO  MES      OF BCBJCNTL
+           MOVE  W-NUMV TO  VERSAO   OF BCBJCNTL
+
+           EXEC SQL
+                 UPDATE BCBJCINT A
+                 SET BPENV = "R"
+                  ,  CODERRO = ( SELECT MAX(CODMSG)
+                                 FROM BCBJRSPC B
+                                 WHERE A.ANO     =  B.ANO
+                                  AND  A.MES     =  B.MES
+                                  AND  A.VERSAO  =  B.VERSAO
+                                  AND  A.REFORIG =  B.REFORIG
+                                  AND  A.NIFNIPC =  B.NIFNIPC)
+                 WHERE A.ANO    = :BCBJCNTL.ANO
+                   AND A.MES    = :BCBJCNTL.MES
+                   AND A.VERSAO = :BCBJCNTL.VERSAO
+                   AND A.REFORIG <> " "
+                   AND EXISTS   ( SELECT 1
+                                  FROM BCBJRSPC B
+                                  WHERE A.ANO     =  B.ANO
+                                   AND  A.MES     =  B.MES
+                                   AND  A.VERSAO  =  B.VERSAO
+                                   AND  A.REFORIG =  B.REFORIG
+                                   AND  A.NIFNIPC =  B.NIFNIPC)
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN SQLCODE-NOTFOUND
+             CONTINUE
+           WHEN OTHER
+              MOVE "BCBJCINT"          TO W-OBJECT-NAME
+              SET CMD-UPDATE           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       UPDATE-ERR-INTERV1.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE  W-ANO  TO  ANO      OF BCBJCNTL
+           MOVE  W-MES  TO  MES      OF BCBJCNTL
+           MOVE  W-NUMV TO  VERSAO   OF BCBJCNTL
+
+           EXEC SQL
+                 UPDATE BCBJCCNTI  A
+                 SET CODERRO = ( SELECT MAX(CODMSG)
+                                 FROM BCBJRSPC B
+                                  WHERE (A.REFORIG = B.REFORIG
+                                         AND B.REFORIG <> " " )
+                                   OR ((A.CONTA   = B.CONTA  )
+                                        AND A.CONTA <> " "  ))
+                 WHERE
+                       EXISTS (  SELECT 1
+                                    FROM BCBJRSPC B
+                                    WHERE (A.REFORIG = B.REFORIG
+                                           AND B.REFORIG <> " " )
+                                     OR ((A.CONTA   = B.CONTA  )
+                                          AND A.CONTA <> " "  ))
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN SQLCODE-NOTFOUND
+             CONTINUE
+           WHEN OTHER
+              MOVE "BCBJCCNTI"         TO W-OBJECT-NAME
+              SET CMD-UPDATE           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       UPDATE-ERR-INTERV2.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE  W-ANO  TO  ANO      OF BCBJCNTL
+           MOVE  W-MES  TO  MES      OF BCBJCNTL
+           MOVE  W-NUMV TO  VERSAO   OF BCBJCNTL
+
+           EXEC SQL
+                 UPDATE BCBJCCNTI A
+                 SET  CODERRO = ( SELECT MAX(CODMSG)
+                                   FROM BCBJRSPC B
+                                      , BCBJCCNT C
+                                   WHERE (A.REFORIG = B.REFORIG
+                                          AND B.REFORIG <> " " )
+                                     AND((B.CONTA   = C.IBAN
+                                     OR   A.CONTA   =  C.IBAN ) )
+                                     AND A.CONTA <> " " )
+                 WHERE
+                       EXISTS   ( SELECT MAX(CODMSG)
+                                   FROM BCBJRSPC B
+                                       , BCBJCCNT C
+                                   WHERE (A.REFORIG = B.REFORIG
+                                          AND B.REFORIG <> " " )
+                                    AND ((B.CONTA = C.IBAN
+                                    OR    A.CONTA  =  C.IBAN ) )
+                                    AND A.CONTA <> " " )
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN SQLCODE-NOTFOUND
+             CONTINUE
+           WHEN OTHER
+              MOVE "BCBJCCNTI"         TO W-OBJECT-NAME
+              SET CMD-UPDATE           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       UPDATE-OK-CLIENTES.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE  W-ANO  TO  ANO      OF BCBJCNTL
+           MOVE  W-MES  TO  MES      OF BCBJCNTL
+           MOVE  W-NUMV TO  VERSAO   OF BCBJCNTL
+
+           EXEC SQL
+                 UPDATE BCBJCINT A
+                 SET BPENV = " "
+                  ,  CODERRO    = " "
+                 WHERE
+                       A.ANO    = :BCBJCNTL.ANO
+                   AND A.MES    = :BCBJCNTL.MES
+                   AND A.VERSAO = :BCBJCNTL.VERSAO
+                   AND NOT EXISTS
+                       ( SELECT 1
+                         FROM BCBJRSPC B
+                          WHERE A.ANO     =  B.ANO
+                           AND  A.MES     =  B.MES
+                           AND  A.VERSAO  =  B.VERSAO
+                           AND  A.REFORIG =  B.REFORIG
+                           AND  A.NIFNIPC =  B.NIFNIPC)
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN SQLCODE-NOTFOUND
+             CONTINUE
+           WHEN OTHER
+              MOVE "BCBJCINT"          TO W-OBJECT-NAME
+              SET CMD-UPDATE           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*----------------------------------------------------------------
+       UPDATE-CNTL-RET.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE  W-Nre  TO  NREC     OF BCBJCNTL
+           MOVE  W-Nrj  TO  NREJ     OF BCBJCNTL
+           MOVE  W-Nri  TO  NINT     OF BCBJCNTL
+           MOVE  W-Nra  TO  NALERTA  OF BCBJCNTL
+           MOVE  W-ANO  TO  ANO      OF BCBJCNTL
+           MOVE  W-MES  TO  MES      OF BCBJCNTL
+           MOVE  W-NUMV TO  VERSAO   OF BCBJCNTL
+
+           EXEC SQL
+                 UPDATE BCBJCNTL
+                 SET ESTADO  =  "RET"
+                   , NREC    =  :BCBJCNTL.NREC
+                   , NREJ    =  :BCBJCNTL.NREJ
+                   , NINT    =  :BCBJCNTL.NINT
+                   , NALERTA =  :BCBJCNTL.NALERTA
+                   , TMSRET  = CURRENT TIMESTAMP
+                 WHERE BCBJCNTL.ANO     = :BCBJCNTL.ANO
+                   AND BCBJCNTL.MES     = :BCBJCNTL.MES
+                   AND BCBJCNTL.VERSAO  = :BCBJCNTL.VERSAO
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "BCBJNTCL"          TO W-OBJECT-NAME
+              SET CMD-UPDATE           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*----------------------------------------------------------------
+       UPDATE-CNTL-REJ.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE  W-Nre  TO  NREC     OF BCBJCNTL
+           MOVE  W-Nrj  TO  NREJ     OF BCBJCNTL
+           MOVE  W-Nri  TO  NINT     OF BCBJCNTL
+           MOVE  W-Nra  TO  NALERTA  OF BCBJCNTL
+           MOVE  W-ANO  TO  ANO      OF BCBJCNTL
+           MOVE  W-MES  TO  MES      OF BCBJCNTL
+           MOVE  W-NUMV TO  VERSAO   OF BCBJCNTL
+
+           EXEC SQL
+                 UPDATE BCBJCNTL
+                 SET ESTADO  =  "REJ"
+                   , NREC    =  :BCBJCNTL.NREC
+                   , NREJ    =  :BCBJCNTL.NREJ
+                   , NINT    =  :BCBJCNTL.NINT
+                   , NALERTA =  :BCBJCNTL.NALERTA
+                   , TMSRET  = CURRENT TIMESTAMP
+                 WHERE BCBJCNTL.ANO     = :BCBJCNTL.ANO
+                   AND BCBJCNTL.MES     = :BCBJCNTL.MES
+                   AND BCBJCNTL.VERSAO  = :BCBJCNTL.VERSAO
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "BCBJNTCL"          TO W-OBJECT-NAME
+              SET CMD-UPDATE           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           MOVE MSG-ERRO-SQL    TO ERRMSG   OF  KYCT900A
+           MOVE W-SQLCODE       TO ERRCOD   OF  KYCT900A
+           MOVE "SQL"           TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE  2              TO ERRRTC   OF  KYCT900A
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "KYCP001"      TO  ERRPRG OF KYCT900A.
+      *    MOVE   WS-RACINE      TO  RACINE OF KYCT900A.
+
+           EXEC SQL  INSERT
+                INTO KYCT900A
+                VALUES  (
+                           :KYCT900A.RACINE
+                         , :KYCT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :KYCT900A.ERRRTC
+                         , :KYCT900A.ERRCOD
+                         , :KYCT900A.ERRMSG
+                         , :KYCT900A.ERRPRG
+                         , :KYCT900A.ERRAPL
+                         , :KYCT900A.ERROBJ
+                         , :KYCT900A.ERRFLD
+                         , :KYCT900A.ERRCMD
+                         , :KYCT900A.ERRKEY1
+                         , :KYCT900A.ERRVAL1
+                         , :KYCT900A.ERRKEY2
+                         , :KYCT900A.ERRVAL2 )
+           END-EXEC.
+
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "INSERT-T900A"   TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+
+     š*****************************************************************
+       P999-FIMPGM.
+     š*****************************************************************
+           GOBACK.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA BCBSCINT
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *

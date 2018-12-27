@@ -1,0 +1,113 @@
+       Process APOST
+       Identification division.
+       Program-id. xmlsampl2.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: BPC - Centralização de Responsabilidades   *
+     š*   OBJECTIVO ......: Este Interface destina-se a Extrair Info   *
+     š*                     Estática de Clientes a enviar ao BP        *
+     š*   ANALISTA .......: PEDRO GARCIA                               *
+     š*   PROGRAMADOR.....:                                            *
+     š*================================================================*
+       Data division.
+       Working-storage section.
+      ***********************************************************      *******
+      * XML document, encoded as initial values of data items.               *
+      ***********************************************************      *******
+         1 xml-id pic x(32) value '/Temenos/Request/xmlsampldoc.xml'.
+         1 xml-document-length computational pic 999.
+
+      ***********************************************************      *******
+      * Sample data definitions for processing numeric XML conten      t.    *
+      ***********************************************************      *******
+         1 current-element pic x(30).
+         1 list-price computational pic 9v99 value 0.
+         1 discount computational pic 9v99 value 0.
+         1 display-price pic $$9.99.
+
+       Procedure division.
+       mainline section.
+           OPEN INPUT BCBFRSPC
+
+            XML PARSE FILE-STREAM xml-id
+            PROCESSING PROCEDURE XML-HANDLER
+            ON EXCEPTION
+              display 'XML document error ' XML-CODE
+      **    NOT ON EXCEPTION
+      **      display 'XML document successfully parsed'
+            END-XML
+
+      ******************************************************************
+      *    Process the transformed content and calculate promo price.  *
+      ******************************************************************
+           display ' '
+           display '-----+++++***** Using information from XML '
+                   '*****+++++-----'
+           display ' '
+           move list-price to display-price
+           display '  Sandwich list price: ' display-price
+           compute display-price = list-price * (1 - discount)
+           display '  Promotional price:   ' display-price
+           display '  Get one today!'
+
+           goback.
+
+      ******************************************************************
+        xml-handler section.
+      ******************************************************************
+           evaluate XML-EVENT
+      * ==> Order XML events most frequent first
+           when 'START-OF-ELEMENT'
+               display 'Start element tag: <' XML-TEXT '>'
+               move XML-TEXT to current-element
+           when 'CONTENT-CHARACTERS'
+             display 'Content characters: <' XML-TEXT '>'
+      * ==> Transform XML content to operational COBOL data item...
+              evaluate current-element
+              when 'listprice'
+      * ==> Using function NUMVAL-C...
+                  compute list-price = function numval-c(XML-TEXT)
+                  when 'discount'
+                    compute discount = function numval-c(XML-TEXT)
+              end-evaluate
+           when 'END-OF-ELEMENT'
+                display 'End element tag: <' XML-TEXT '>'
+                move spaces to current-element
+           when 'START-OF-DOCUMENT'
+                compute xml-document-length = function length(XML-TEXT)
+                display 'Start of document: length=' xml-document-length
+                    ' characters.'
+           when 'END-OF-DOCUMENT'
+                display 'End of document.'
+           when 'VERSION-INFORMATION'
+                display 'Version: <' XML-TEXT '>'
+           when 'ENCODING-DECLARATION'
+                display 'Encoding: <' XML-TEXT '>'
+           when 'STANDALONE-DECLARATION'
+                display 'Standalone: <' XML-TEXT '>'
+           when 'ATTRIBUTE-NAME'
+                display 'Attribute name: <' XML-TEXT '>'
+           when 'ATTRIBUTE-CHARACTERS'
+                display 'Attribute value characters: <' XML-TEXT '>'
+           when 'ATTRIBUTE-CHARACTER'
+                display 'Attribute value character: <' XML-TEXT '>'
+           when 'START-OF-CDATA-SECTION'
+                display 'Start of CData: <' XML-TEXT '>'
+           when 'END-OF-CDATA-SECTION'
+                display 'End of CData: <' XML-TEXT '>'
+           when 'CONTENT-CHARACTER'
+                display 'Content character: <' XML-TEXT '>'
+           when 'PROCESSING-INSTRUCTION-TARGET'
+                 display 'PI target: <' XML-TEXT '>'
+           when 'PROCESSING-INSTRUCTION-DATA'
+                 display 'PI data: <' XML-TEXT '>'
+           when 'COMMENT'
+                display 'Comment: <' XML-TEXT '>'
+           when 'EXCEPTION'
+                compute xml-document-length = function length (XML-TEXT)
+                display 'Exception ' XML-CODE ' at offset '
+                   xml-document-length '.'
+           when other
+                display 'Unexpected XML event: ' XML-EVENT '.'
+           end-evaluate
+                 .
+       End program xmlsampl2.

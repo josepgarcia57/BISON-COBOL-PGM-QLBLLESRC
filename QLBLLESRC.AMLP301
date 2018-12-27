@@ -1,0 +1,417 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    AMLP301   INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2018-AGO-20.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: AML - Profiling de Clientes                *
+     š*   OBJECTIVO ......: Este programa destina-se a extrair         *
+     š*                     a informação de Clientes para FCM          *
+     š*   ANALISTA .......: PEDRO GARCIA                               *
+     š*   PROGRAMADOR.....:                                            *
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 TRATA-INFO                 PIC 9(01).
+          88 SIM-TRATA               VALUE 1.
+          88 NAO-TRATA               VALUE 0.
+      *
+       01 EXECUTA-P001               PIC 9(01).
+          88 INICIO-P001             VALUE 0.
+          88 FIM-P001                VALUE 1.
+      *
+       01 PGM-STATUS                 PIC 9(01).
+          88 SEM-ERRO                VALUE 0.
+          88 COM-ERRO                VALUE 1.
+      *
+       01 NR-ADM                     PIC 9(06) VALUE ZEROS.
+       01 NR-READ                    PIC 9(06) VALUE ZEROS.
+       01 NR-PROC                    PIC 9(06) VALUE ZEROS.
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-ANOIN                PIC X(04).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-DIAIN                PIC X(02).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01 WX-ANO-CONVER.
+          03 WS-ANO-12               PIC X(02).
+          03 WS-ANO-34               PIC X(02).
+
+       01 W-CONSTANTS.
+          05  K-APLICACAO            PIC X(3)    VALUE "FCM".
+          05  K-PROGRAMA             PIC X(9)    VALUE "AMLP301".
+
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+     š* Parametros para chamada de QCMDEXEC
+       01  W-CMD                  PIC X(100) VALUE SPACES.
+       01  W-LEN                  PIC 9(10)V9(5) COMP-3.
+
+     š* Parametros p/ Interface Clientes
+           COPY AMLB301.
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+
+     š* Copy : Tabela de Clientes
+       01  R-FDBCLI.
+           COPY DDS-ALL-FORMATS OF FDBCLI.
+
+     š* Copy : Tabela de AMLT900A
+       01  R-AMLT900A.
+           COPY DDS-ALL-FORMATS OF AMLT900A.
+
+       01 WS-NURACI                PIC X(07).
+       01 WS-DATA-DIA-DB2          PIC X(10).
+       01 DB-VARDUMMY              PIC S9(4)    COMP-3.
+
+     š*--Selecção de Todas Contas DO's com ou sem saldo e não anuladas
+     š*--Mesmo Critérios de Clientes Activos
+           EXEC SQL DECLARE FCMPFCLI CURSOR FOR
+               SELECT  DISTINCT C.CLRACI
+                   FROM FDBCLI C
+               WHERE  C.CLCENT = "0000001"
+               AND ((C.CLRACI >  "0100000"
+               AND  C.CLRACI <  "1000000")
+               OR   C.CLRACI >= "9000000"
+               OR (  C.CLRACI >= "8000000"
+               AND   C.CLRACI <= "8999999"
+               AND EXISTS ( SELECT 1 FROM FDBMVT V
+                            WHERE V.MVRACI = C.CLRACI
+                             AND  V.MVDTRF >  20170000 )))
+           END-EXEC.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       PROCEDURE DIVISION.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+           PERFORM P001-INICIO
+           PERFORM P002-ELIMINA-DADOS
+           IF NOT SIM-ERRO
+             PERFORM P100-OPEN-CURSOR-FCMPFCLI
+             PERFORM P200-FETCH-CURSOR-FCMPFCLI
+             PERFORM P300-PROCESSO-GERAL
+                             UNTIL FIM-P001
+             PERFORM P400-CLOSE-CURSOR-FCMPFCLI
+           END-IF
+     š*-  Ftp do Ficheiro                                              -----
+           CALL "AMLC301"
+     š*-                                                               -----
+           PERFORM P999-FIMPGM.
+     š*---------------------------------------------------------------------
+       P001-INICIO.
+     š*---------------------------------------------------------------------
+           SET  INICIO-P001         TO  TRUE.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10) TO  WS-DATA-DIA.
+     š*---------------------------------------------------------------------
+       P002-ELIMINA-DADOS.
+     š*---------------------------------------------------------------------
+
+           EXEC SQL
+                DELETE FROM AMLJ301
+           END-EXEC.
+
+     š*---------------------------------------------------------------------
+       P100-OPEN-CURSOR-FCMPFCLI.
+     š*---------------------------------------------------------------------
+     š*-
+           EXEC SQL
+                OPEN FCMPFCLI
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-P001        TO TRUE
+           WHEN OTHER
+              SET     FIM-P001        TO TRUE
+              MOVE "FCMPFCLI"         TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*****************************************************************
+       P200-FETCH-CURSOR-FCMPFCLI.
+     š*****************************************************************
+     š*-
+           EXEC SQL FETCH FCMPFCLI
+                     INTO
+                    :WS-NURACI
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             ADD 1 TO NR-READ
+     š*-
+           WHEN SQLCODE-NOTFOUND
+              SET  FIM-P001          TO TRUE
+           WHEN OTHER
+              SET   FIM-P001         TO TRUE
+              MOVE "FCMPFCLI"        TO W-OBJECT-NAME
+              SET   CMD-FETCH-CURSOR TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*****************************************************************
+       P300-PROCESSO-GERAL.
+     š*****************************************************************
+     š*-
+           SET SIM-TRATA TO TRUE
+           IF SQLCODE-OK
+              IF SIM-TRATA
+                PERFORM P400-CALL-AMLS301
+              END-IF
+           END-IF.
+           PERFORM P200-FETCH-CURSOR-FCMPFCLI.
+     š*----------------------------------------------------------------
+       P400-CALL-AMLS301.
+     š*----------------------------------------------------------------
+           INITIALIZE              AMLB301-LKPARMS.
+           MOVE WS-NURACI      TO  AMLB301-RACINE
+           MOVE WS-DATA-DIA    TO  AMLB301-DTPROC
+
+           CALL "AMLS301" USING  AMLB301-LKPARMS
+           IF AMLB301-PROC-OK
+              CONTINUE
+           ELSE
+             SET  FIM-P001            TO TRUE
+             INITIALIZE   AMLT900A
+             MOVE AMLB301-DESCERR     TO ERRMSG   OF  AMLT900A
+             MOVE AMLB301-CODERR      TO ERRCOD   OF  AMLT900A
+             MOVE "AMLS301"           TO ERRPRG   OF  AMLT900A
+             MOVE "AML"               TO ERRAPL   OF  AMLT900A
+             MOVE AMLB301-IDMSGEXE    TO ERROBJ   OF  AMLT900A
+             MOVE  1                  TO ERRRTC   OF  AMLT900A
+             PERFORM P995-INSERT-ERROS
+           END-IF.
+     š*-
+     š*****************************************************************
+       P400-CLOSE-CURSOR-FCMPFCLI.
+     š*****************************************************************
+     š*-
+           EXEC SQL
+               CLOSE FCMPFCLI
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET     FIM-P001         TO TRUE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURSOR-FCMPFCLI"   TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P990-ERRO-FS.
+     š*---------------------------------------------------------------------
+           EVALUATE TRUE
+           WHEN GRS-READ-DUP-KEY
+                  STRING "ERRO DE DADOS: CHAVE DUPLICADA NO FICHEIRO <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-FS
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ ERRO    <"
+                      W-EDTFILC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-FS
+           END-EVALUATE.
+     š*
+           INITIALIZE   AMLT900A
+           SET  COM-ERRO        TO TRUE
+           MOVE  1              TO ERRRTC   OF  AMLT900A
+           MOVE W-FILE-CODE     TO ERRCOD   OF  AMLT900A
+           MOVE MSG-ERRO-FS     TO ERRMSG   OF  AMLT900A
+           MOVE "BCBCCNTX"      TO ERRPRG   OF  AMLT900A
+           MOVE "BCB"           TO ERRAPL   OF  AMLT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  AMLT900A
+           MOVE W-CMDEXEC       TO ERRCMD   OF  AMLT900A
+           MOVE W-PARAGRAFO     TO ERRFLD   OF  AMLT900A
+
+           PERFORM    P995-INSERT-ERROS.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   AMLT900A
+           MOVE MSG-ERRO-SQL    TO ERRMSG   OF  AMLT900A
+           MOVE W-SQLCODE       TO ERRCOD   OF  AMLT900A
+           MOVE "SQL"           TO ERRAPL   OF  AMLT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  AMLT900A
+           MOVE  2              TO ERRRTC   OF  AMLT900A
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "AMLP301"      TO  ERRPRG OF AMLT900A.
+           MOVE   WS-NURACI        TO  RACINE OF AMLT900A.
+
+           EXEC SQL  INSERT
+                INTO AMLT900A
+                VALUES  (
+                           :AMLT900A.RACINE
+                         , :AMLT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :AMLT900A.ERRRTC
+                         , :AMLT900A.ERRCOD
+                         , :AMLT900A.ERRMSG
+                         , :AMLT900A.ERRPRG
+                         , :AMLT900A.ERRAPL
+                         , :AMLT900A.ERROBJ
+                         , :AMLT900A.ERRFLD
+                         , :AMLT900A.ERRCMD
+                         , :AMLT900A.ERRKEY1
+                         , :AMLT900A.ERRVAL1
+                         , :AMLT900A.ERRKEY2
+                         , :AMLT900A.ERRVAL2 )
+           END-EXEC.
+
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "AMLT900A"       TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+
+
+     š*****************************************************************
+       P999-FIMPGM.
+     š*****************************************************************
+           EXEC SQL    COMMIT    HOLD         END-EXEC
+           EXIT PROGRAM.
+           STOP RUN.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA AMLP301
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *

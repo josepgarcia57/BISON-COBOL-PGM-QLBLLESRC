@@ -1,0 +1,1148 @@
+      *================================================================*
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.     BPCP308.
+      *----------------------------------------------------------------*
+      * APLICACAO : GESTAO DE EMPRESTIMOS
+      * PROGRAMA .: BPCP308
+      * OBJECTIVO : IMPLEMENTAR AS REGRAS DE PROCESSAMENTO DO PROCESSO
+      *             "BPCP308"
+      * CRIADO EM : 2005/FEVEREIRO
+      * POR ......: FERNANDO SILVA (CAPGEMINI PORTUGAL)
+      *----------------------------------------------------------------*
+
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       CONFIGURATION               SECTION.
+      *----------------------------------------------------------------*
+       SPECIAL-NAMES.  DECIMAL-POINT  IS COMMA.
+
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE             SECTION.
+      *----------------------------------------------------------------*
+           COPY BPCB002.
+           COPY CREB950.
+
+       01 WS-POS-NOMI                PIC S9(4)   COMP   VALUE 0.
+       01 WS-NOM-L                   PIC S9(4)   COMP   VALUE 0.
+       01 WS-NOM.
+          03 W-NOM                   PIC X       OCCURS 35.
+       01 WS-POS-PRNMI               PIC S9(4)   COMP   VALUE 0.
+       01 WS-PRNM-L                  PIC S9(4)   COMP   VALUE 0.
+       01 WS-PRNM.
+          03 W-PRNM                  PIC X       OCCURS 35.
+       01 WS-NOM-COMPLETO            PIC X(80).
+
+       01  WS-VARSTRAB.
+           05  WS-IDREGSEL.
+               10  WS-IDDIALOG         PIC X(32).
+               10  FILLER              PIC X(48).
+
+           05  WS-PARMSLDV             PIC X(80).
+           05  WS-LVCTAB-I
+               REDEFINES WS-PARMSLDV.
+               10  WS-CTAB             PIC X(03).
+               10  FILLER              PIC X(77).
+           05  WS-LVCCOD-O
+               REDEFINES WS-PARMSLDV.
+               10  WS-COD              PIC X(20).
+               10  FILLER              PIC X(60).
+
+           05  WS-STRING80.
+               10  WS-CHRSTR80         PIC X               OCCURS 80.
+           05  WS-ARRYNDX1             PIC S9(4)       BINARY.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-CNSTANTS.
+           05  KV-NRPGSHRZ-DFLT        PIC 9       VALUE 1.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           COPY BPCB358.
+           COPY CREB999.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           EXEC SQL INCLUDE SQLCA                              END-EXEC.
+
+           EXEC SQL BEGIN DECLARE  SECTION                     END-EXEC.
+       01  WS-DBGBVARS.
+           COPY DDS-BPCTPCIN OF BPCTPCIN.
+       01  R-FDBCLI.
+           COPY DDS-ALL-FORMATS OF FDBCLI.
+
+       01  WS-NURACI                    PIC X(07).
+       01  WS-DBLCVARS.
+           05  DB-VARDUMMY             PIC S9(4)       BINARY.
+           EXEC SQL END   DECLARE  SECTION                     END-EXEC.
+
+      *----------------------------------------------------------------*
+       LINKAGE                     SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB000.
+
+      *================================================================*
+       PROCEDURE DIVISION USING CREB000-LKGERAL.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       P0000-RAIZ                  SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P1000-INICIO
+
+           PERFORM P2000-PROCESSO
+
+           PERFORM P3000-FIM
+           .
+       P0000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P1000-INICIO                SECTION.
+      *----------------------------------------------------------------*
+
+           MOVE CREB000-IDREGSEL     TO WS-IDREGSEL
+           IF  CREB000-MSGDLG-P > 1
+           OR  CREB000-IDCANALC = CREB950-IDCANALC-RM
+               MOVE CREB000-MSGDLG-V(CREB000-MSGDLG-P:)
+                                     TO BPCB358-MSGDIALG
+           END-IF
+           INITIALIZE CREB950-IDMSGAPL, BPCB358-PCURSOR, WS-DBGBVARS
+           .
+       P1000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P2000-PROCESSO              SECTION.
+      *----------------------------------------------------------------*
+
+           EVALUATE TRUE
+           WHEN(CREB000-INITDLG AND NOT CREB000-PROCLOV)
+           OR   CREB000-PROCIDT
+               PERFORM P2100-INICIALIZA
+               IF  CREB000-PROCNLF
+               AND(CREB000-PROC-OK OR  CREB000-MSGINFO)
+               AND CREB000-IDREG-OK
+                   PERFORM P2500-PROC-REGEXIST
+               END-IF
+           WHEN CREB000-PROCLOV
+               PERFORM P2200-PROC-LISTVALS
+           WHEN CREB000-IDREG-NV
+               PERFORM P2300-FRMT-IDREGNVG
+           WHEN CREB000-PROCCRT
+           OR  (CREB000-PROCVRF AND CREB000-IDREG-NF)
+               PERFORM P2400-PROC-NOVOREG
+           WHEN CREB000-PROCSEL
+           OR  (CREB000-PROCVRF AND CREB000-IDREG-OK)
+               PERFORM P2500-PROC-REGEXIST
+           WHEN CREB000-PROCPRT
+               PERFORM P2600-PROC-IMPRESSO
+           WHEN CREB000-PROCCNF
+               PERFORM P2700-EXEC-ALTERABD
+           WHEN CREB000-PROCCAN
+               PERFORM P2800-PROC-CANCELA
+           END-EVALUATE
+           .
+       P2000-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2100-INICIALIZA            SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           INITIALIZE BPCB358-MSGDIALG
+           SET  CREB000-IDREG-NF TO TRUE
+
+           EVALUATE TRUE
+           WHEN CREB000-PROC-ERR
+               CONTINUE
+           WHEN CREB000-PROCIDT OR CREB000-PROCSEL
+               PERFORM P2110-READ-REGEXIST
+           WHEN CREB000-PROCCRT
+               PERFORM P2120-INIT-NOVOREG
+           END-EVALUATE
+           .
+       P2100-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2110-READ-REGEXIST         SECTION.
+
+           MOVE WS-IDDIALOG OF WS-IDREGSEL TO BPCB358-IDINST-V
+           PERFORM P9000-READ-BPCTPCIN
+
+           EVALUATE TRUE
+           WHEN CREB000-PROC-ERR
+               CONTINUE
+           WHEN CREB000-IDREG-OK
+               PERFORM P2111-FRMT-MSGDIALG
+           WHEN OTHER
+               SET  CREB950-FUNCAO-INTERRP TO TRUE
+               SET  CREB000-MSGFUNC        TO TRUE
+           END-EVALUATE
+
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P9000-PROTEG-IDT
+               IF  CREB000-FUNCMODF-ON
+               AND NOT CREB950-FUNCAO-INTERRP
+                   PERFORM P9000-PERMIT-DET
+               ELSE
+                   PERFORM P9000-PROTEG-DET
+               END-IF
+               PERFORM P9000-DISPLY-DET
+           END-IF
+           .
+       P2110-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2111-FRMT-MSGDIALG         SECTION.
+
+           MOVE IDCONT     OF BPCTPCIN     TO BPCB358-IDCONT-V
+           MOVE CLSCTBINST OF BPCTPCIN     TO BPCB358-CLSCTBINST-V
+           MOVE RECBAL     OF BPCTPCIN     TO BPCB358-RECBAL-V
+           MOVE FCONSTONUS OF BPCTPCIN     TO BPCB358-FCONSTONUS-V
+           MOVE MNTACUMIMP OF BPCTPCIN     TO BPCB358-MNTACUMIMP-V
+           MOVE TPIMP      OF BPCTPCIN     TO BPCB358-TPIMP-V
+           MOVE METVALIMP  OF BPCTPCIN     TO BPCB358-METVALIMP-V
+           MOVE VARACUMRC  OF BPCTPCIN     TO BPCB358-VARACUMRC-V
+           MOVE PERFSTAT   OF BPCTPCIN     TO BPCB358-PERFSTAT-V
+           MOVE DTPERFSTAT OF BPCTPCIN     TO BPCB358-DTPERFSTAT-V
+           MOVE PROVPREXTP OF BPCTPCIN     TO BPCB358-PROVPREXTP-V
+           MOVE SITDIFREN  OF BPCTPCIN     TO BPCB358-SITDIFREN-V
+           MOVE DESTDIFREN OF BPCTPCIN     TO BPCB358-DESTDIFREN-V
+           MOVE RECACUMINC OF BPCTPCIN     TO BPCB358-RECACUMINC-V
+           MOVE CARTPRUD   OF BPCTPCIN     TO BPCB358-CARTPRUD-V
+           MOVE MONTESCRIT OF BPCTPCIN     TO BPCB358-MONTESCRIT-V
+           MOVE TMSCRIA    OF BPCTPCIN     TO CREB950-DTHR-ISO
+           MOVE CORR CREB950-DTHR-ISO       TO CREB950-DTHR-X14
+           MOVE CREB950-DTHR-N14          TO BPCB358-DHCRIREG-V
+           IF  TMSALT   OF BPCTPCIN NOT = CREB950-TMSTPMIN
+               MOVE TMSALT   OF BPCTPCIN TO CREB950-DTHR-ISO
+               MOVE CORR CREB950-DTHR-ISO TO CREB950-DTHR-X14
+               MOVE CREB950-DTHR-N14      TO BPCB358-DHMDFREG-V
+           END-IF
+           MOVE TMSALT   OF BPCTPCIN     TO CREB000-DHMDFREG
+
+      *- Carrega Descritivos na Consulta                               *
+           PERFORM P9000-DESC-IDINST
+      *    PERFORM P9000-DESC-CLSCTBINST
+      *    PERFORM P9000-DESC-RECBAL
+      *    PERFORM P9000-DESC-FCONSTONUS
+      *    PERFORM P9000-DESC-METVALIMP
+      *    PERFORM P9000-DESC-TPIMP
+      *    PERFORM P9000-DESC-PERFSTAT
+      *    PERFORM P9000-DESC-SITDIFREN
+      *    PERFORM P9000-DESC-CARTPRUD
+           .
+       P2111-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2120-INIT-NOVOREG          SECTION.
+
+           MOVE WS-IDDIALOG OF WS-IDREGSEL TO BPCB358-IDINST-V
+      *    MOVE KV-NRPGSHRZ-DFLT           TO BPCB358-NRPGSHRZ-V
+
+           PERFORM P9000-PERMIT-IDT
+           PERFORM P9000-PERMIT-DET
+           .
+       P2120-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2200-PROC-LISTVALS         SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           IF  CREB000-INITDLG
+               PERFORM P2210-FRMT-PARMSLDV
+           ELSE
+               PERFORM P2220-RECB-IDSELLDV
+           END-IF
+           .
+       P2200-EXIT.                 EXIT.
+      *-------------------------------                                 *
+      *- Obtenção da Lista de Códigos                                  *
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2210-FRMT-PARMSLDV         SECTION.
+
+           MOVE SPACES                  TO WS-PARMSLDV
+
+           EVALUATE CREB000-IDVARCSR
+           WHEN "CLSCTBINST"
+               MOVE CREB950-TBP-CLSCTB  TO WS-CTAB
+               SET  BPCB358-CLSCTBINST-PC TO TRUE
+           WHEN "FCONSTONUS"
+               MOVE CREB950-TBP-ONUS         TO WS-CTAB
+               SET  BPCB358-FCONSTONUS-PC    TO TRUE
+           WHEN "METVALIMP"
+               MOVE CREB950-TBP-AVIMP        TO WS-CTAB
+               SET  BPCB358-METVALIMP-PC     TO TRUE
+           WHEN "RECBAL"
+               MOVE CREB950-TBP-RECBAL       TO WS-CTAB
+               SET  BPCB358-RECBAL-PC        TO TRUE
+           WHEN "SITDIFREN"
+               MOVE CREB950-TBP-DIFAMT       TO WS-CTAB
+               SET  BPCB358-SITDIFREN-PC     TO TRUE
+           WHEN "TPIMP"
+               MOVE CREB950-TBP-TIMP         TO WS-CTAB
+               SET  BPCB358-TPIMP-PC         TO TRUE
+           WHEN "PERFSTAT"
+               MOVE CREB950-TBP-SITINS       TO WS-CTAB
+               SET  BPCB358-PERFSTAT-PC      TO TRUE
+           WHEN "CARTPRUD"
+               MOVE CREB950-TBP-CRTPRUD      TO WS-CTAB
+               SET  BPCB358-CARTPRUD-PC      TO TRUE
+           END-EVALUATE
+
+           MOVE WS-PARMSLDV             TO CREB000-PARMSINP
+           .
+       P2210-EXIT.                 EXIT.
+      *------------------------------------------------                *
+      *- Recebe Valor Escolhido na Lista de Valores                    *
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2220-RECB-IDSELLDV         SECTION.
+
+           MOVE CREB000-PARMSINP        TO WS-PARMSLDV
+
+           EVALUATE TRUE
+           WHEN CREB000-PARMSINP = SPACES
+               CONTINUE
+           WHEN CREB000-IDVARCSR = "CLSCTBINST"
+           AND  WS-COD  OF WS-LVCCOD-O   NOT = SPACES
+               MOVE WS-COD  OF WS-LVCCOD-O TO BPCB358-CLSCTBINST-V
+               SET  BPCB358-CLSCTBINST-PC         TO TRUE
+           WHEN CREB000-IDVARCSR = "FCONSTONUS"
+           AND  WS-COD  OF WS-LVCCOD-O   NOT = SPACES
+               MOVE WS-COD  OF WS-LVCCOD-O TO BPCB358-FCONSTONUS-V
+               SET  BPCB358-FCONSTONUS-PC        TO TRUE
+           WHEN CREB000-IDVARCSR = "METVALIMP"
+           AND  WS-COD  OF WS-LVCCOD-O   NOT = SPACES
+               MOVE WS-COD  OF WS-LVCCOD-O TO BPCB358-METVALIMP-V
+               SET  BPCB358-METVALIMP-PC         TO TRUE
+           WHEN CREB000-IDVARCSR = "RECBAL"
+           AND  WS-COD  OF WS-LVCCOD-O   NOT = SPACES
+               MOVE WS-COD  OF WS-LVCCOD-O TO BPCB358-RECBAL-V
+               SET  BPCB358-RECBAL-PC            TO TRUE
+           WHEN CREB000-IDVARCSR = "SITDIFREN"
+           AND  WS-COD  OF WS-LVCCOD-O   NOT = SPACES
+               MOVE WS-COD  OF WS-LVCCOD-O TO BPCB358-SITDIFREN-V
+               SET  BPCB358-SITDIFREN-PC         TO TRUE
+           WHEN CREB000-IDVARCSR = "TPIMP"
+           AND  WS-COD  OF WS-LVCCOD-O   NOT = SPACES
+               MOVE WS-COD  OF WS-LVCCOD-O TO BPCB358-TPIMP-V
+               SET  BPCB358-TPIMP-PC             TO TRUE
+           WHEN CREB000-IDVARCSR = "PERFSTAT"
+           AND  WS-COD  OF WS-LVCCOD-O   NOT = SPACES
+               MOVE WS-COD  OF WS-LVCCOD-O TO BPCB358-PERFSTAT-V
+               SET  BPCB358-PERFSTAT-PC         TO TRUE
+           WHEN CREB000-IDVARCSR = "CARTPRUD"
+           AND  WS-COD  OF WS-LVCCOD-O   NOT = SPACES
+               MOVE WS-COD  OF WS-LVCCOD-O TO BPCB358-CARTPRUD-V
+               SET  BPCB358-CARTPRUD-PC         TO TRUE
+           END-EVALUATE
+           .
+       P2220-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2300-FRMT-IDREGNVG         SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE CREB000-IDPRCDST     TO CREB999-IDPRCNVG
+           INITIALIZE                   CREB999-PARMSINP
+           MOVE BPCB358-IDINST-V     TO CREB999-IDDIALOG
+           CALL CREB950-SRPRENVG USING CREB999-LKGERAL
+
+           IF  CREB999-PROC-OK
+               MOVE CREB999-PARMSNVG TO CREB000-PARMSINP
+           ELSE
+               SET  CREB000-MSGSROT  TO TRUE
+               MOVE CREB999-CDRETORN TO CREB000-CDRETORN
+               MOVE CREB999-NMOBJECT TO CREB000-NMOBJECT
+           END-IF
+           .
+       P2300-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2400-PROC-NOVOREG          SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           INITIALIZE BPCB358-VARSOUT
+           PERFORM P2410-VRIF-NIVEL01
+
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P2420-VRIF-NIVEL02
+           END-IF
+
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P2430-FRMT-MSGDIALG
+           END-IF
+
+           EVALUATE TRUE
+           WHEN CREB000-PROC-ERR
+               CONTINUE
+           WHEN CREB000-PROCCRT
+               PERFORM P9000-PROTEG-IDT
+               PERFORM P9000-PROTEG-DET
+               PERFORM P9000-NDISPL-DET
+           WHEN OTHER
+               PERFORM P9000-PERMIT-IDT
+               PERFORM P9000-PERMIT-DET
+               PERFORM P9000-NDISPL-DET
+           END-EVALUATE
+           .
+       P2400-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2410-VRIF-NIVEL01          SECTION.
+
+           MOVE BPCB358-IDINST-V   TO WS-STRING80
+           PERFORM
+           VARYING WS-ARRYNDX1 FROM 1 BY 1
+             UNTIL WS-ARRYNDX1 > LENGTH OF BPCB358-IDINST-V
+             OR   (WS-CHRSTR80(WS-ARRYNDX1) = SPACE OR "*" OR "?")
+               CONTINUE
+           END-PERFORM
+
+           PERFORM
+           VARYING WS-ARRYNDX1 FROM WS-ARRYNDX1 BY 1
+             UNTIL WS-ARRYNDX1 > LENGTH OF BPCB358-IDINST-V
+             OR    WS-CHRSTR80(WS-ARRYNDX1) > SPACE
+               CONTINUE
+           END-PERFORM
+
+           EVALUATE TRUE
+           WHEN BPCB358-IDINST-V  = SPACES
+               SET  BPCB358-IDINST-PC      TO TRUE
+               SET  CREB950-PCAMPO-OBRIGAT TO TRUE
+               SET  CREB000-MSGFUNC        TO TRUE
+           WHEN WS-ARRYNDX1        <= LENGTH OF BPCB358-IDINST-V
+               SET  BPCB358-IDINST-PC      TO TRUE
+               SET  CREB950-VCAMPO-INVALID TO TRUE
+               SET  CREB000-MSGFUNC        TO TRUE
+           WHEN OTHER
+               PERFORM P2510-VRIF-NIVEL01
+           END-EVALUATE
+           .
+       P2410-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2420-VRIF-NIVEL02          SECTION.
+
+           PERFORM P9000-READ-BPCTPCIN
+
+           IF (CREB000-PROC-OK OR CREB000-MSGINFO)
+           AND CREB000-IDREG-OK
+               SET  BPCB358-IDINST-PC      TO TRUE
+               SET  CREB950-REGIST-JEXISTE TO TRUE
+               SET  CREB000-MSGFUNC        TO TRUE
+               SET  CREB000-IDREG-NF       TO TRUE
+           END-IF
+
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P2520-VRIF-NIVEL02
+           END-IF
+           .
+       P2420-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2430-FRMT-MSGDIALG         SECTION.
+
+           CONTINUE
+           .
+       P2430-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2500-PROC-REGEXIST         SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           IF  CREB000-PROCMDF OR CREB000-PROCVRF
+               INITIALIZE BPCB358-VARSOUT
+               PERFORM P2510-VRIF-NIVEL01
+
+               IF  CREB000-PROC-OK OR CREB000-MSGINFO
+                   PERFORM P2520-VRIF-NIVEL02
+               END-IF
+
+               IF  CREB000-PROC-OK OR CREB000-MSGINFO
+                   PERFORM P2530-FRMT-MSGDIALG
+               END-IF
+           ELSE
+               CONTINUE
+      *        PERFORM P2540-VRIF-RELDPEND
+           END-IF
+
+           EVALUATE TRUE
+           WHEN CREB000-PROC-ERR
+               CONTINUE
+           WHEN CREB000-PROCVRF
+               PERFORM P9000-PROTEG-IDT
+               PERFORM P9000-PERMIT-DET
+               PERFORM P9000-DISPLY-DET
+           WHEN OTHER
+               PERFORM P9000-PROTEG-IDT
+               PERFORM P9000-PROTEG-DET
+               PERFORM P9000-DISPLY-DET
+           END-EVALUATE
+           .
+       P2500-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2510-VRIF-NIVEL01          SECTION.
+
+      *    EVALUATE TRUE
+      *    WHEN BPCB358-IDAPLICA-V = SPACES
+      *        SET  BPCB358-IDAPLICA-PC    TO TRUE
+      *        SET  CREB950-PCAMPO-OBRIGAT TO TRUE
+      *        SET  CREB000-MSGFUNC        TO TRUE
+      *    END-EVALUATE
+           continue
+           .
+       P2510-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2520-VRIF-NIVEL02          SECTION.
+
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P9000-DESC-IDINST
+           END-IF.
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P9000-DESC-CLSCTBINST
+           END-IF.
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P9000-DESC-RECBAL
+           END-IF.
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P9000-DESC-FCONSTONUS
+           END-IF.
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P9000-DESC-METVALIMP
+           END-IF.
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P9000-DESC-TPIMP
+           END-IF.
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P9000-DESC-PERFSTAT
+           END-IF.
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P9000-DESC-SITDIFREN
+           END-IF.
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P9000-DESC-CARTPRUD
+           END-IF.
+
+       P2520-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2530-FRMT-MSGDIALG         SECTION.
+
+           CONTINUE
+           .
+       P2530-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2600-PROC-IMPRESSO         SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           CONTINUE
+           .
+       P2600-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2700-EXEC-ALTERABD         SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           EVALUATE TRUE
+           WHEN CREB000-DOCREAT
+               PERFORM P2710-EXEC-TRNCRIAR
+           WHEN CREB000-DOMODFY
+               PERFORM P2720-EXEC-TRNMODIF
+           WHEN CREB000-DONULFY
+               PERFORM P2730-EXEC-TRNANULA
+           END-EVALUATE
+
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               SET  CREB000-TRNDONE TO TRUE
+           END-IF
+           .
+       P2700-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2710-EXEC-TRNCRIAR         SECTION.
+
+           PERFORM P9000-FRMT-BPCTPCIN-CHAV
+           PERFORM P9000-FRMT-BPCTPCIN-ATRB
+           PERFORM P9000-INSR-BPCTPCIN
+
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+      *        MOVE BPCB358-IDAPLICA-V TO WS-IDAPLICA OF WS-IDREGSEL
+               MOVE BPCB358-IDINST-V   TO WS-IDDIALOG OF WS-IDREGSEL
+           END-IF
+           .
+       P2710-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2720-EXEC-TRNMODIF         SECTION.
+
+           PERFORM P9000-FRMT-BPCTPCIN-CHAV
+           PERFORM P9000-FRMT-BPCTPCIN-ATRB
+           PERFORM P9000-UPDT-BPCTPCIN
+           .
+       P2720-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2730-EXEC-TRNANULA         SECTION.
+
+           PERFORM P9000-FRMT-BPCTPCIN-CHAV
+           PERFORM P9000-DELT-BPCTPCIN
+           .
+       P2730-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2800-PROC-CANCELA          SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           EVALUATE TRUE
+           WHEN CREB000-IDREG-NF
+               PERFORM P9000-PERMIT-IDT
+               PERFORM P9000-PERMIT-DET
+           WHEN CREB000-FUNCMODF-ON
+               PERFORM P9000-PERMIT-DET
+           END-EVALUATE
+           .
+       P2800-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P3000-FIM                   SECTION.
+      *----------------------------------------------------------------*
+
+           EVALUATE TRUE
+           WHEN CREB000-PROCLOV
+           OR   CREB000-IDCANALC = CREB950-IDCANALC-RM
+               CONTINUE
+           WHEN CREB000-MSGDLG-P = 1
+               COMPUTE CREB000-MSGDLG-P
+                     = CREB000-MSGDLG-L + 1
+               COMPUTE CREB000-MSGDLG-L
+                     = CREB000-MSGDLG-L + LENGTH OF BPCB358-MSGDIALG
+           END-EVALUATE
+           MOVE BPCB358-MSGDIALG       TO CREB000-MSGDLG-V
+                                         (CREB000-MSGDLG-P:)
+           IF  NOT CREB000-PROC-OK
+               MOVE CREB950-IDMSGAPL   TO CREB000-IDMSGAPL
+           END-IF
+           GOBACK
+           .
+       P3000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P9000-PERMIT-IDT            SECTION.
+
+           SET  BPCB358-IDINST-UP   TO TRUE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-PROTEG-IDT            SECTION.
+
+           SET  BPCB358-IDINST-PR   TO TRUE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-PERMIT-DET            SECTION.
+
+           SET  BPCB358-CLSCTBINST-UP TO TRUE
+           SET  BPCB358-RECBAL-UP     TO TRUE
+           SET  BPCB358-FCONSTONUS-UP TO TRUE
+           SET  BPCB358-MNTACUMIMP-UP TO TRUE
+           SET  BPCB358-TPIMP-UP      TO TRUE
+           SET  BPCB358-METVALIMP-UP  TO TRUE
+           SET  BPCB358-VARACUMRC-UP  TO TRUE
+           SET  BPCB358-PERFSTAT-UP   TO TRUE
+           SET  BPCB358-DTPERFSTAT-UP TO TRUE
+           SET  BPCB358-PROVPREXTP-UP TO TRUE
+           SET  BPCB358-SITDIFREN-UP  TO TRUE
+           SET  BPCB358-DESTDIFREN-UP TO TRUE
+           SET  BPCB358-RECACUMINC-UP TO TRUE
+           SET  BPCB358-CARTPRUD-UP   TO TRUE
+           SET  BPCB358-MONTESCRIT-UP TO TRUE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-PROTEG-DET            SECTION.
+
+           SET  BPCB358-IDINST-PR     TO TRUE
+           SET  BPCB358-CLSCTBINST-PR TO TRUE
+           SET  BPCB358-RECBAL-PR     TO TRUE
+           SET  BPCB358-FCONSTONUS-PR TO TRUE
+           SET  BPCB358-MNTACUMIMP-PR TO TRUE
+           SET  BPCB358-TPIMP-PR      TO TRUE
+           SET  BPCB358-METVALIMP-PR  TO TRUE
+           SET  BPCB358-VARACUMRC-PR  TO TRUE
+           SET  BPCB358-PERFSTAT-PR   TO TRUE
+           SET  BPCB358-DTPERFSTAT-PR TO TRUE
+           SET  BPCB358-PROVPREXTP-PR TO TRUE
+           SET  BPCB358-SITDIFREN-PR  TO TRUE
+           SET  BPCB358-DESTDIFREN-PR TO TRUE
+           SET  BPCB358-RECACUMINC-PR TO TRUE
+           SET  BPCB358-CARTPRUD-PR   TO TRUE
+           SET  BPCB358-MONTESCRIT-PR TO TRUE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-DISPLY-DET            SECTION.
+
+           SET  BPCB358-DHCRIREG-PR TO TRUE
+           SET  BPCB358-DHMDFREG-PR TO TRUE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-NDISPL-DET            SECTION.
+
+           SET  BPCB358-DHCRIREG-ND TO TRUE
+           SET  BPCB358-DHMDFREG-ND TO TRUE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-READ-BPCTPCIN          SECTION.
+
+           MOVE BPCB358-IDINST-V      TO IDINST   OF BPCTPCIN
+
+           EXEC SQL SELECT IDCONT
+                         , IDINST
+                         , CARTPRUD
+                         , CLSCTBINST
+                         , DESTDIFREN
+                         , DTPERFSTAT
+                         , FCONSTONUS
+                         , METVALIMP
+                         , MNTACUMIMP
+                         , MONTESCRIT
+                         , PERFSTAT
+                         , PROVPREXTP
+                         , RECACUMINC
+                         , RECBAL
+                         , SITDIFREN
+                         , TPIMP
+                         , VARACUMRC
+                         , TMSCRIA
+                         , USERCRIA
+                         , TMSALT
+                         , USERALT
+                      INTO :BPCTPCIN.IDCONT
+                         , :BPCTPCIN.IDINST
+                         , :BPCTPCIN.CARTPRUD
+                         , :BPCTPCIN.CLSCTBINST
+                         , :BPCTPCIN.DESTDIFREN
+                         , :BPCTPCIN.DTPERFSTAT
+                         , :BPCTPCIN.FCONSTONUS
+                         , :BPCTPCIN.METVALIMP
+                         , :BPCTPCIN.MNTACUMIMP
+                         , :BPCTPCIN.MONTESCRIT
+                         , :BPCTPCIN.PERFSTAT
+                         , :BPCTPCIN.PROVPREXTP
+                         , :BPCTPCIN.RECACUMINC
+                         , :BPCTPCIN.RECBAL
+                         , :BPCTPCIN.SITDIFREN
+                         , :BPCTPCIN.TPIMP
+                         , :BPCTPCIN.VARACUMRC
+                         , :BPCTPCIN.TMSCRIA
+                         , :BPCTPCIN.USERCRIA
+                         , :BPCTPCIN.TMSALT
+                         , :BPCTPCIN.USERALT
+                      FROM BPCTPCIN
+                     WHERE IDINST   = :BPCTPCIN.IDINST       END-EXEC.
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+               SET  CREB000-IDREG-OK  TO TRUE
+           WHEN SQLCODE-NOTFOUND
+               SET  CREB000-IDREG-NF  TO TRUE
+           WHEN OTHER
+               MOVE CREB950-SQLCODE     TO CREB000-CDRETORN
+               MOVE "BPCP308.BPCTPCIN" TO CREB000-NMOBJECT
+               SET  CREB000-SLCT        TO TRUE
+               SET  CREB000-MSGSGBD     TO TRUE
+           END-EVALUATE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-DESC-IDINST        SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           MOVE  BPCB358-IDINST-V(1:7) TO WS-NURACI
+
+           EXEC SQL
+                SELECT  CLRACI
+                     ,  CLNOM
+                     ,  CLPRNM
+                INTO   :CLRACI
+                     , :CLNOM
+                     , :CLPRNM
+                FROM  FDBCLI A
+                WHERE A.CLRACI = :WS-NURACI
+           END-EXEC.
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              PERFORM P9000-NOME
+              MOVE WS-NOM-COMPLETO      TO BPCB358-NMRACINE-V
+           WHEN SQLCODE-NOTFOUND
+              SET  CREB950-VCAMPO-INVALID  TO TRUE
+              SET  BPCB358-IDINST-PC       TO TRUE
+              SET  CREB000-MSGFUNC         TO TRUE
+           WHEN OTHER
+               MOVE CREB950-SQLCODE     TO CREB000-CDRETORN
+               MOVE "CREP909.FDBCLI"    TO CREB000-NMOBJECT
+               SET  CREB000-SLCT        TO TRUE
+               SET  CREB000-MSGSGBD     TO TRUE
+           END-EVALUATE.
+
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-NOME  SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           MOVE  CLNOM     OF R-FDBCLI   TO WS-NOM
+           MOVE  CLPRNM    OF R-FDBCLI   TO WS-PRNM
+           MOVE ZEROS TO WS-POS-NOMI WS-POS-PRNMI
+
+           INSPECT FUNCTION REVERSE(WS-NOM)
+                   TALLYING WS-POS-NOMI     FOR LEADING SPACE.
+           COMPUTE  WS-NOM-L    = LENGTH OF WS-NOM  -  WS-POS-NOMI.
+
+           INSPECT FUNCTION REVERSE(WS-PRNM)
+                   TALLYING WS-POS-PRNMI    FOR LEADING SPACE.
+           COMPUTE  WS-PRNM-L   = LENGTH OF WS-PRNM - WS-POS-PRNMI.
+
+           MOVE SPACES                    TO WS-NOM-COMPLETO
+           IF WS-PRNM-L > 0
+             MOVE WS-PRNM(1 :WS-PRNM-L)   TO WS-NOM-COMPLETO
+           END-IF
+           IF WS-NOM-L  > 0
+             ADD 2 TO WS-PRNM-L
+             MOVE WS-NOM(1:WS-NOM-L)
+                             TO WS-NOM-COMPLETO(WS-PRNM-L:WS-NOM-L)
+           END-IF.
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-DESC-CLSCTBINST       SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           INITIALIZE BPCB002-LKPARMS
+
+           MOVE CREB950-TBP-CLSCTB   TO BPCB002-CTAB
+           MOVE BPCB358-CLSCTBINST-V TO BPCB002-CACC
+
+           CALL "BPCS002" USING BPCB002-LKPARMS
+
+           IF BPCB002-PROC-OK
+              MOVE BPCB002-CAMPO1          TO BPCB358-NMCLSCTB-V
+              IF BPCB002-CAMPO1 = SPACES
+                 MOVE BPCB002-DESC         TO BPCB358-NMCLSCTB-V
+              END-IF
+           ELSE
+              SET  CREB950-VCAMPO-INVALID  TO TRUE
+              SET  BPCB358-CLSCTBINST-PC   TO TRUE
+              SET  CREB000-MSGFUNC         TO TRUE
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-DESC-RECBAL           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           INITIALIZE BPCB002-LKPARMS
+
+           MOVE CREB950-TBP-RECBAL   TO BPCB002-CTAB
+           MOVE BPCB358-RECBAL-V     TO BPCB002-CACC
+
+           CALL "BPCS002" USING BPCB002-LKPARMS
+
+           IF BPCB002-PROC-OK
+              MOVE BPCB002-CAMPO1          TO BPCB358-NMRECBAL-V
+              IF BPCB002-CAMPO1 = SPACES
+                 MOVE BPCB002-DESC         TO BPCB358-NMRECBAL-V
+              END-IF
+           ELSE
+              SET  CREB950-VCAMPO-INVALID  TO TRUE
+              SET  BPCB358-RECBAL-PC       TO TRUE
+              SET  CREB000-MSGFUNC         TO TRUE
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-DESC-FCONSTONUS       SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           INITIALIZE BPCB002-LKPARMS
+
+           MOVE CREB950-TBP-ONUS     TO BPCB002-CTAB
+           MOVE BPCB358-FCONSTONUS-V TO BPCB002-CACC
+
+           CALL "BPCS002" USING BPCB002-LKPARMS
+
+           IF BPCB002-PROC-OK
+              MOVE BPCB002-CAMPO1          TO BPCB358-NMFCONUS-V
+              IF BPCB002-CAMPO1 = SPACES
+                 MOVE BPCB002-DESC         TO BPCB358-NMFCONUS-V
+              END-IF
+           ELSE
+              SET  CREB950-VCAMPO-INVALID  TO TRUE
+              SET  BPCB358-FCONSTONUS-PC   TO TRUE
+              SET  CREB000-MSGFUNC         TO TRUE
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-DESC-METVALIMP        SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           INITIALIZE BPCB002-LKPARMS
+
+           MOVE CREB950-TBP-AVIMP    TO BPCB002-CTAB
+           MOVE BPCB358-METVALIMP-V  TO BPCB002-CACC
+
+           CALL "BPCS002" USING BPCB002-LKPARMS
+
+           IF BPCB002-PROC-OK
+              MOVE BPCB002-CAMPO1          TO BPCB358-NMMVIMP-V
+              IF BPCB002-CAMPO1 = SPACES
+                 MOVE BPCB002-DESC         TO BPCB358-NMMVIMP-V
+              END-IF
+           ELSE
+              SET  CREB950-VCAMPO-INVALID  TO TRUE
+              SET  BPCB358-METVALIMP-PC    TO TRUE
+              SET  CREB000-MSGFUNC         TO TRUE
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-DESC-TPIMP            SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           INITIALIZE BPCB002-LKPARMS
+
+           MOVE CREB950-TBP-TIMP     TO BPCB002-CTAB
+           MOVE BPCB358-TPIMP-V      TO BPCB002-CACC
+
+           CALL "BPCS002" USING BPCB002-LKPARMS
+
+           IF BPCB002-PROC-OK
+              MOVE BPCB002-CAMPO1          TO BPCB358-NMTPIMP-V
+              IF BPCB002-CAMPO1 = SPACES
+                 MOVE BPCB002-DESC         TO BPCB358-NMTPIMP-V
+              END-IF
+           ELSE
+              SET  CREB950-VCAMPO-INVALID  TO TRUE
+              SET  BPCB358-TPIMP-PC        TO TRUE
+              SET  CREB000-MSGFUNC         TO TRUE
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-DESC-PERFSTAT         SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           INITIALIZE BPCB002-LKPARMS
+
+           MOVE CREB950-TBP-SITINS   TO BPCB002-CTAB
+           MOVE BPCB358-PERFSTAT-V   TO BPCB002-CACC
+
+           CALL "BPCS002" USING BPCB002-LKPARMS
+
+           IF BPCB002-PROC-OK
+              MOVE BPCB002-CAMPO1          TO BPCB358-NMPFSTATUS-V
+              IF BPCB002-CAMPO1 = SPACES
+                 MOVE BPCB002-DESC         TO BPCB358-NMPFSTATUS-V
+              END-IF
+           ELSE
+              SET  CREB950-VCAMPO-INVALID  TO TRUE
+              SET  BPCB358-PERFSTAT-PC     TO TRUE
+              SET  CREB000-MSGFUNC         TO TRUE
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-DESC-SITDIFREN        SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           INITIALIZE BPCB002-LKPARMS
+
+           MOVE CREB950-TBP-DIFAMT   TO BPCB002-CTAB
+           MOVE BPCB358-SITDIFREN-V  TO BPCB002-CACC
+
+           CALL "BPCS002" USING BPCB002-LKPARMS
+
+           IF BPCB002-PROC-OK
+              MOVE BPCB002-CAMPO1          TO BPCB358-NMSITDR-V
+              IF BPCB002-CAMPO1 = SPACES
+                 MOVE BPCB002-DESC         TO BPCB358-NMSITDR-V
+              END-IF
+           ELSE
+              SET  CREB950-VCAMPO-INVALID  TO TRUE
+              SET  BPCB358-SITDIFREN-PC    TO TRUE
+              SET  CREB000-MSGFUNC         TO TRUE
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-DESC-CARTPRUD         SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           INITIALIZE BPCB002-LKPARMS
+
+           MOVE CREB950-TBP-CRTPRUD  TO BPCB002-CTAB
+           MOVE BPCB358-CARTPRUD-V   TO BPCB002-CACC
+
+           CALL "BPCS002" USING BPCB002-LKPARMS
+
+           IF BPCB002-PROC-OK
+              MOVE BPCB002-CAMPO1          TO BPCB358-NMCARTPRUD-V
+              IF BPCB002-CAMPO1 = SPACES
+                 MOVE BPCB002-DESC         TO BPCB358-NMCARTPRUD-V
+              END-IF
+           ELSE
+              SET  CREB950-VCAMPO-INVALID  TO TRUE
+              SET  BPCB358-CARTPRUD-PC     TO TRUE
+              SET  CREB000-MSGFUNC         TO TRUE
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-FRMT-BPCTPCIN-CHAV     SECTION.
+
+           MOVE BPCB358-IDINST-V       TO IDINST   OF BPCTPCIN
+           IF  CREB000-DOMODFY OR CREB000-DONULFY
+               MOVE CREB000-DHMDFREG   TO TMSALT   OF BPCTPCIN
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-FRMT-BPCTPCIN-ATRB     SECTION.
+
+           MOVE BPCB358-IDCONT-V       TO IDCONT     OF BPCTPCIN
+           MOVE BPCB358-IDINST-V       TO IDINST     OF BPCTPCIN
+           MOVE BPCB358-CARTPRUD-V     TO CARTPRUD   OF BPCTPCIN
+           MOVE BPCB358-CLSCTBINST-V   TO CLSCTBINST OF BPCTPCIN
+           MOVE BPCB358-DESTDIFREN-V   TO DESTDIFREN OF BPCTPCIN
+           MOVE BPCB358-DTPERFSTAT-V   TO DTPERFSTAT OF BPCTPCIN
+           MOVE BPCB358-FCONSTONUS-V   TO FCONSTONUS OF BPCTPCIN
+           MOVE BPCB358-METVALIMP-V    TO METVALIMP  OF BPCTPCIN
+           MOVE BPCB358-MNTACUMIMP-V   TO MNTACUMIMP OF BPCTPCIN
+           MOVE BPCB358-MONTESCRIT-V   TO MONTESCRIT OF BPCTPCIN
+           MOVE BPCB358-PERFSTAT-V     TO PERFSTAT   OF BPCTPCIN
+           MOVE BPCB358-PROVPREXTP-V   TO PROVPREXTP OF BPCTPCIN
+           MOVE BPCB358-RECACUMINC-V   TO RECACUMINC OF BPCTPCIN
+           MOVE BPCB358-RECBAL-V       TO RECBAL     OF BPCTPCIN
+           MOVE BPCB358-SITDIFREN-V    TO SITDIFREN  OF BPCTPCIN
+           MOVE BPCB358-TPIMP-V        TO TPIMP      OF BPCTPCIN
+           MOVE BPCB358-VARACUMRC-V    TO VARACUMRC  OF BPCTPCIN
+
+           EVALUATE TRUE
+           WHEN CREB000-DOCREAT
+               MOVE CREB000-IDUTILIZ   TO USERCRIA OF BPCTPCIN
+               MOVE CREB950-TMSTPMIN   TO TMSCRIA  OF BPCTPCIN
+           WHEN CREB000-DOMODFY
+               MOVE CREB000-IDUTILIZ   TO USERALT  OF BPCTPCIN
+           END-EVALUATE
+           CONTINUE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-INSR-BPCTPCIN          SECTION.
+           EXEC SQL INSERT INTO BPCTPCIN
+                         ( IDCONT
+                         , IDINST
+                         , CARTPRUD
+                         , CLSCTBINST
+                         , DESTDIFREN
+                         , DTPERFSTAT
+                         , FCONSTONUS
+                         , METVALIMP
+                         , MNTACUMIMP
+                         , MONTESCRIT
+                         , PERFSTAT
+                         , PROVPREXTP
+                         , RECACUMINC
+                         , RECBAL
+                         , SITDIFREN
+                         , TPIMP
+                         , VARACUMRC
+                         , TMSCRIA
+                         , USERCRIA
+                         , TMSALT
+                         , USERALT
+                         )
+                    VALUES
+                         ( :BPCTPCIN.IDCONT
+                         , :BPCTPCIN.IDINST
+                         , :BPCTPCIN.CARTPRUD
+                         , :BPCTPCIN.CLSCTBINST
+                         , :BPCTPCIN.DESTDIFREN
+                         , :BPCTPCIN.DTPERFSTAT
+                         , :BPCTPCIN.FCONSTONUS
+                         , :BPCTPCIN.METVALIMP
+                         , :BPCTPCIN.MNTACUMIMP
+                         , :BPCTPCIN.MONTESCRIT
+                         , :BPCTPCIN.PERFSTAT
+                         , :BPCTPCIN.PROVPREXTP
+                         , :BPCTPCIN.RECACUMINC
+                         , :BPCTPCIN.RECBAL
+                         , :BPCTPCIN.SITDIFREN
+                         , :BPCTPCIN.TPIMP
+                         , :BPCTPCIN.VARACUMRC
+                         , CURRENT TIMESTAMP
+                         , :BPCTPCIN.USERCRIA
+                         , :BPCTPCIN.TMSALT
+                         , :BPCTPCIN.USERALT
+                         )                                     END-EXEC
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           IF  NOT SQLCODE-OK
+               MOVE CREB950-SQLCODE   TO CREB000-CDRETORN
+               MOVE "BPCP308.BPCTPCIN" TO CREB000-NMOBJECT
+               SET  CREB000-INSR      TO TRUE
+               SET  CREB000-MSGSGBD   TO TRUE
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-UPDT-BPCTPCIN          SECTION.
+
+           EXEC SQL UPDATE BPCTPCIN
+                       SET IDCONT      =:BPCTPCIN.IDCONT
+                         , IDINST      =:BPCTPCIN.IDINST
+                         , CARTPRUD    =:BPCTPCIN.CARTPRUD
+                         , CLSCTBINST  =:BPCTPCIN.CLSCTBINST
+                         , DESTDIFREN  =:BPCTPCIN.DESTDIFREN
+                         , DTPERFSTAT  =:BPCTPCIN.DTPERFSTAT
+                         , FCONSTONUS  =:BPCTPCIN.FCONSTONUS
+                         , METVALIMP   =:BPCTPCIN.METVALIMP
+                         , MNTACUMIMP  =:BPCTPCIN.MNTACUMIMP
+                         , MONTESCRIT  =:BPCTPCIN.MONTESCRIT
+                         , PERFSTAT    =:BPCTPCIN.PERFSTAT
+                         , PROVPREXTP  =:BPCTPCIN.PROVPREXTP
+                         , RECACUMINC  =:BPCTPCIN.RECACUMINC
+                         , RECBAL      =:BPCTPCIN.RECBAL
+                         , SITDIFREN   =:BPCTPCIN.SITDIFREN
+                         , TPIMP       =:BPCTPCIN.TPIMP
+                         , VARACUMRC   =:BPCTPCIN.VARACUMRC
+                         , TMSALT      = CURRENT TIMESTAMP
+                         , USERALT     = :BPCTPCIN.USERALT
+                     WHERE IDINST   = :BPCTPCIN.IDINST
+                       AND TMSALT   = :BPCTPCIN.TMSALT       END-EXEC
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+               CONTINUE
+           WHEN SQLCODE-NOTFOUND
+               SET  CREB950-FUNCAO-INTERRP TO TRUE
+               SET  CREB000-MSGFUNC        TO TRUE
+           WHEN OTHER
+               MOVE CREB950-SQLCODE        TO CREB000-CDRETORN
+               MOVE "BPCP308.BPCTPCIN"      TO CREB000-NMOBJECT
+               SET  CREB000-UPDT           TO TRUE
+               SET  CREB000-MSGSGBD        TO TRUE
+           END-EVALUATE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-DELT-BPCTPCIN          SECTION.
+
+           EXEC SQL DELETE FROM BPCTPCIN
+                     WHERE IDINST   = :BPCTPCIN.IDINST
+                       AND TMSALT   = :BPCTPCIN.TMSALT        END-EXEC.
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+               CONTINUE
+           WHEN SQLCODE-NOTFOUND
+               SET  CREB950-FUNCAO-INTERRP TO TRUE
+               SET  CREB000-MSGFUNC        TO TRUE
+           WHEN OTHER
+               MOVE CREB950-SQLCODE        TO CREB000-CDRETORN
+               MOVE "BPCP308.BPCTPCIN"      TO CREB000-NMOBJECT
+               SET  CREB000-DELT           TO TRUE
+               SET  CREB000-MSGSGBD        TO TRUE
+           END-EVALUATE
+           .
+       P9000-EXIT.                 EXIT.
+      *--- FIM DO PROGRAMA BPCP308 ------------------------------------*

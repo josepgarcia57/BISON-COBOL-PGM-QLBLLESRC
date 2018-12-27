@@ -1,0 +1,375 @@
+      *================================================================*
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.     BPCP258.
+      *----------------------------------------------------------------*
+      * APLICACAO : GESTAO DE CRC
+      * PROGRAMA .: BPCP258
+      * OBJECTIVO : GERIR O ECRAN DE DIALOGO "BPCE258"
+      * CRIADO EM : 2005/FEVEREIRO
+      * POR ......: FERNANDO SILVA (CAPGEMINI PORTUGAL)
+      *----------------------------------------------------------------*
+
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       CONFIGURATION               SECTION.
+      *----------------------------------------------------------------*
+       SPECIAL-NAMES.  DECIMAL-POINT  IS COMMA
+                       SYSTEM-CONSOLE IS VIDEO
+                       LOCAL-DATA     IS LDATA
+                       ATTRIBUTE-DATA IS ATTRB.
+
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT                SECTION.
+      *----------------------------------------------------------------*
+       FILE-CONTROL.
+
+           SELECT BPCE258
+                  ASSIGN        TO WORKSTATION-BPCE258-SI
+                  ORGANIZATION  IS TRANSACTION
+                  FILE STATUS   IS FS-BPCE258
+                  CONTROL-AREA  IS CA-BPCE258.
+
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       FILE                        SECTION.
+      *----------------------------------------------------------------*
+       FD  BPCE258
+           LABEL RECORD OMITTED.
+       01  BPCE258-HDR.
+           COPY DDS-BPCE258HDR OF BPCE258.
+       01  BPCE258-D01.
+           COPY DDS-BPCE258D01 OF BPCE258.
+       01  BPCE258-FTR.
+           COPY DDS-BPCE258FTR OF BPCE258.
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE             SECTION.
+      *----------------------------------------------------------------*
+       01  FS-BPCE258                  PIC 99.
+           88  BPCE258-OK                          VALUE ZERO.
+
+       01  CA-BPCE258.
+           05  IDTECLAF                PIC 99.
+           05  IDTERMNL                PIC X(10).
+           05  FRMTREGT                PIC X(10).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-VARSTRAB.
+           05  WS-ARRYNDX1             PIC S9(4)       BINARY.
+           05  WS-DTHR-N14             PIC 9(14).
+           05  FILLER      REDEFINES WS-DTHR-N14.
+               10  WS-DATA-N08         PIC 9(08).
+               10  WS-HORA-N06         PIC 9(06).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-CNSTANTS.
+           05  KV-IDDIALOG             PIC X(08)   VALUE "BPCE258".
+           05  KV-IDFMTDLG-HDR         PIC X(10)   VALUE "BPCE258HDR".
+           05  KV-IDFMTDLG-D01         PIC X(10)   VALUE "BPCE258D01".
+           05  KV-IDFMTDLG-FTR         PIC X(10)   VALUE "BPCE258FTR".
+           05  KV-IDENT-HI             PIC 99      VALUE 25.
+           05  KV-IDENT-PC             PIC 99      VALUE 26.
+           05  KV-IDENT-PR             PIC 99      VALUE 27.
+           05  KV-TYPER-HI             PIC 99      VALUE 28.
+           05  KV-TYPER-PC             PIC 99      VALUE 29.
+           05  KV-TYPER-PR             PIC 99      VALUE 30.
+           05  KV-REFEXTENT-HI         PIC 99      VALUE 28.
+           05  KV-REFEXTENT-PC         PIC 99      VALUE 29.
+           05  KV-REFEXTENT-PR         PIC 99      VALUE 30.
+           05  KV-IDENTREL-HI          PIC 99      VALUE 31.
+           05  KV-IDENTREL-PC          PIC 99      VALUE 32.
+           05  KV-IDENTREL-PR          PIC 99      VALUE 33.
+           05  KV-TYPERREL-HI          PIC 99      VALUE 34.
+           05  KV-TYPERREL-PC          PIC 99      VALUE 35.
+           05  KV-TYPERREL-PR          PIC 99      VALUE 36.
+           05  KV-REFEXTENTR-HI        PIC 99      VALUE 28.
+           05  KV-REFEXTENTR-PC        PIC 99      VALUE 29.
+           05  KV-REFEXTENTR-PR        PIC 99      VALUE 30.
+           05  KV-MOTIVOREL-HI         PIC 99      VALUE 37.
+           05  KV-MOTIVOREL-PC         PIC 99      VALUE 38.
+           05  KV-MOTIVOREL-PR         PIC 99      VALUE 39.
+
+           05  KV-DHCRIREG-ND          PIC 99      VALUE 60.
+           05  KV-DHMDFREG-ND          PIC 99      VALUE 60.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           COPY BPCB258.
+
+      *----------------------------------------------------------------*
+       LINKAGE                     SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB000.
+
+      *================================================================*
+       PROCEDURE DIVISION USING CREB000-LKGERAL.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       P0000-RAIZ                  SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P1000-INICIO
+
+           PERFORM P2000-PROCESSO
+
+           PERFORM P3000-FIM
+           .
+       P0000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P1000-INICIO                SECTION.
+      *----------------------------------------------------------------*
+
+           INITIALIZE FS-BPCE258, CA-BPCE258
+           .
+       P1000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P2000-PROCESSO              SECTION.
+      *----------------------------------------------------------------*
+
+           IF  CREB000-STDIALOG-OFF
+               PERFORM P2100-OPEN-DIALOG
+           END-IF
+
+           EVALUATE TRUE
+           WHEN NOT BPCE258-OK
+               CONTINUE
+           WHEN CREB000-EXECPRC
+               PERFORM P2200-PROC-DIALOG
+           WHEN OTHER
+               PERFORM P2300-CLSE-DIALOG
+           END-EVALUATE
+           .
+       P2000-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2100-OPEN-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           OPEN I-O BPCE258
+
+           IF  NOT BPCE258-OK
+               MOVE FS-BPCE258      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-OPEN-IO TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2100-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2200-PROC-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE CREB000-MSGDLG-V(CREB000-MSGDLG-P:) TO BPCB258-MSGDIALG
+
+           PERFORM P2210-PREP-ATRIBS
+           PERFORM P2220-WRIT-REGHDR
+           IF  BPCE258-OK
+               PERFORM P2230-WRIT-REGFTR
+           END-IF
+           IF  BPCE258-OK
+               PERFORM P2240-WRIT-REGDET
+           END-IF
+           IF  BPCE258-OK
+               PERFORM P2250-READ-REGDET
+           END-IF
+
+           MOVE BPCB258-MSGDIALG TO CREB000-MSGDLG-V(CREB000-MSGDLG-P:)
+           .
+       P2200-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2210-PREP-ATRIBS           SECTION.
+
+           IF  BPCB258-IDENT-PR
+               SET  CREB000-INDICDLG-ON (KV-IDENT-PR)   TO TRUE
+           END-IF
+      *
+           IF  BPCB258-TYPER-PR
+               SET  CREB000-INDICDLG-ON (KV-TYPER-PR)    TO TRUE
+           END-IF
+      *
+           IF  BPCB258-REFEXTENT-PR
+               SET  CREB000-INDICDLG-ON (KV-REFEXTENT-PR) TO TRUE
+           END-IF
+      *
+           IF  BPCB258-IDENTREL-PR
+               SET  CREB000-INDICDLG-ON (KV-IDENTREL-PR) TO TRUE
+           END-IF
+      *
+           IF  BPCB258-TYPERREL-PR
+               SET  CREB000-INDICDLG-ON (KV-TYPERREL-PR)  TO TRUE
+           END-IF
+      *
+           IF  BPCB258-REFEXTENTR-PR
+               SET  CREB000-INDICDLG-ON (KV-REFEXTENTR-PR) TO TRUE
+           END-IF
+      *
+           IF  BPCB258-MOTIVOREL-PR
+               SET  CREB000-INDICDLG-ON (KV-MOTIVOREL-PR) TO TRUE
+           END-IF
+      *
+           EVALUATE TRUE
+           WHEN BPCB258-IDENT-UP
+               SET  CREB000-INDICDLG-ON   (KV-IDENT-PC)     TO TRUE
+           WHEN BPCB258-TYPER-PC
+               SET  CREB000-INDICDLG-ON   (KV-TYPER-PC)      TO TRUE
+           WHEN BPCB258-REFEXTENT-PC
+               SET  CREB000-INDICDLG-ON   (KV-REFEXTENT-PC)  TO TRUE
+           WHEN BPCB258-IDENTREL-PC
+               SET  CREB000-INDICDLG-ON   (KV-IDENTREL-PC)   TO TRUE
+           WHEN BPCB258-TYPERREL-PC
+               SET  CREB000-INDICDLG-ON   (KV-TYPERREL-PC)     TO TRUE
+           WHEN BPCB258-REFEXTENTR-PC
+               SET  CREB000-INDICDLG-ON   (KV-REFEXTENTR-PC)  TO TRUE
+           WHEN BPCB258-MOTIVOREL-PC
+               SET  CREB000-INDICDLG-ON   (KV-MOTIVOREL-PC)  TO TRUE
+           END-EVALUATE
+      *
+           EVALUATE TRUE
+           WHEN CREB000-PROC-OK
+               CONTINUE
+           WHEN BPCB258-IDENT-PC
+               SET  CREB000-INDICDLG-ON  (KV-IDENT-HI)      TO TRUE
+           WHEN BPCB258-TYPER-PC
+               SET  CREB000-INDICDLG-ON  (KV-TYPER-HI)      TO TRUE
+           WHEN BPCB258-REFEXTENT-PC
+               SET  CREB000-INDICDLG-ON  (KV-REFEXTENT-HI)  TO TRUE
+           WHEN BPCB258-IDENTREL-PC
+               SET  CREB000-INDICDLG-ON  (KV-IDENTREL-HI)   TO TRUE
+           WHEN BPCB258-TYPERREL-PC
+               SET  CREB000-INDICDLG-ON  (KV-TYPERREL-HI)   TO TRUE
+           WHEN BPCB258-REFEXTENTR-PC
+               SET  CREB000-INDICDLG-ON  (KV-REFEXTENTR-HI) TO TRUE
+           WHEN BPCB258-MOTIVOREL-PC
+               SET  CREB000-INDICDLG-ON  (KV-MOTIVOREL-HI)  TO TRUE
+           END-EVALUATE
+      *
+           IF  BPCB258-DHCRIREG-ND
+               SET  CREB000-INDICDLG-ON (KV-DHCRIREG-ND) TO TRUE
+           END-IF
+      *
+           IF  BPCB258-DHMDFREG-ND
+               SET  CREB000-INDICDLG-ON (KV-DHMDFREG-ND) TO TRUE
+           END-IF
+           .
+       P2210-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2220-WRIT-REGHDR           SECTION.
+
+           MOVE SPACES              TO BPCE258-HDR
+           MOVE CREB000-SGEMPRSA    TO SGEMPRSA OF BPCE258HDR-O
+           MOVE CREB000-DSAPLICA    TO DSAPLICA OF BPCE258HDR-O
+           MOVE CREB000-DTPRCAPL    TO DTACTUAL OF BPCE258HDR-O
+           MOVE CREB000-IDPRCAPL    TO IDPRCAPL OF BPCE258HDR-O
+           MOVE CREB000-IDDIALOG    TO IDDIALOG OF BPCE258HDR-O
+           MOVE CREB000-DSPRCAPL    TO DSPRCAPL OF BPCE258HDR-O
+           MOVE CREB000-NMFUNDLG    TO NMFUNDLG OF BPCE258HDR-O
+           WRITE BPCE258-HDR
+                 FORMAT KV-IDFMTDLG-HDR INDIC CREB000-TBINDARA
+
+           IF  NOT BPCE258-OK
+               MOVE FS-BPCE258      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2220-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2230-WRIT-REGFTR           SECTION.
+
+           MOVE SPACES              TO BPCE258-FTR
+           MOVE CREB000-DSTECLAS    TO DSTECLAS OF BPCE258FTR-O
+           MOVE CREB000-DSMSGAPL    TO DSMSGAPL OF BPCE258FTR-O
+           WRITE BPCE258-FTR
+                 FORMAT KV-IDFMTDLG-FTR INDIC CREB000-TBINDARA
+
+           IF  NOT BPCE258-OK
+               MOVE FS-BPCE258      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2230-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2240-WRIT-REGDET           SECTION.
+
+           MOVE SPACES               TO BPCE258-D01
+           MOVE BPCB258-IDENT-V      TO IDENT      OF BPCE258D01-O
+           MOVE BPCB258-TYPER-V      TO TYPER      OF BPCE258D01-O
+           MOVE BPCB258-REFEXTENT-V  TO REFEXTENT  OF BPCE258D01-O
+           MOVE BPCB258-IDENTREL-V   TO IDENTREL   OF BPCE258D01-O
+           MOVE BPCB258-TYPERREL-V   TO TYPERREL   OF BPCE258D01-O
+           MOVE BPCB258-REFEXTENTR-V TO REFEXTENTR OF BPCE258D01-O
+           MOVE BPCB258-MOTIVOREL-V  TO MOTIVOREL  OF BPCE258D01-O
+
+           MOVE BPCB258-DHCRIREG-V   TO DHCRIREG   OF BPCE258D01-O
+           MOVE BPCB258-DHMDFREG-V   TO DHMDFREG   OF BPCE258D01-O
+           WRITE BPCE258-D01
+                 FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+
+           IF  NOT BPCE258-OK
+               MOVE FS-BPCE258      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2240-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2250-READ-REGDET           SECTION.
+
+           READ BPCE258
+                FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+                AT END CONTINUE
+           END-READ
+
+           IF  BPCE258-OK
+               MOVE IDENT       OF BPCE258D01-I TO BPCB258-IDENT-V
+               MOVE TYPER       OF BPCE258D01-I TO BPCB258-TYPER-V
+               MOVE REFEXTENT   OF BPCE258D01-I TO BPCB258-REFEXTENT-V
+               MOVE IDENTREL    OF BPCE258D01-I TO BPCB258-IDENTREL-V
+               MOVE TYPERREL    OF BPCE258D01-I TO BPCB258-TYPERREL-V
+               MOVE REFEXTENTR  OF BPCE258D01-I TO BPCB258-REFEXTENTR-V
+               MOVE MOTIVOREL   OF BPCE258D01-I TO BPCB258-MOTIVOREL-V
+               MOVE IDVARCSR    OF BPCE258D01-I TO CREB000-IDVARCSR
+               MOVE IDTECLAF    OF CA-BPCE258   TO CREB000-IDTECLAF
+           ELSE
+               MOVE FS-BPCE258               TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG              TO CREB000-NMOBJECT
+               SET  CREB000-READ             TO TRUE
+               SET  CREB000-MSGDLOG          TO TRUE
+           END-IF
+           .
+       P2250-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2300-CLSE-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           CLOSE BPCE258
+
+           IF  NOT BPCE258-OK
+               MOVE FS-BPCE258      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-CLSE    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2300-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P3000-FIM                   SECTION.
+      *----------------------------------------------------------------*
+
+           GOBACK
+           .
+       P3000-EXIT.                 EXIT.
+      *--- FIM DO PROGRAMA BPCP258 ------------------------------------*

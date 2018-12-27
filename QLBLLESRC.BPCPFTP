@@ -1,0 +1,152 @@
+     š*****************************************************************
+       IDENTIFICATION DIVISION.
+     š*================================================================
+       PROGRAM-ID.    BPCPFTP.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2016-NOV-29.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: FTP - Transferência de Ficheiros           *
+     š*   OBJECTIVO ......: Este programa destina-se a fazer FTP       *
+     š*                     Com Passagem de Parametros                 *
+     š*   ANALISTA .......: PEDRO GARCIA                               *
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+       CONFIGURATION  SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+     š*================================================================
+       INPUT-OUTPUT  SECTION.
+     š*================================================================*
+       FILE-CONTROL.
+     š*----------------------------------------------------------------
+              Select BPCF001I
+                     Assign          DataBase-BPCF001I
+                     Organization    Relative
+                     Access          Random
+                     Relative Key    W-BPCF001I-Key
+                     File Status     WK-FILE-STATUS.
+     š*================================================================*
+       DATA DIVISION.
+     š*================================================================*
+       FILE  SECTION.
+     š*----------------------------------------------------------------
+       FD  BPCF001I.
+       01  Reg-BPCF001I.
+           Copy Ddr-All-Formats Of BPCF001I.
+     š*================================================================
+       WORKING-STORAGE  SECTION.
+     š*================================================================*
+      *
+       01 W-Varios.
+           02 i                        Pic  9(05).
+           02 W-BPCF001I-Key           Pic  S9(04) COMP.
+
+       01  SW-FoundString              Pic X.
+           88 SW-FndStrg-SIM           Value "S".
+           88 SW-FndStrg-NAO           Value "N".
+
+       01  FG-RUNFTP                   Pic  X(01) VALUE SPACES.
+       01  WK-FILE-STATUS       PIC XX.
+     š*================================================================
+       LINKAGE SECTION.
+     š*----------------------------------------------------------------
+        01 BPCL001M-FICH-ORIGEM    Pic  X(15).
+        01 BPCL001M-FICH-DESTINO   Pic  X(50).
+        01 BPCL001M-ERRO-BPCPFTP   Pic  X(01).
+     š*================================================================
+       PROCEDURE DIVISION  Using BPCL001M-FICH-ORIGEM
+                                 BPCL001M-FICH-DESTINO
+                                 BPCL001M-ERRO-BPCPFTP.
+
+     š*================================================================*
+       MAIN.
+           MOVE "N"     TO BPCL001M-ERRO-BPCPFTP.
+           MOVE ZEROS   TO RETURN-CODE.
+    ‚‚*   Inicio
+           Perform Inicio.
+    ‚‚*   Ciclo Update Comandos de Delete de Ficheiros no Input
+           Move "S" To FG-RUNFTP
+           Perform Update-FTP-DELETE
+    ‚‚*   Ciclo  Update Comandos de PUT's de Ficheiros no Input
+           Move "S" To FG-RUNFTP
+           Perform Update-FTP-PUT
+    ‚‚*   Retorno do Processos
+           PERFORM RETORNO.
+     š*----------------------------------------------------------------
+       Inicio.
+     š*----------------------------------------------------------------
+           Initialize W-Varios
+           Open I-O BPCF001I.
+       End-Inicio.  Exit.
+     š*----------------------------------------------------------------
+       Update-FTP-PUT.
+     š*----------------------------------------------------------------
+           Set SW-FndStrg-NAO To True.
+           Move  1 To W-BPCF001I-Key, i.
+
+           Perform Until FG-RUNFTP = "N" Or SW-FndStrg-SIM
+              Read BPCF001I
+              Invalid Key
+                 Move "N" To FG-RUNFTP
+              Not Invalid Key
+                 If SrcDta(7:3) = "PUT"  OR = "put"
+                    If i = 1
+                       Move Spaces  To SrcDta
+                       String "      PUT "        Delimited by Size
+                          BPCL001M-FICH-ORIGEM    Delimited by Space
+                           " "                    Delimited by Size
+                          BPCL001M-FICH-DESTINO   Delimited by Space
+                          Into SrcDta
+                       End-String
+                       ReWrite Reg-BPCF001I
+                    End-if
+
+                    If i >= 2
+                       Set SW-FndStrg-SIM To True
+                    End-If
+                    Compute i = i + 1
+                 End-If
+              End-Read
+
+              Add  1  To W-BPCF001I-Key
+           End-Perform.
+
+       END-Update-FTP-PUT.   Exit.
+     š*----------------------------------------------------------------
+       Update-FTP-DELETE.
+     š*----------------------------------------------------------------
+           Set SW-FndStrg-NAO To True.
+           Move  1 To W-BPCF001I-Key, i.
+
+           Perform Until FG-RUNFTP = "N" Or SW-FndStrg-SIM
+              Read BPCF001I
+              Invalid Key
+                 Move "N" To FG-RUNFTP
+              Not Invalid Key
+                 If SrcDta(7:6) = "DELETE" or = "delete"
+                    if i = 1
+                       Move Spaces  To SrcDta
+                       String "      DELETE "     Delimited by Size
+                          BPCL001M-FICH-DESTINO   Delimited by Space
+                          Into SrcDta
+                       End-String
+                       ReWrite Reg-BPCF001I
+                    End-If
+
+                    If i >= 1
+                       Set SW-FndStrg-SIM To True
+                    End-If
+                    Compute i = i + 1
+                 End-If
+              End-Read
+
+              Add  1  To W-BPCF001I-Key
+           End-Perform.
+
+       END-Update-FTP-DELETE.    Exit.
+     š*----------------------------------------------------------------
+       RETORNO.
+     š*----------------------------------------------------------------
+           Close  BPCF001I.
+           GOBACK.

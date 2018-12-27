@@ -1,0 +1,1754 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    AMLS303   INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2018-AGO-16.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: AML - Profiling                            *
+     š*   OBJECTIVO ......: Este programa destina-se a extrair         *
+     š*                     a informação de Contas para FCM            *
+     š*   ANALISTA .......: PEDRO GARCIA                               *
+     š*   PROGRAMADOR.....:                                            *
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 EXECUTA-P001               PIC 9(01).
+          88 INICIO-P001             VALUE 0.
+          88 FIM-P001                VALUE 1.
+      *
+       01 EXISTE-INFO                PIC 9(01).
+          88 SIM-EXISTE              VALUE 1.
+          88 NAO-EXISTE              VALUE 0.
+      *
+       01 EXISTE-SEPAR               PIC 9(01).
+          88 SIM-SEPAR               VALUE 0.
+          88 NAO-SEPAR               VALUE 1.
+      *
+       01 EXISTE-SEPAS               PIC 9(01).
+          88 SIM-SEPAS               VALUE 0.
+          88 NAO-SEPAS               VALUE 1.
+      *
+       01 WS-TRATA                   PIC 9(01).
+          88 SIM-TRATA               VALUE 1.
+          88 NAO-TRATA               VALUE 2.
+      *
+       01 WS-DIRECTION               PIC 9(01).
+          88 INBOUND                 VALUE 1.
+          88 OUTBOUND                VALUE 2.
+          88 INTERNAL                VALUE 3.
+      *
+       01 NR-READ                    PIC 9(06) VALUE ZEROS.
+       01 NR-PROC                    PIC 9(06) VALUE ZEROS.
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-ANOIN                PIC X(04).
+          05 WR-ANOIN REDEFINES WS-ANOIN.
+             06 WR-ANOIN-CC          PIC X(02).
+             06 WR-ANOIN-AA          PIC X(02).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-DIAIN                PIC X(02).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WN-DATA-CONVER.
+          03 Filler                  PIC X(01).
+          03 WN-ANOIN                PIC X(04).
+          03 WN-MESIN                PIC X(02).
+          03 WN-DIAIN                PIC X(02).
+       01 WY-DATA-CONVER  REDEFINES  WN-DATA-CONVER     PIC 9(9).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-ANOIN-R  REDEFINES WS-ANOIN.
+             05 WS-ANOIN1            PIC X(02).
+             05 WS-ANOIN2            PIC X(02).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01 WX-ANO-CONVER.
+          03 WS-ANO-12               PIC X(02).
+          03 WS-ANO-34               PIC X(02).
+
+       01  W-CONSTANTS.
+           05  K-APLICACAO           PIC X(3)    VALUE "AML".
+           05  K-PROGRAMA            PIC X(8)    VALUE "AMLS303".
+
+       01 WS-STRING.
+          05 WS-STRING-CHR           PIC X       OCCURS 300.
+       01 WS-CTADO                   PIC X(35).
+       01 WX-CTADO  REDEFINES WS-CTADO.
+          05 WS-RACINE-CTADO       PIC X(07).
+          05 WS-GRE-CTADO          PIC X(03).
+          05 WS-RUB-CTADO          PIC X(03).
+          05 WS-MON-CTADO          PIC X(03).
+       01 MV-DTMAX                 PIC S9(09).
+
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+
+       01  WS-DATA-PROC.
+           03  WS-ANO-PROC          PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MES-PROC          PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIA-PROC          PIC 9(02).
+
+       01 WS-DUMMY                  PIC S9(1)       VALUE  ZERO.
+       01 WS-TST-DATE               PIC X(10).
+       01 WS-VAL-DATE               PIC X(10).
+
+       01 WS-MVRACI                 PIC X(07).
+       01 WS-MVGRE                  PIC X(03).
+       01 WS-MVRUB                  PIC X(03).
+       01 WS-MVMON                  PIC X(03).
+       01 WS-MVSEQJ                 PIC S9(09) COMP-3.
+       01 WS-MVSEQJE                PIC S9(09) COMP-3.
+       01 WS-MVECRI                 PIC S9(07) COMP-3.
+       01 WX-MVSEQJ                 PIC X(09).
+       01 WS-MVMONTE                PIC S9(13)v99 COMP-3.
+       01 WX-MVECRI                 PIC X(07).
+       01 WS-MVIDRS                 PIC S9(3)  COMP-3.
+       01 WS-MVNORS                 PIC S9(11) COMP-3.
+       01 WX-MVIDRS                 PIC X(3).
+       01 WS-CAMBIO                 PIC S9(5)V9(8) COMP-3.
+       01 WS-REFCODE                PIC S9(11) COMP-3.
+       01 WS-MVREFO                 PIC S9(11) COMP-3.
+       01 WS-COUNT-CSV              PIC S9(1).
+       01 WS-STRING-OPDOA3-1        PIC X(35).
+       01 WS-STRING-OPDOA3-2        PIC X(35).
+       01 WS-STRING-OPDOA3-3        PIC X(35).
+       01 WS-STRING-OPDOA4-1        PIC X(35).
+       01 WS-STRING-OPDOA4-2        PIC X(35).
+       01 WS-STRING-OPDOA4-3        PIC X(35).
+       01 WS-STRING-CSV.
+          05 WS-STRING-CHR-CSV      PIC X           OCCURS 35.
+     š* ------------------------------------------------------
+     š* Determina Comprimento de uma String
+       01 WS-POS-I                 PIC S9(4)       COMP   VALUE 0.
+       01 WS-POS-S                 PIC S9(4)       COMP   VALUE 0.
+       01 WS-POS-XML               PIC S9(4)       COMP   VALUE 0.
+       01 WS-STRING-L              PIC S9(4)       COMP   VALUE 0.
+       01 W-NUM                    PIC 9(3).
+     š*
+     š* Cliente do Banco
+       01 WS-CONTA-CLI.
+          05 WS-RACINE-CLI         PIC X(7).
+          05 WS-SEP1-CLI           PIC X(1).
+          05 WS-GENRE-CLI          PIC X(3).
+          05 WS-SEP2-CLI           PIC X(1).
+          05 WS-RUB-CLI            PIC X(3).
+          05 WS-SEP3-CLI           PIC X(1).
+          05 WS-MON-CLI            PIC X(3).
+       01 WS-NAME-CLI              PIC X(150).
+       01 WS-COUNTRY-CLI           PIC X(2).
+       01 WS-BKNAME-CLI            PIC X(30).
+       01 WS-CLIENTID              PIC X(07).
+     š* Ordenante
+       01 WS-IBAN-CR               PIC X(30).
+     š* Beneficiário
+       01 WS-IBAN-CLI              PIC X(30).
+     š* Correspondente
+       01 WS-BIC-COR               PIC X(30).
+       01 WS-COUNTRY-COR           PIC X(2).
+       01 WS-BKNAME-COR            PIC X(30).
+     š* Contraparte
+       01 WS-NAME-CR               PIC X(150).
+       01 WS-BIC-CR                PIC X(30).
+       01 WS-COUNTRY-CR            PIC X(2).
+       01 WS-BKNAME-CR             PIC X(30).
+     š* Tratamento de Nome Completo
+       01 WS-OPERADOR              PIC X(07).
+       01 WS-TRFTYPE               PIC X(04).
+       01 WS-VALOR                 PIC S9(13)V9(2).
+       01 WS-RACINE                PIC X(7).
+       01 WS-IBAN                  PIC X(30).
+       01 WS-MON                   PIC X(3).
+       01 WS-INFOMSG               PIC X(40).
+       01 WS-DESCTYPE              PIC X(40).
+       01 WS-TRFDATE.
+          05 WS-TRFDATE-YYYY       PIC X(4).
+          05 WS-TRFDATE-MM         PIC X(2).
+          05 WS-TRFDATE-DD         PIC X(2).
+     š* W- Name
+       01 WS-POS-NOMI              PIC S9(4)   COMP   VALUE 0.
+       01 WS-POS-NOMIS             PIC S9(4)   COMP   VALUE 0.
+       01 WS-NOM-L                 PIC S9(4)   COMP   VALUE 0.
+       01 WS-NOM.
+          03 W-NOM                 PIC X       OCCURS 35.
+       01 WS-POS-PRNMI             PIC S9(4)   COMP   VALUE 0.
+       01 WS-POS-PRNMIS            PIC S9(4)   COMP   VALUE 0.
+       01 WS-PRNM-L                PIC S9(4)   COMP   VALUE 0.
+       01 WS-PRNM.
+          03 W-PRNM                PIC X       OCCURS 35.
+       01 WS-NOM-COMPLETO          PIC X(80).
+       01 WS-NIF                   PIC X(50).
+       01 WS-NIF-1                 PIC X(50).
+       01 WS-NIF-2                 PIC X(50).
+
+
+     š* Copy : Tabela de Intervenientes Nova
+           EXEC SQL
+               INCLUDE AMLH303N
+           END-EXEC.
+
+     š* Copy : Tabela de Movimentos
+       01  R-FDBMVT.
+           COPY DDS-ALL-FORMATS OF FDBMVT.
+
+     š* Copy : Tabela de Interface de Movimentos
+       01  R-FDBLOP.
+           COPY DDS-ALL-FORMATS OF FDBLOP.
+
+     š* Copy : Tabela de AML
+       01  R-AMLJSEPAR.
+           COPY DDS-ALL-FORMATS OF AMLJSEPAR.
+
+     š* Copy : Tabela de AML
+       01  R-AMLJSEPAS.
+           COPY DDS-ALL-FORMATS OF AMLJSEPAS.
+
+     š* Copy : Tabela de Clientes
+       01  R-FDBCLI.
+           COPY DDS-ALL-FORMATS OF FDBCLI.
+
+     š* Copy : Tabelas
+       01  R-FDBTAB.
+           COPY DDS-ALL-FORMATS OF FDBTAB.
+     š* Copy : Tabela de Other Numbering
+       01  R-FDBNUM.
+           COPY DDS-ALL-FORMATS OF FDBNUM.
+     š* Copy : Tabela de AMLT900A
+       01  R-AMLT900A.
+           COPY DDS-ALL-FORMATS OF AMLT900A.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+           COPY AMLB303.
+      *================================================================*
+       PROCEDURE DIVISION USING AMLB303-LKPARMS.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+           PERFORM P001-INICIO
+           PERFORM P001-LIMPA-CAMPOS
+
+     š*- Dados de Transacções
+           PERFORM P300-GET-FDBMVT.
+     š*- Companhia
+           MOVE "BBI"              TO AMLH303N-COMPANY
+     š*- Branch
+           MOVE "0001"             TO AMLH303N-BRANCH
+     š*- Transaction ID
+           MOVE    WS-MVSEQJ          TO WX-MVSEQJ
+           MOVE    MVECRI OF R-FDBMVT TO WX-MVECRI
+           STRING WX-MVSEQJ
+                  "-"
+                  WX-MVECRI
+                  DELIMITED BY SIZE
+                                 INTO AMLH303N-TRANSID
+     š*- Aplicação ID
+           MOVE "Olympic"          TO AMLH303N-APLID
+     š*- Codigo Transacção
+           MOVE MVIDRS OF R-FDBMVT TO WX-MVIDRS
+           IF MVMONT OF R-FDBMVT > 0
+             STRING  WX-MVIDRS
+                   "C"
+                   DELIMITED BY SIZE
+                   INTO            AMLH303N-CDTRANS
+           ELSE
+             STRING  WX-MVIDRS
+                   "D"
+                   DELIMITED BY SIZE
+                   INTO            AMLH303N-CDTRANS
+           END-IF
+     š*- Data de Transacção
+           MOVE MVDTOP OF R-FDBMVT    TO WY-DATA-CONVER
+           IF WY-DATA-CONVER NOT EQUAL ZERO
+             MOVE WN-DATA-CONVER(2:8)   TO AMLH303N-DTTRANS
+           ELSE
+             MOVE SPACES                TO AMLH303N-DTTRANS
+           END-IF
+     š*- Moeda
+           PERFORM P300-MOEDA-ALFA
+     š*- Montante
+           MOVE MVMONT OF R-FDBMVT TO AMLH303N-AMTCURR
+           IF AMLH303N-AMTCURR  < 0
+             COMPUTE AMLH303N-AMTCURR =
+                     AMLH303N-AMTCURR * -1
+           END-IF.
+     š*- Montante Moeda de Referência
+           MOVE MVCTML OF R-FDBMVT TO AMLH303N-AMTRFCURR
+           IF AMLH303N-AMTRFCURR< 0
+             COMPUTE AMLH303N-AMTRFCURR =
+                     AMLH303N-AMTRFCURR * -1
+           END-IF.
+           IF AMLH303N-AMTCURR NOT EQUAL ZERO
+             COMPUTE WS-CAMBIO = AMLH303N-AMTRFCURR /
+                                 AMLH303N-AMTCURR
+           ELSE
+             MOVE 1 TO WS-CAMBIO
+           END-IF
+     š*- Reponsável
+           MOVE MVOPRN OF R-FDBMVT TO AMLH303N-OFFICER
+     š*- Número de Conta
+           MOVE WS-MVRACI          TO WS-RACINE-CTADO
+                                      AMLH303N-THIRDPID
+           MOVE WS-MVGRE           TO WS-GRE-CTADO
+           MOVE WS-MVRUB           TO WS-RUB-CTADO
+           MOVE WS-MVMON           TO WS-MON-CTADO
+           MOVE WS-CTADO           TO AMLH303N-ACTNBR
+           MOVE MVCRAC             TO  WS-RACINE
+           PERFORM P300-GET-DOC-NIF
+           MOVE WS-NIF              TO WS-NIF-1
+           MOVE  AMLB303-MVRACI   TO WS-MVRACI.
+           PERFORM P300-GET-DOC-NIF
+           MOVE WS-NIF              TO WS-NIF-1
+             IF WS-NIF-1 = WS-NIF-2
+                MOVE "Y"              TO   AMLH303N-INTFLAG
+             ELSE
+                MOVE "N"              TO   AMLH303N-INTFLAG
+             END-IF
+
+     š*- External BIC Contraparte Trans
+           IF WS-MVIDRS  EQUAL   125  OR  135
+                             OR  101  OR  136
+                             OR  137  OR  138
+                             OR  139
+             PERFORM  P300-GET-FDBLOP
+             MOVE OPDBRC OF R-FDBLOP  TO  WS-RACINE
+             PERFORM P300-GET-DOC-NIF
+             MOVE WS-NIF              TO WS-NIF-1
+             MOVE OPCRRC OF R-FDBLOP  TO  WS-RACINE
+             PERFORM P300-GET-DOC-NIF
+             MOVE WS-NIF              TO WS-NIF-2
+     š*- --Verifica se o Cliente é o mesmo
+             IF WS-NIF-1 = WS-NIF-2
+                MOVE "Y"              TO   AMLH303N-INTFLAG
+             ELSE
+                MOVE "N"              TO   AMLH303N-INTFLAG
+             END-IF
+             IF  OPID OF R-FDBLOP  =  "123"
+                PERFORM P400-GET-AMLJSEPAR
+             END-IF
+             IF  OPID OF R-FDBLOP  =  "125" OR "135"
+                                   OR "101" OR "136"
+                                   OR "137" OR "138"
+                                   OR "139"
+
+                PERFORM P400-GET-AMLJSEPAS
+             END-IF
+             PERFORM P400-SPLIT-OPDOA3-INFO
+             PERFORM P400-SPLIT-OPDOA4-INFO
+
+             PERFORM P400-ANALISA-TRANSFER
+             MOVE WS-BIC-CR           TO AMLH303N-EXTBIC
+             INSPECT AMLH303N-EXTBIC  REPLACING ALL ";" BY ","
+     š*- NOME Contraparte Transf
+             MOVE WS-NAME-CR          TO AMLH303N-EXTNAME
+             INSPECT AMLH303N-EXTNAME REPLACING ALL ";" BY ","
+     š*- Third Party
+             MOVE WS-IBAN-CR         TO AMLH303N-EXTID
+     š*- Morada da Contraparte
+             MOVE WS-COUNTRY-CR      TO AMLH303N-EXTCTRY
+           END-IF
+     š*- Debito Vs Credito
+           IF MVMONT OF R-FDBMVT > 0
+              MOVE "C"             TO AMLH303N-INDDBCR
+           ELSE
+              MOVE "D"             TO AMLH303N-INDDBCR
+           END-IF
+     š*- Security Type
+           MOVE MVNOVL OF R-FDBMVT TO AMLH303N-SECTYPE
+     š*- Indicador De Estorno
+           IF MVCEXT OF R-FDBMVT = "E" OR = "X"
+             MOVE "Y" TO AMLH303N-REVERSE
+           ELSE
+             MOVE "N" TO AMLH303N-REVERSE
+           END-IF
+     š*- Transacção de Estorno
+           IF AMLH303N-REVERSE = "Y"
+             IF  MVREFE  OF R-FDBMVT NOT EQUAL 0
+               MOVE MVREFE  OF R-FDBMVT TO AMLH303N-REVTRANS
+             ELSE
+               PERFORM P300-OBTEM-MOV-ORIGINAL
+               MOVE WS-MVSEQJE          TO AMLH303N-REVTRANS
+             END-IF
+           END-IF
+     š*- Saldo em EUR após Transferência
+           COMPUTE AMLH303N-SLDEUR  =  WS-CAMBIO *
+                                   MVSOLD OF R-FDBMVT
+     š*- Saldo em EUR antes Transferência
+           COMPUTE AMLH303N-SLDANTEUR =  WS-CAMBIO *
+                              (    MVSOLD OF R-FDBMVT -
+                                   MVMONT OF R-FDBMVT  )
+     š*- INSERT
+           IF AMLB303-PROC-OK
+             PERFORM P500-SET-NULLS-ALMJ303
+             PERFORM P500-INSERT-AMLJ303
+           END-IF.
+
+           PERFORM P999-FIMPGM.
+     š*---------------------------------------------------------------------
+       P001-INICIO.
+     š*---------------------------------------------------------------------
+           INITIALIZE  AMLH303N-REC
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10)   TO WS-DATA-DIA.
+           MOVE  AMLB303-MVRACI   TO WS-MVRACI.
+           MOVE  AMLB303-MVGRE    TO WS-MVGRE.
+           MOVE  AMLB303-MVRUB    TO WS-MVRUB.
+           MOVE  AMLB303-MVMON    TO WS-MVMON.
+           MOVE  AMLB303-MVSEQJ   TO WS-MVSEQJ.
+           MOVE  AMLB303-MVECRI   TO WS-MVECRI.
+           MOVE  AMLB303-DTPROC   TO WS-DATA-PROC.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-FDBMVT.
+     š*----------------------------------------------------------------
+     š*-
+     š*- Obtem Informação Mestre de Saldos
+           INITIALIZE  R-FDBMVT
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+
+           EXEC SQL
+                SELECT  MVSEQJ
+                     ,  MVIDRS
+                     ,  MVDTOP
+                     ,  MVMONT
+                     ,  MVCTML
+                     ,  MVOPRN
+                     ,  MVECRI
+                     ,  MVIDRS
+                     ,  MVNORS
+                     ,  MVNOVL
+                     ,  MVSOLD
+                     ,  MVCEXT
+                     ,  MVREFE
+                     ,  MVCRAC
+                     ,  MVREFO
+                INTO   :MVSEQJ
+                     , :MVIDRS
+                     , :MVDTOP
+                     , :MVMONT
+                     , :MVCTML
+                     , :MVOPRN
+                     , :MVECRI
+                     , :MVIDRS
+                     , :MVNORS
+                     , :MVNOVL
+                     , :MVSOLD
+                     , :MVCEXT
+                     , :MVREFE
+                     , :MVCRAC
+                     , :WS-MVREFO
+                FROM  FDBMVT A
+                WHERE A.MVRACI = :WS-MVRACI
+                 AND  A.MVGRE  = :WS-MVGRE
+                 AND  A.MVRUB  = :WS-MVRUB
+                 AND  A.MVMON  = :WS-MVMON
+                 AND  A.MVSEQJ = :WS-MVSEQJ
+                 AND  A.MVECRI = :WS-MVECRI
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              MOVE MVIDRS              TO WS-MVIDRS
+              MOVE MVNORS              TO WS-MVNORS
+              MOVE MVMONT              TO WS-MVMONTE
+              COMPUTE WS-MVMONTE = WS-MVMONTE  * -1
+              SET SIM-EXISTE           TO TRUE
+           WHEN SQLCODE-NOTFOUND
+              SET NAO-EXISTE           TO TRUE
+           WHEN OTHER
+              MOVE "FDBMVT "           TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-OBTEM-MOV-ORIGINAL.
+     š*----------------------------------------------------------------
+     š*-
+
+           EXEC SQL
+                SELECT  MVSEQJ
+                INTO   :WS-MVSEQJE
+                FROM  FDBMVT A
+                WHERE A.MVRACI = :WS-MVRACI
+                 AND  A.MVGRE  = :WS-MVGRE
+                 AND  A.MVRUB  = :WS-MVRUB
+                 AND  A.MVMON  = :WS-MVMON
+                 AND  A.MVMONT = :WS-MVMONTE
+                 AND  A.MVMONT = :WS-MVMONTE
+                 AND  A.MVREFO = :WS-MVREFO
+                 AND  A.MVCEXT <> " "
+
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN SQLCODE-NOTFOUND
+              MOVE ZEROS               TO WS-MVSEQJE
+           WHEN OTHER
+              MOVE "FDBMVT "           TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-FDBLOP.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                SELECT     OPID
+                          ,LPLREF
+                          ,LPSTAT
+                          ,OPDDAV
+                          ,LPTIME
+                          ,LPLOPR
+                          ,OPRFEX
+                          ,OPDBRC
+                          ,OPDBGR
+                          ,OPDBRU
+                          ,OPDBNM
+                          ,OPCRRC
+                          ,OPCRGR
+                          ,OPCRRU
+                          ,OPCRNM
+                          ,OPRECP
+                          ,OPDBMT
+                          ,OPDBMC
+                          ,OPCBMC
+                          ,OPDNMC
+                          ,OPDOA1
+                          ,OPDOA2
+                          ,OPDOA3
+                          ,OPDOA4
+                          ,OPDBLI
+                          ,OPCRLI
+                INTO      :OPID
+                        , :LPLREF
+                        , :LPSTAT
+                        , :OPDDAV
+                        , :LPTIME
+                        , :LPLOPR
+                        , :OPRFEX
+                        , :OPDBRC
+                        , :OPDBGR
+                        , :OPDBRU
+                        , :OPDBNM
+                        , :OPCRRC
+                        , :OPCRGR
+                        , :OPCRRU
+                        , :OPCRNM
+                        , :OPRECP
+                        , :OPDBMT
+                        , :OPDBMC
+                        , :OPCBMC
+                        , :OPDNMC
+                        , :OPDOA1
+                        , :OPDOA2
+                        , :OPDOA3
+                        , :OPDOA4
+                        , :OPDBLI
+                        , :OPCRLI
+               FROM FDBLOP A
+                WHERE A.OPID IN ( "100"
+                                , "101"
+                                , "119"
+                                , "123"
+                                , "125"
+                                , "135"
+                                , "136"
+                                , "137"
+                                , "138"
+                                , "139" )
+                AND DECIMAL(A.OPID , 3 , 0 ) =  :WS-MVIDRS
+                AND DECIMAL(A.OPNOPE, 11, 0 ) = :WS-MVNORS
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN SQLCODE-NOTFOUND
+              MOVE SPACES              TO AMLH303N-EXTBIC
+           WHEN OTHER
+              MOVE "FDBLOP "           TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-GET-AMLJSEPAR.
+     š*----------------------------------------------------------------
+     š*-
+     š*- Obtem Informação Sepa Recebidas
+     š*-
+           INITIALIZE R-AMLJSEPAR
+                       REPLACING ALPHANUMERIC BY SPACES
+                                        NUMERIC BY ZEROS.
+           EXEC SQL
+                SELECT
+                        RTRFDATE
+                     ,  RREFCODE
+                     ,  RIEREF
+                     ,  RIDPACS8
+                     ,  RTXID
+                     ,  RPAYPUR
+                     ,  RDESPAYPUR
+                     ,  RCDOPER
+                     ,  RDESCDOPER
+                     ,  RBICORD
+                     ,  RIBANORD
+                     ,  RNAMEORD
+                     ,  RMSGINFO
+                     ,  RIBAN
+                     ,  RAMOUNT
+                     ,  RESTADO
+                     ,  RCONTA
+                     ,  RAMLSTAT
+
+                INTO
+                       :RTRFDATE
+                     , :RREFCODE
+                     , :RIEREF
+                     , :RIDPACS8
+                     , :RTXID
+                     , :RPAYPUR
+                     , :RDESPAYPUR
+                     , :RCDOPER
+                     , :RDESCDOPER
+                     , :RBICORD
+                     , :RIBANORD
+                     , :RNAMEORD
+                     , :RMSGINFO
+                     , :RIBAN
+                     , :RAMOUNT
+                     , :RESTADO
+                     , :RCONTA
+                     , :RAMLSTAT
+                FROM  AMLJSEPAR A
+                WHERE DECIMAL(A.RREFCODE , 11, 0 ) = :WS-REFCODE
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET SIM-SEPAR        TO TRUE
+              SET SIM-TRATA        TO TRUE
+           WHEN SQLCODE-NOTFOUND
+              SET NAO-TRATA        TO TRUE
+           WHEN OTHER
+              SET NAO-TRATA            TO TRUE
+              MOVE "AMLJSEPAR"         TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-GET-AMLJSEPAS.
+     š*----------------------------------------------------------------
+     š*-
+     š*- Obtem Informação Sepa Recebidas
+     š*-
+            INITIALIZE R-AMLJSEPAS
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+
+           EXEC SQL
+                SELECT
+                       STRFDATE
+                    ,  SIEREF
+                    ,  SREFCODE
+                    ,  STRFTIPO
+                    ,  SPAYPUR
+                    ,  SORIG
+                    ,  SLOTE
+                    ,  SNAMEAPP
+                    ,  SNIBAPP
+                    ,  SRACINEAPP
+                    ,  SCONTAAPP
+                    ,  SNAMEBEN
+                    ,  SIBANBEN
+                    ,  SNIBBEN
+                    ,  SBANKBEN
+                    ,  SBICBEN
+                    ,  SAMOUNT
+                    ,  SCDCURR
+                    ,  SBANKCOR
+                    ,  SBICCOR
+                    ,  SCONTACOR
+                    ,  MSGINFO
+                    ,  MSGREASON
+                    ,  SOFFSHORE
+                    ,  SURGENT
+                    ,  SFASE
+                    ,  SAMLSTAT
+                INTO
+                       :STRFDATE
+                    ,  :SIEREF
+                    ,  :SREFCODE
+                    ,  :STRFTIPO
+                    ,  :SPAYPUR
+                    ,  :SORIG
+                    ,  :SLOTE
+                    ,  :SNAMEAPP
+                    ,  :SNIBAPP
+                    ,  :SRACINEAPP
+                    ,  :SCONTAAPP
+                    ,  :SNAMEBEN
+                    ,  :SIBANBEN
+                    ,  :SNIBBEN
+                    ,  :SBANKBEN
+                    ,  :SBICBEN
+                    ,  :SAMOUNT
+                    ,  :SCDCURR
+                    ,  :SBANKCOR
+                    ,  :SBICCOR
+                    ,  :SCONTACOR
+                    ,  :MSGINFO
+                    ,  :MSGREASON
+                    ,  :SOFFSHORE
+                    ,  :SURGENT
+                    ,  :SFASE
+                    ,  :SAMLSTAT
+                FROM  AMLJSEPAS A
+                WHERE DECIMAL(A.SREFCODE , 11, 0 ) = :WS-REFCODE
+                 AND  SREFCODE  <> " "
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET SIM-SEPAS     TO TRUE
+              SET SIM-TRATA     TO TRUE
+           WHEN SQLCODE-NOTFOUND
+              SET NAO-TRATA     TO TRUE
+           WHEN OTHER
+              SET NAO-TRATA            TO TRUE
+              MOVE "AMLJSEPAS"         TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-SPLIT-OPDOA3-INFO.
+     š*----------------------------------------------------------------
+     š*-
+     š*-  OPDOA1 - NIB  Destinatário
+     š*-  OPDOA2 - Nome Destinatário
+     š*-  OPDOA3 - BIC Code ; Nome Banco Destino
+     š*-  OPDOA4 - BIC Code ; Nome Banco Correspondente
+     š*-
+           MOVE SPACES TO WS-STRING-OPDOA3-1
+                          WS-STRING-OPDOA3-2
+                          WS-STRING-OPDOA3-3
+           MOVE ZERO   TO WS-COUNT-CSV
+           MOVE OPDOA3 OF R-FDBLOP  TO WS-STRING-CSV
+           MOVE ZEROS TO WS-POS-I  WS-POS-S  WS-STRING-L
+           PERFORM P400-SCAN-OPDOA3-CSV
+                   VARYING W-NUM FROM 1 BY 1
+                   UNTIL W-NUM > LENGTH OF WS-STRING-CSV.
+
+           MOVE W-NUM TO WS-POS-S
+           ADD 1 TO WS-POS-I
+           EVALUATE WS-COUNT-CSV
+           WHEN 0
+             MOVE OPDOA3 OF R-FDBLOP TO WS-STRING-OPDOA3-1
+           WHEN 1
+             COMPUTE WS-STRING-L  = WS-POS-S - WS-POS-I - 1
+             IF WS-STRING-L GREATER THAN ZERO
+                 MOVE WS-STRING-CSV(WS-POS-I:WS-STRING-L)
+                                      TO WS-STRING-OPDOA3-2
+             END-IF
+           WHEN 2
+             COMPUTE WS-STRING-L  = WS-POS-S - WS-POS-I  - 1
+             IF WS-STRING-L GREATER THAN ZERO
+                 MOVE WS-STRING-CSV(WS-POS-I:WS-STRING-L)
+                                      TO WS-STRING-OPDOA3-3
+             END-IF
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-SCAN-OPDOA3-CSV.
+     š*----------------------------------------------------------------
+     š*-
+           IF  WS-STRING-CHR-CSV(W-NUM)  = ";"
+               EVALUATE WS-COUNT-CSV
+                WHEN   0
+                  MOVE 1     TO WS-POS-I
+                  MOVE W-NUM TO WS-POS-S
+                  COMPUTE WS-STRING-L  = WS-POS-S - WS-POS-I
+                  IF WS-STRING-L GREATER THAN ZERO
+                    MOVE WS-STRING-CSV(1:WS-STRING-L)
+                        TO WS-STRING-OPDOA3-1
+                  END-IF
+                  ADD 1 TO WS-COUNT-CSV
+                  MOVE W-NUM TO WS-POS-I
+                WHEN  1
+                  MOVE W-NUM TO WS-POS-S
+                  ADD 1 TO WS-POS-S
+                  COMPUTE WS-STRING-L  = WS-POS-S - WS-POS-I
+                  IF WS-STRING-L GREATER THAN ZERO
+                    MOVE WS-STRING-CSV(1:WS-STRING-L)
+                        TO WS-STRING-OPDOA3-2
+                  END-IF
+                  ADD 1 TO WS-COUNT-CSV
+                  MOVE W-NUM TO WS-POS-I
+                WHEN   2
+                  MOVE W-NUM TO WS-POS-S
+                  ADD 1 TO WS-POS-S
+                  COMPUTE WS-STRING-L  = WS-POS-S - WS-POS-I
+                  IF WS-STRING-L GREATER THAN ZERO
+                    MOVE WS-STRING-CSV(1:WS-STRING-L)
+                        TO WS-STRING-OPDOA3-3
+                  END-IF
+               END-EVALUATE
+           END-IF.
+     š*-
+     š*----------------------------------------------------------------
+       P400-SPLIT-OPDOA4-INFO.
+     š*----------------------------------------------------------------
+     š*-
+     š*-  OPDOA1 - NIB  Destinatário
+     š*-  OPDOA2 - Nome Destinatário
+     š*-  OPDOA3 - BIC Code ; Nome Banco Destino
+     š*-  OPDOA4 - BIC Code ; Nome Banco Correspondente
+     š*-
+           MOVE SPACES TO WS-STRING-OPDOA4-1
+                          WS-STRING-OPDOA4-2
+                          WS-STRING-OPDOA4-3
+           MOVE ZERO   TO WS-COUNT-CSV
+           MOVE OPDOA4 OF R-FDBLOP  TO WS-STRING-CSV
+           MOVE ZEROS TO WS-POS-I  WS-POS-S  WS-STRING-L
+           PERFORM P400-SCAN-OPDOA4-CSV
+                   VARYING W-NUM FROM 1 BY 1
+                   UNTIL W-NUM > LENGTH OF WS-STRING-CSV.
+
+           MOVE W-NUM TO WS-POS-S
+           ADD 1 TO WS-POS-I
+           EVALUATE WS-COUNT-CSV
+           WHEN 0
+             MOVE OPDOA4 OF R-FDBLOP TO WS-STRING-OPDOA4-1
+           WHEN 1
+             COMPUTE WS-STRING-L  = WS-POS-S - WS-POS-I - 1
+             IF WS-STRING-L GREATER THAN ZERO
+                 MOVE WS-STRING-CSV(WS-POS-I:WS-STRING-L)
+                                      TO WS-STRING-OPDOA4-2
+             END-IF
+           WHEN 2
+             COMPUTE WS-STRING-L  = WS-POS-S - WS-POS-I - 1
+             IF WS-STRING-L GREATER THAN ZERO
+                 MOVE WS-STRING-CSV(WS-POS-I:WS-STRING-L)
+                                      TO WS-STRING-OPDOA4-3
+             END-IF
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-SCAN-OPDOA4-CSV.
+     š*----------------------------------------------------------------
+     š*-
+           IF  WS-STRING-CHR-CSV(W-NUM)  = ";"
+               EVALUATE WS-COUNT-CSV
+                WHEN  0
+                  MOVE 1     TO WS-POS-I
+                  MOVE W-NUM TO WS-POS-S
+                  COMPUTE WS-STRING-L  = WS-POS-S - WS-POS-I
+                  IF WS-STRING-L GREATER THAN ZERO
+                    MOVE WS-STRING-CSV(1:WS-STRING-L)
+                        TO WS-STRING-OPDOA4-1
+                  END-IF
+                  ADD 1 TO WS-COUNT-CSV
+                  MOVE W-NUM TO WS-POS-I
+                WHEN  1
+                  MOVE W-NUM TO WS-POS-S
+                  ADD 1 TO WS-POS-S
+                  COMPUTE WS-STRING-L  = WS-POS-S - WS-POS-I
+                  IF WS-STRING-L GREATER THAN ZERO
+                    MOVE WS-STRING-CSV(1:WS-STRING-L)
+                        TO WS-STRING-OPDOA4-2
+                  END-IF
+                  ADD 1 TO WS-COUNT-CSV
+                  MOVE W-NUM TO WS-POS-I
+                WHEN  2
+                  MOVE W-NUM TO WS-POS-S
+                  ADD 1 TO WS-POS-S
+                  COMPUTE WS-STRING-L  = WS-POS-S - WS-POS-I
+                  IF WS-STRING-L GREATER THAN ZERO
+                    MOVE WS-STRING-CSV(1:WS-STRING-L)
+                        TO WS-STRING-OPDOA4-3
+                  END-IF
+               END-EVALUATE
+           END-IF.
+     š*-
+     š*----------------------------------------------------------------
+       P400-ANALISA-TRANSFER.
+     š*----------------------------------------------------------------
+     š*-
+           EVALUATE TRUE
+     š*- 100 - Transferencia Interna
+             WHEN OPID OF R-FDBLOP  =   "100"
+               MOVE "Trans. Interna"
+                                         TO WS-DESCTYPE
+               PERFORM P400-INTERNAL-INFO
+     š*- 101 - Transferencia Interb. Saida  SWIFT
+     š*-     A Crédito deve ser sempre 9 ( Nostrum ) OPCRRC (1:1) = "9"
+             WHEN OPID OF R-FDBLOP  =   "101"
+               MOVE "Transf. SWIFT Saida"
+                                         TO WS-DESCTYPE
+               PERFORM P400-OUTBOUND-INFO
+     š*- 102 - Transferencia Swift Entrada
+             WHEN OPID OF R-FDBLOP  =   "102"
+               MOVE "Transf. SWIFT Entrada"
+                                         TO WS-DESCTYPE
+               PERFORM P400-INBOUND-INFO
+     š*- 123 - Transferencia SEPA Entrada
+             WHEN OPID OF R-FDBLOP  =   "123"
+               MOVE "Transf. SEPA Entrada"
+                                         TO WS-DESCTYPE
+               PERFORM P400-INBOUND-INFO
+     š*- 125 - Transferencia SEPA Enviada
+             WHEN OPID OF R-FDBLOP  =   "125"
+               MOVE "Transf. SEPA Saida"
+                                         TO WS-DESCTYPE
+               PERFORM P400-OUTBOUND-INFO
+     š*- 135 -Transf. TARGET Interbancaria com Comissões Saida (EUR)
+             WHEN OPID OF R-FDBLOP  =   "135"
+               MOVE "Transf. Interb. AT2 de Saida"
+                                         TO WS-DESCTYPE
+               PERFORM P400-OUTBOUND-INFO
+     š*- 136 - Transferencia TARGET normal com Comissões Saida (MOEDA)
+             WHEN OPID OF R-FDBLOP  =   "136"
+               IF OPCRRC (1:1) = "9"
+                 MOVE "Transf. AT2 de Saida"
+                                         TO WS-DESCTYPE
+                 PERFORM P400-OUTBOUND-INFO
+               ELSE
+                 MOVE "Transf. AT2 de Entrada"
+                                         TO WS-DESCTYPE
+                 PERFORM P400-INBOUND-INFO
+               END-IF
+     š*- 137 - Transferencia TARGET urgente Com Comissões Saida
+             WHEN OPID OF R-FDBLOP  =   "137"
+               IF OPCRRC (1:1) = "9"
+                 MOVE "Transf. AT2 Urgente de Saida"
+                                         TO WS-DESCTYPE
+                 PERFORM P400-OUTBOUND-INFO
+               ELSE
+                 MOVE "Transf. AT2 Urgente de Entrada"
+                                         TO WS-DESCTYPE
+                 SET INBOUND TO TRUE
+                 PERFORM P400-INBOUND-INFO
+               END-IF
+     š*- 138 - TRF TARGET2 REG 924 - COM COMISSOES
+             WHEN OPID OF R-FDBLOP  =   "138"
+               MOVE "Transf. AT2 Com Comissões"
+                                       TO WS-DESCTYPE
+               PERFORM P400-OUTBOUND-INFO
+     š*- 139 - TRF TARGET2 - SEM COMISSÕES
+             WHEN OPID OF R-FDBLOP  =   "139"
+               MOVE "Transf. AT2 Sem Comissões"
+                                       TO WS-DESCTYPE
+               PERFORM P400-OUTBOUND-INFO
+             WHEN OTHER
+               CONTINUE
+           END-EVALUATE.
+     š*----------------------------------------------------------------
+       P400-INTERNAL-INFO.
+     š*----------------------------------------------------------------
+           SET INTERNAL TO TRUE
+     š*- ------Ordenante
+           MOVE OPDBRC OF R-FDBLOP  TO  WS-RACINE
+           MOVE WS-RACINE           TO  WS-CLIENTID
+           MOVE OPDBRC OF R-FDBLOP  TO  WS-RACINE-CLI
+           MOVE OPDBGR OF R-FDBLOP  TO  WS-GENRE-CLI
+           MOVE OPDBRU OF R-FDBLOP  TO  WS-RUB-CLI
+           MOVE OPDBNM OF R-FDBLOP  TO  WS-MON-CLI
+           MOVE "."                 TO  WS-SEP1-CLI
+                                         WS-SEP2-CLI
+                                         WS-SEP3-CLI
+           PERFORM P300-GET-FDBCLI
+           PERFORM P300-GET-NOME
+           MOVE WS-NOM-COMPLETO     TO  WS-NAME-CLI
+     š*- ------Cliente Beneficiário (Creditado)
+           MOVE OPCRRC OF R-FDBLOP  TO  WS-RACINE
+           PERFORM P300-GET-IBAN
+           MOVE WS-IBAN             TO  WS-IBAN-CLI
+           PERFORM P300-GET-FDBCLI
+           PERFORM P300-GET-NOME
+           MOVE WS-NOM-COMPLETO     TO  WS-NAME-CR
+           PERFORM P300-GET-IBAN
+           MOVE WS-IBAN             TO  WS-IBAN-CR
+     š*- ------Montante
+           MOVE OPDBMT OF R-FDBLOP  TO  WS-VALOR
+     š*- ------Operador
+           MOVE LPLOPR OF R-FDBLOP  TO  WS-OPERADOR
+     š*- ------Data
+           MOVE LPDTAA OF R-FDBLOP  TO  WS-TRFDATE-YYYY
+           MOVE LPDTMM OF R-FDBLOP  TO  WS-TRFDATE-MM
+           MOVE LPDTJJ OF R-FDBLOP  TO  WS-TRFDATE-DD.
+     š*-
+     š*----------------------------------------------------------------
+       P400-OUTBOUND-INFO.
+     š*----------------------------------------------------------------
+     š*- OPDOA1 - NIB  Destinatário
+     š*- OPDOA2 - Nome Destinatário
+     š*- OPDOA3 - BIC Code ; Nome Banco Destino
+     š*- OPDOA4 - BIC Code ; Nome Banco Correspondente
+           SET OUTBOUND TO TRUE
+     š*- ------ID Cliente
+           MOVE OPDBRC OF R-FDBLOP  TO WS-RACINE
+           MOVE WS-RACINE            TO  WS-CLIENTID
+     š*- ------Conta Cliente
+           MOVE OPDBRC OF R-FDBLOP  TO  WS-RACINE-CLI
+           MOVE OPDBGR OF R-FDBLOP  TO  WS-GENRE-CLI
+           MOVE OPDBRU OF R-FDBLOP  TO  WS-RUB-CLI
+           MOVE OPDBNM OF R-FDBLOP  TO  WS-MON-CLI
+           MOVE "."                  TO  WS-SEP1-CLI
+                                         WS-SEP2-CLI
+                                         WS-SEP3-CLI
+           PERFORM P300-GET-FDBCLI
+           PERFORM P300-GET-NOME
+           MOVE WS-NOM-COMPLETO      TO  WS-NAME-CLI
+     š*- ------Ordenante Cliente
+           PERFORM P300-GET-IBAN
+           MOVE WS-IBAN              TO  WS-IBAN-CLI
+     š*- ------Montante
+           MOVE OPDBMT OF R-FDBLOP  TO  WS-VALOR
+     š*- ------Operador
+           MOVE LPLOPR OF R-FDBLOP  TO  WS-OPERADOR
+     š*- ------Data
+           MOVE LPDTAA OF R-FDBLOP  TO  WS-TRFDATE-YYYY
+           MOVE LPDTMM OF R-FDBLOP  TO  WS-TRFDATE-MM
+           MOVE LPDTJJ OF R-FDBLOP  TO  WS-TRFDATE-DD
+     š*- ------Beneficiário
+           MOVE OPDOA1               TO  WS-IBAN-CR
+           MOVE OPDOA2 OF R-FDBLOP   TO  WS-NAME-CR
+           MOVE WS-STRING-OPDOA3-1   TO  WS-BIC-CR
+           MOVE WS-STRING-OPDOA3-2   TO  WS-BKNAME-CR
+           MOVE WS-STRING-OPDOA3-1(5:2) TO WS-COUNTRY-CR
+     š*- ------Correspondente
+           MOVE WS-STRING-OPDOA4-1   TO  WS-BKNAME-COR
+           MOVE WS-STRING-OPDOA4-2   TO  WS-BIC-COR
+           MOVE WS-STRING-OPDOA4-1(5:2) TO WS-COUNTRY-COR
+     š*- ------Correspondente
+           IF SIM-SEPAS
+              MOVE MSGINFO              TO WS-INFOMSG
+              IF SNAMEBEN NOT EQUAL SPACES
+                MOVE SNAMEBEN           TO WS-NAME-CR
+              END-IF
+              IF WS-INFOMSG EQUAL SPACES
+                MOVE MSGREASON          TO WS-INFOMSG
+              END-IF
+              IF  SBICBEN   NOT EQUAL SPACES
+                MOVE SBICBEN            TO WS-BIC-CR
+                MOVE SBICBEN(5:2)       TO WS-COUNTRY-CR
+              END-IF
+              IF SIBANBEN  NOT EQUAL SPACES
+                MOVE SIBANBEN           TO WS-IBAN-CR
+              END-IF
+              IF WS-TRFTYPE EQUAL SPACES
+                MOVE SPAYPUR            TO WS-TRFTYPE
+              END-IF
+              IF WS-BKNAME-CR EQUAL SPACES
+                MOVE SBANKBEN             TO WS-BKNAME-CR
+              END-IF
+
+              MOVE SBANKCOR             TO WS-BKNAME-COR
+              MOVE SBICCOR              TO WS-BIC-COR
+
+           END-IF.
+     š*-
+     š*----------------------------------------------------------------
+       P400-INBOUND-INFO.
+     š*----------------------------------------------------------------
+     š*- OPDOA1 - NIB  Destinatário
+     š*- OPDOA2 - Nome Destinatário
+     š*- OPDOA3 - BIC Code ; Nome Banco Destino
+     š*- OPDOA4 - BIC Code ; Nome Banco Correspondente
+           SET INBOUND  TO TRUE
+     š*- ------ID Cliente
+           MOVE OPCRRC OF R-FDBLOP  TO WS-RACINE
+           MOVE WS-RACINE            TO WS-CLIENTID
+     š*- ------Conta Cliente
+           MOVE OPCRRC OF R-FDBLOP  TO  WS-RACINE-CLI
+           MOVE OPCRGR OF R-FDBLOP  TO  WS-GENRE-CLI
+           MOVE OPCRRU OF R-FDBLOP  TO  WS-RUB-CLI
+           MOVE OPCRNM OF R-FDBLOP  TO  WS-MON-CLI
+           MOVE "."                  TO  WS-SEP1-CLI
+                                         WS-SEP2-CLI
+                                         WS-SEP3-CLI
+           PERFORM P300-GET-FDBCLI
+           PERFORM P300-GET-NOME
+           MOVE WS-NOM-COMPLETO      TO  WS-NAME-CLI
+     š*- ------Beneficiário
+           PERFORM P300-GET-IBAN
+           MOVE WS-IBAN              TO  WS-IBAN-CLI
+     š*- ------Montante
+           MOVE OPDBMT OF R-FDBLOP  TO  WS-VALOR
+     š*- ------Operador
+           MOVE LPLOPR OF R-FDBLOP  TO  WS-OPERADOR
+     š*- ------Data
+           MOVE LPDTAA OF R-FDBLOP  TO  WS-TRFDATE-YYYY
+           MOVE LPDTMM OF R-FDBLOP  TO  WS-TRFDATE-MM
+           MOVE LPDTJJ OF R-FDBLOP  TO  WS-TRFDATE-DD.
+     š*- ------Ordenante / Counterparte
+           MOVE OPDOA1               TO  WS-IBAN-CR
+           MOVE OPDOA2 OF R-FDBLOP   TO  WS-NAME-CR
+           MOVE WS-STRING-OPDOA3-1   TO  WS-BIC-CR
+           MOVE WS-STRING-OPDOA3-2   TO  WS-BKNAME-CR
+           MOVE WS-STRING-OPDOA3-1(5:2) TO WS-COUNTRY-CR
+
+           IF SIM-SEPAR
+              IF  RBICORD   NOT EQUAL SPACES
+                MOVE RBICORD            TO WS-BIC-CR
+                MOVE RBICORD(5:2)       TO WS-COUNTRY-CR
+              END-IF
+              IF   RIBANORD NOT EQUAL SPACES
+                MOVE RIBANORD           TO WS-IBAN-CR
+              END-IF
+              IF  WS-NAME-CR EQUAL SPACES
+                MOVE RNAMEORD           TO WS-NAME-CR
+              END-IF
+              IF  WS-TRFTYPE EQUAL SPACES
+                MOVE RPAYPUR            TO WS-TRFTYPE
+              END-IF
+              IF  WS-TRFTYPE EQUAL SPACES
+                MOVE RCDOPER            TO WS-TRFTYPE
+              END-IF
+              MOVE RMSGINFO             TO WS-INFOMSG
+              IF WS-INFOMSG = " "
+                MOVE RDESPAYPUR         TO WS-INFOMSG
+              END-IF
+              IF WS-INFOMSG = " "
+                MOVE RDESCDOPER         TO WS-INFOMSG
+              END-IF
+           END-IF.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-FDBCLI.
+     š*----------------------------------------------------------------
+     š*- Obtem Informação Mestre de Clientes
+     š*-
+           INITIALIZE R-FDBCLI
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           EXEC SQL
+                SELECT  CLRACI
+                     ,  CLETAT
+                     ,  CLDTOU
+                     ,  CLDTMU
+                     ,  CLDTAN
+                     ,  CLNBRM
+                     ,  CLOPRN
+                     ,  CLGRPE
+                     ,  CLAGNT
+                     ,  CLCENT
+                     ,  CLGERA
+                     ,  CLETCV
+                     ,  CLNOM
+                     ,  CLPRNM
+                     ,  CLORIG
+                     ,  CLTYPE
+                     ,  CLNOMC
+                     ,  CLDTNA
+                     ,  CLDTDC
+                     ,  CLSRCD
+                     ,  CLLNGE
+                     ,  CLCDEX
+                     ,  CLDESI
+                     ,  CLAD01
+                     ,  CLAD02
+                     ,  CLAD03
+                     ,  CLAD04
+                     ,  CLAD05
+                     ,  CLAD06
+                     ,  CLDOMI
+                     ,  CLREGI
+                     ,  CLNATI
+                     ,  CLACTI
+                     ,  CLSECT
+                     ,  CLRGMA
+                     ,  CLSYMP
+                     ,  CLMONE
+                     ,  CLMONP
+                     ,  CLTLPH
+                     ,  CLTLEX
+                     ,  CLTLFX
+                     ,  CLSWFT
+                     ,  CLSIC
+                     ,  CLAUTR
+                     ,  CLGIRO
+                     ,  CLPROF
+                     ,  CLGEST
+                     ,  CLOBJE
+                     ,  CLGRPG
+                     ,  CLGER2
+                     ,  CLGER3
+                     ,  CLNACP
+                     ,  CLDOMR
+
+                INTO   :CLRACI
+                     , :CLETAT
+                     , :CLDTOU
+                     , :CLDTMU
+                     , :CLDTAN
+                     , :CLNBRM
+                     , :CLOPRN
+                     , :CLGRPE
+                     , :CLAGNT
+                     , :CLCENT
+                     , :CLGERA
+                     , :CLETCV
+                     , :CLNOM
+                     , :CLPRNM
+                     , :CLORIG
+                     , :CLTYPE
+                     , :CLNOMC
+                     , :CLDTNA
+                     , :CLDTDC
+                     , :CLSRCD
+                     , :CLLNGE
+                     , :CLCDEX
+                     , :CLDESI
+                     , :CLAD01
+                     , :CLAD02
+                     , :CLAD03
+                     , :CLAD04
+                     , :CLAD05
+                     , :CLAD06
+                     , :CLDOMI
+                     , :CLREGI
+                     , :CLNATI
+                     , :CLACTI
+                     , :CLSECT
+                     , :CLRGMA
+                     , :CLSYMP
+                     , :CLMONE
+                     , :CLMONP
+                     , :CLTLPH
+                     , :CLTLEX
+                     , :CLTLFX
+                     , :CLSWFT
+                     , :CLSIC
+                     , :CLAUTR
+                     , :CLGIRO
+                     , :CLPROF
+                     , :CLGEST
+                     , :CLOBJE
+                     , :CLGRPG
+                     , :CLGER2
+                     , :CLGER3
+                     , :CLNACP
+                     , :CLDOMR
+                FROM  FDBCLI A
+                WHERE A.CLRACI = :WS-RACINE
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN SQLCODE-NOTFOUND
+              CONTINUE
+           WHEN OTHER
+              MOVE "FDBCLI "           TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-NOME.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE ZEROS TO WS-POS-NOMI
+                         WS-POS-PRNMI
+                         WS-POS-PRNMIS
+                         WS-POS-NOMIS
+
+     š*- NOME PROPRIO
+           MOVE  CLPRNM    OF R-FDBCLI   TO WS-PRNM
+           INSPECT  WS-PRNM
+                   TALLYING WS-POS-PRNMIS   FOR LEADING SPACE.
+
+           INSPECT FUNCTION REVERSE(WS-PRNM)
+                   TALLYING WS-POS-PRNMI    FOR LEADING SPACE.
+
+           COMPUTE  WS-PRNM-L   = LENGTH OF WS-PRNM - WS-POS-PRNMI.
+           COMPUTE  WS-PRNM-L   = WS-PRNM-L - WS-POS-PRNMIS
+
+           IF LENGTH OF WS-PRNM = WS-POS-PRNMIS
+              COMPUTE WS-POS-PRNMIS = 0
+           END-IF
+           IF WS-POS-PRNMIS = 0
+             ADD 1 TO WS-POS-PRNMIS
+           END-IF
+
+     š*-APELIDO
+           MOVE  CLNOM     OF R-FDBCLI   TO WS-NOM
+           INSPECT WS-NOM
+                   TALLYING WS-POS-NOMIS    FOR LEADING SPACE.
+           INSPECT FUNCTION REVERSE(WS-NOM)
+                   TALLYING WS-POS-NOMI     FOR LEADING SPACE.
+
+           COMPUTE  WS-NOM-L    = LENGTH OF WS-NOM  -  WS-POS-NOMI.
+           COMPUTE  WS-NOM-L    = WS-NOM-L    - WS-POS-NOMIS
+
+           IF LENGTH OF WS-NOM  = WS-POS-NOMIS
+              COMPUTE WS-POS-NOMIS   = 0
+           END-IF
+           IF WS-POS-NOMIS  = 0
+             ADD 1 TO WS-POS-NOMIS
+           END-IF
+
+     š*-CONSTROI NOME
+           MOVE SPACES                    TO WS-NOM-COMPLETO
+           IF WS-PRNM-L > 0
+             MOVE WS-PRNM(WS-POS-PRNMIS: WS-PRNM-L)
+                                          TO WS-NOM-COMPLETO
+           END-IF
+           IF WS-NOM-L  > 0
+             IF WS-PRNM-L > 0
+               ADD 2 TO WS-PRNM-L
+               MOVE WS-NOM(WS-POS-NOMIS: WS-NOM-L)
+                            TO WS-NOM-COMPLETO(WS-PRNM-L:WS-NOM-L)
+             ELSE
+               MOVE WS-NOM(WS-POS-NOMIS: WS-NOM-L)
+                            TO WS-NOM-COMPLETO(WS-POS-NOMIS:WS-NOM-L)
+           END-IF.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-IBAN.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                SELECT  NUREFE
+                 INTO   :WS-IBAN
+                FROM   FDBNUM A
+                 WHERE A.NURACI = :WS-RACINE
+                  AND  A.NUTYPE = "020"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN SQLCODE-NOTFOUND
+              MOVE SPACES TO WS-IBAN
+           WHEN OTHER
+              MOVE "NUM-IBAN"          TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+           MOVE ZEROS TO SQLCODE W-SQLCODE, W-EDTSQLC.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-DOC-NIF.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                 SELECT FDBNUM.NUREFE
+                  INTO :WS-NIF
+                  FROM  FDBNUM
+                  WHERE FDBNUM.NURACI = :WS-RACINE
+                   AND  FDBNUM.NUETAT = " "
+                   AND  FDBNUM.NUTYPE = "022"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+             MOVE SPACES TO WS-NIF
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-MOEDA-ALFA.
+     š*----------------------------------------------------------------
+     š*- Descodifica MON  pela Tabela 040
+     š*-
+           INITIALIZE  R-FDBTAB
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+
+           EXEC SQL
+                 SELECT SUBSTR(A.TBCOMP, 1, 3 )
+                  INTO :AMLH303N-CDCURR
+                  FROM  FDBTAB A
+                  WHERE A.TBID   = "040"
+                   AND  A.TBCODE = :WS-MVMON
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN SQLCODE-NOTFOUND
+             MOVE SPACES TO AMLH303N-CDCURR
+           WHEN OTHER
+              MOVE SPACES TO AMLH303N-CDCURR
+              MOVE "FDBTAB"            TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P300-COMPRIMENTO.
+     š*---------------------------------------------------------------------
+     š*--Retira Espaços  WS-STRING
+     š*- WY -Comprimento Final
+           MOVE ZEROES TO WS-POS-I.
+           INSPECT FUNCTION REVERSE(WS-STRING)
+                   TALLYING WS-POS-I      FOR LEADING SPACE.
+           COMPUTE  WS-STRING-L = LENGTH OF WS-STRING  -  WS-POS-I.
+     š*-
+     š*----------------------------------------------------------------
+       P500-INSERT-AMLJ303.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                 INSERT INTO AMLJ303
+                 VALUES ( :AMLH303N-COMPANY   :AMLH303N-COMPANY-IND
+                        , :AMLH303N-BRANCH    :AMLH303N-BRANCH-IND
+                        , :AMLH303N-TRANSID
+                        , :AMLH303N-APLID     :AMLH303N-APLID-IND
+                        , :AMLH303N-CDTRANS   :AMLH303N-CDTRANS-IND
+                        , :AMLH303N-DTTRANS   :AMLH303N-DTTRANS-IND
+                        , :AMLH303N-CDCURR    :AMLH303N-CDCURR-IND
+                        , :AMLH303N-AMTCURR   :AMLH303N-AMTCURR-IND
+                        , :AMLH303N-AMTRFCURR :AMLH303N-AMTRFCURR-IND
+                        , :AMLH303N-OFFICER   :AMLH303N-OFFICER-IND
+                        , :AMLH303N-ACTNBR    :AMLH303N-ACTNBR-IND
+                       ,  :AMLH303N-THIRDPID  :AMLH303N-THIRDPID-IND
+                        , :AMLH303N-EXTID     :AMLH303N-EXTID-IND
+                        , :AMLH303N-EXTNAME   :AMLH303N-EXTNAME-IND
+                        , :AMLH303N-EXTBIC    :AMLH303N-EXTBIC-IND
+                        , :AMLH303N-EXTADR1   :AMLH303N-EXTADR1-IND
+                        , :AMLH303N-EXTADR2   :AMLH303N-EXTADR2-IND
+                        , :AMLH303N-EXTCTRY   :AMLH303N-EXTCTRY-IND
+                        , :AMLH303N-INDDBCR   :AMLH303N-INDDBCR-IND
+                        , :AMLH303N-SECTYPE   :AMLH303N-SECTYPE-IND
+                        , :AMLH303N-REVERSE   :AMLH303N-REVERSE-IND
+                        , :AMLH303N-REVTRANS  :AMLH303N-REVTRANS-IND
+                        , :AMLH303N-SLDEUR    :AMLH303N-SLDEUR-IND
+                        , :AMLH303N-SLDANTEUR :AMLH303N-SLDANTEUR-IND
+                        , :AMLH303N-INTFLAG   :AMLH303N-INTFLAG-IND
+                                            )
+           END-EXEC.
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "AMLJ303"          TO W-OBJECT-NAME
+              SET CMD-INSERT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P500-SET-NULLS-ALMJ303.
+     š*----------------------------------------------------------------
+            MOVE ZEROS TO
+                AMLH303N-COMPANY-IND
+                AMLH303N-BRANCH-IND
+                AMLH303N-APLID-IND
+                AMLH303N-CDTRANS-IND
+                AMLH303N-DTTRANS-IND
+                AMLH303N-CDCURR-IND
+                AMLH303N-AMTCURR-IND
+                AMLH303N-AMTRFCURR-IND
+                AMLH303N-OFFICER-IND
+                AMLH303N-ACTNBR-IND
+                AMLH303N-THIRDPID-IND
+                AMLH303N-EXTID-IND
+                AMLH303N-EXTNAME-IND
+                AMLH303N-EXTBIC-IND
+                AMLH303N-EXTADR1-IND
+                AMLH303N-EXTADR2-IND
+                AMLH303N-EXTCTRY-IND
+                AMLH303N-INDDBCR-IND
+                AMLH303N-SECTYPE-IND
+                AMLH303N-REVERSE-IND
+                AMLH303N-SLDEUR-IND
+                AMLH303N-REVTRANS-IND
+                AMLH303N-SLDANTEUR-IND
+                AMLH303N-INTFLAG-IND
+
+           IF AMLH303N-COMPANY  EQUAL SPACES
+             MOVE -1 TO AMLH303N-COMPANY-IND
+           END-IF
+           IF AMLH303N-BRANCH  EQUAL SPACES
+             MOVE -1 TO AMLH303N-BRANCH-IND
+           END-IF
+           IF AMLH303N-APLID   EQUAL SPACES
+             MOVE -1 TO AMLH303N-APLID-IND
+           END-IF
+           IF AMLH303N-CDTRANS EQUAL SPACES
+             MOVE -1 TO AMLH303N-CDTRANS-IND
+           END-IF
+           IF AMLH303N-DTTRANS   EQUAL SPACES
+             MOVE -1 TO AMLH303N-DTTRANS-IND
+           END-IF
+           IF AMLH303N-CDCURR    EQUAL SPACES
+             MOVE -1 TO AMLH303N-CDCURR-IND
+           END-IF
+           IF AMLH303N-OFFICER EQUAL SPACES
+             MOVE -1 TO AMLH303N-OFFICER-IND
+           END-IF
+           IF AMLH303N-ACTNBR EQUAL SPACES
+             MOVE -1 TO AMLH303N-ACTNBR-IND
+           END-IF
+           IF AMLH303N-THIRDPID EQUAL SPACES
+             MOVE -1 TO AMLH303N-THIRDPID-IND
+           END-IF
+           IF AMLH303N-EXTID   EQUAL SPACES
+             MOVE -1 TO AMLH303N-EXTID-IND
+           END-IF
+           IF AMLH303N-EXTNAME EQUAL SPACES
+             MOVE -1 TO AMLH303N-EXTNAME-IND
+           END-IF
+           IF AMLH303N-EXTBIC EQUAL SPACES
+             MOVE -1 TO AMLH303N-EXTBIC-IND
+           END-IF
+           IF AMLH303N-EXTADR1 EQUAL SPACES
+             MOVE -1 TO AMLH303N-EXTADR1-IND
+           END-IF
+           IF AMLH303N-EXTADR2   EQUAL SPACES
+             MOVE -1 TO AMLH303N-EXTADR2-IND
+           END-IF
+           IF AMLH303N-EXTCTRY   EQUAL SPACES
+             MOVE -1 TO AMLH303N-EXTCTRY-IND
+           END-IF
+           IF AMLH303N-INDDBCR   EQUAL SPACES
+             MOVE -1 TO AMLH303N-INDDBCR-IND
+           END-IF
+           IF AMLH303N-SECTYPE   EQUAL SPACES
+             MOVE -1 TO AMLH303N-SECTYPE-IND
+           END-IF
+           IF AMLH303N-REVERSE   EQUAL SPACES
+             MOVE -1 TO AMLH303N-REVERSE-IND
+           END-IF.
+           IF AMLH303N-REVTRANS EQUAL SPACES
+             MOVE -1 TO AMLH303N-REVTRANS-IND
+           END-IF.
+           IF AMLH303N-INTFLAG  EQUAL SPACES
+             MOVE -1 TO AMLH303N-INTFLAG-IND
+           END-IF.
+
+     š*-
+     š*----------------------------------------------------------------
+       P450-VALIDA-DATA.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+               SET :WS-VAL-DATE  = DATE(:WS-TST-DATE)
+           END-EXEC
+           EVALUATE SQLCODE
+              WHEN +0
+                  CONTINUE
+              WHEN -180
+                  MOVE "          " TO WS-TST-DATE
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P001-LIMPA-CAMPOS.
+     š*---------------------------------------------------------------------
+           INITIALIZE         WS-CONTA-CLI
+                              WS-NAME-CLI        WS-NAME-CR
+                              WS-IBAN-CR         WS-IBAN-CLI
+                              WS-BIC-COR         WS-BIC-CR
+                              WS-BKNAME-CLI      WS-BKNAME-CR
+                              WS-CLIENTID        WS-INFOMSG
+                              WS-OPERADOR        WS-RACINE
+                              WS-TRFTYPE         WS-IBAN
+                              WS-VALOR           WS-MON
+                                                 WS-TRFDATE
+                                                 WS-DESCTYPE
+
+                                                 WS-IBAN
+                      REPLACING ALPHANUMERIC BY SPACES
+                                    NUMERIC BY ZEROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   AMLT900A
+           MOVE MSG-ERRO-SQL    TO ERRMSG   OF  AMLT900A
+           MOVE W-SQLCODE       TO ERRCOD   OF  AMLT900A
+           MOVE "SQL"           TO ERRAPL   OF  AMLT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  AMLT900A
+           MOVE  2              TO ERRRTC   OF  AMLT900A
+           SET AMLB303-MSGSGBD TO TRUE
+           MOVE W-OBJECT-NAME   TO AMLB303-IDPARERR
+           MOVE W-SQLCODE       TO AMLB303-CODERR
+           MOVE MSG-ERRO-SQL    TO AMLB303-DESCERR
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "AMLS303"      TO  ERRPRG OF AMLT900A.
+           MOVE   WS-MVRACI      TO  RACINE OF AMLT900A.
+
+           EXEC SQL  INSERT
+                INTO AMLT900A
+                VALUES  (
+                           :AMLT900A.RACINE
+                         , :AMLT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :AMLT900A.ERRRTC
+                         , :AMLT900A.ERRCOD
+                         , :AMLT900A.ERRMSG
+                         , :AMLT900A.ERRPRG
+                         , :AMLT900A.ERRAPL
+                         , :AMLT900A.ERROBJ
+                         , :AMLT900A.ERRFLD
+                         , :AMLT900A.ERRCMD
+                         , :AMLT900A.ERRKEY1
+                         , :AMLT900A.ERRVAL1
+                         , :AMLT900A.ERRKEY2
+                         , :AMLT900A.ERRVAL2 )
+           END-EXEC.
+
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "INSERT-T900A"   TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+
+     š*****************************************************************
+       P999-FIMPGM.
+     š*****************************************************************
+           GOBACK.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA AMLS303
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *

@@ -1,0 +1,561 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    BPCP900   INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2017-MAR-13.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: BPC - Centralização de Responsabilidades  **
+     š*   OBJECTIVO ......: Este programa destina-se a lançar as      **
+     š*                     diferentes execuções do processo BPPC     *
+     š*   ANALISTA .......: PEDRO GARCIA                              **
+     š*   PROGRAMADOR.....:                                           **
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 EXECUTA-P001               PIC 9(01).
+          88 INICIO-P001             VALUE 0.
+          88 FIM-P001                VALUE 1.
+      *
+       01 NR-ADM                     PIC 9(06) VALUE ZEROS.
+       01 NR-READ                    PIC 9(06) VALUE ZEROS.
+       01 NR-PROC                    PIC 9(06) VALUE ZEROS.
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+       01 WS-RESTO                   PIC 9(05) VALUE ZEROS.
+       01 WS-QUOC                    PIC 9(05) VALUE ZEROS.
+
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-ANOIN                PIC X(04).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-DIAIN                PIC X(02).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01 WX-ANO-CONVER.
+          03 WS-ANO-12               PIC X(02).
+          03 WS-ANO-34               PIC X(02).
+
+       01  W-CONSTANTS.
+           05  K-APLICACAO           PIC X(3)    VALUE "BPC".
+           05  K-PROGRAMA            PIC X(8)    VALUE "BPCP900".
+
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+
+       01  WS-DATA-PROX.
+           03  WS-ANO-PROX          PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MES-PROX          PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIA-PROX          PIC 9(02).
+
+       01  WS-DATA-REF.
+           03  WS-ANO-REF           PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MES-REF           PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIA-REF           PIC 9(02).
+
+       01 DB-WRKDATA       PIC X(10).
+       01 WS-IN-DATE       PIC X(10).
+       01 WS-OUT-DATE      PIC X(10).
+
+     š* Copy : Tabela de Clientes
+       01  R-TBAT.
+           COPY DDS-ALL-FORMATS OF BPCTBAT.
+
+     š* Copy : Tabela de KYCT900A
+       01  R-KYCT900A.
+           COPY DDS-ALL-FORMATS OF KYCT900A.
+
+           EXEC SQL DECLARE CURTBAT CURSOR
+              WITH HOLD  FOR
+              SELECT  CDEMP
+                   ,  NMPROC
+                   ,  NMPROG
+                   ,  NRSEQ
+                   ,  INDACT
+                   ,  DESCPRG
+                   ,  DTULT
+                   ,  PER
+                   ,  DTPROX
+                   ,  DTREF
+                   ,  ESTADO
+                   ,  TMSINI
+                   ,  TMSFIM
+                     FROM BPCTBAT
+                 WHERE DTPROX <= DATE(CURRENT DATE)
+                 AND INDACT = "A"
+                 ORDER BY NRSEQ
+           END-EXEC.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       PROCEDURE DIVISION.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+           PERFORM P001-INICIO
+           PERFORM P100-OPEN-CURSOR-TBAT
+           PERFORM P200-FETCH-CURSOR-TBAT
+           PERFORM P300-PROCESSO-GERAL
+                           UNTIL FIM-P001
+           PERFORM P400-CLOSE-CURSOR-TBAT
+           PERFORM P999-FIMPGM.
+     š*---------------------------------------------------------------------
+       P001-INICIO.
+     š*---------------------------------------------------------------------
+           SET  INICIO-P001         TO  TRUE.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10) TO WS-DATA-DIA.
+
+     š*---------------------------------------------------------------------
+       P100-OPEN-CURSOR-TBAT.
+     š*---------------------------------------------------------------------
+     š*-
+           INITIALIZE  R-TBAT.
+
+           EXEC SQL
+                OPEN CURTBAT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-P001         TO TRUE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURTBAT"         TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*****************************************************************
+       P200-FETCH-CURSOR-TBAT.
+     š*****************************************************************
+     š*-
+           EXEC SQL FETCH CURTBAT
+                     INTO
+                       :CDEMP
+                     , :NMPROC
+                     , :NMPROG
+                     , :NRSEQ
+                     , :INDACT
+                     , :DESCPRG
+                     , :DTULT
+                     , :PER
+                     , :DTPROX
+                     , :DTREF
+                     , :ESTADO
+                     , :TMSINI
+                     , :TMSFIM
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             ADD 1 TO NR-READ
+             EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC
+             MOVE S-SYSTMST(1:10)  TO WS-DATA-DIA
+             MOVE DTPROX OF R-TBAT TO WS-DATA-PROX
+             MOVE DTPROX OF R-TBAT TO WS-DATA-REF
+     š*-
+           WHEN SQLCODE-NOTFOUND
+              SET  FIM-P001          TO TRUE
+           WHEN OTHER
+              SET   FIM-P001         TO TRUE
+              MOVE "CURTBAT"       TO W-OBJECT-NAME
+              SET   CMD-FETCH-CURSOR TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*****************************************************************
+       P300-PROCESSO-GERAL.
+     š*****************************************************************
+     š*-
+           IF SQLCODE-OK
+              PERFORM P400-CALL-BPCCXXX
+           END-IF.
+           PERFORM P200-FETCH-CURSOR-TBAT.
+     š*-
+     š*----------------------------------------------------------------
+       P400-CALL-BPCCXXX.
+     š*----------------------------------------------------------------
+     š*-
+           CALL   NMPROG.
+           PERFORM P400-RODA-DATA.
+           PERFORM P400-UPDATE-DATA.
+     š*-
+     š*----------------------------------------------------------------
+       P400-RODA-DATA.
+     š*----------------------------------------------------------------
+     š*-
+           IF PER OF R-TBAT = 'T'
+              MOVE WS-DATA-PROX        TO WS-IN-DATE
+              PERFORM P400-PROX-TRIM
+              MOVE  WS-OUT-DATE        TO WS-DATA-PROX
+              MOVE WS-DATA-REF         TO WS-IN-DATE
+              PERFORM P400-PROX-TRIM
+              MOVE  WS-OUT-DATE        TO WS-DATA-REF
+           END-IF.
+           IF PER OF R-TBAT = 'M'
+              MOVE WS-DATA-PROX        TO WS-IN-DATE
+              PERFORM P400-PROX-MES
+              MOVE  WS-OUT-DATE        TO WS-DATA-PROX
+              MOVE WS-DATA-REF         TO WS-IN-DATE
+              PERFORM P400-PROX-MES
+              MOVE  WS-OUT-DATE        TO WS-DATA-REF
+           END-IF.
+           IF PER OF R-TBAT = 'S'
+              MOVE WS-DATA-PROX        TO WS-IN-DATE
+              PERFORM P400-PROX-SEMANA
+              MOVE  WS-OUT-DATE        TO WS-DATA-PROX
+              MOVE WS-DATA-REF         TO WS-IN-DATE
+              PERFORM P400-PROX-SEMANA
+              MOVE  WS-OUT-DATE        TO WS-DATA-REF
+           END-IF.
+           IF PER OF R-TBAT = 'D'
+              MOVE WS-DATA-PROX        TO WS-IN-DATE
+              PERFORM P400-PROX-DIA
+              MOVE  WS-OUT-DATE        TO WS-DATA-PROX
+              MOVE WS-DATA-REF         TO WS-IN-DATE
+              PERFORM P400-PROX-DIA
+              MOVE  WS-OUT-DATE        TO WS-DATA-REF
+           END-IF.
+     š*-
+     š*----------------------------------------------------------------
+       P400-PROX-TRIM.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE  "0001-01-01"   TO  DB-WRKDATA
+
+           EXEC SQL
+             SELECT DATE(:WS-IN-DATE)   + 3 MONTH
+                    INTO :DB-WRKDATA
+                    FROM SYSIBM/SYSDUMMY1
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              MOVE  DB-WRKDATA         TO WS-OUT-DATE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURSOR-TBAT"       TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-PROX-MES.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE  "0001-01-01"   TO  DB-WRKDATA
+
+           EXEC SQL
+             SELECT DATE(:WS-IN-DATE)   + 1 MONTH
+                    INTO :DB-WRKDATA
+                    FROM SYSIBM/SYSDUMMY1
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              MOVE  DB-WRKDATA         TO WS-OUT-DATE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURSOR-TBAT"       TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-PROX-SEMANA.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE  "0001-01-01"   TO  DB-WRKDATA
+
+           EXEC SQL
+             SELECT DATE(:WS-IN-DATE)   + 7 DAYS
+                    INTO :DB-WRKDATA
+                    FROM SYSIBM/SYSDUMMY1
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              MOVE  DB-WRKDATA         TO WS-OUT-DATE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURSOR-TBAT"       TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-PROX-DIA.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE  "0001-01-01"   TO  DB-WRKDATA
+
+           EXEC SQL
+             SELECT DATE(:WS-IN-DATE)   + 1 DAYS
+                    INTO :DB-WRKDATA
+                    FROM SYSIBM/SYSDUMMY1
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              MOVE  DB-WRKDATA         TO WS-OUT-DATE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURSOR-TBAT"       TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-UPDATE-DATA.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE WS-DATA-PROX TO DTPROX OF R-TBAT
+           MOVE WS-DATA-REF  TO DTREF  OF R-TBAT
+
+           EXEC SQL
+           UPDATE  BPCTBAT
+              SET  TMSINI   = :S-SYSTMST
+                 , TMSFIM   = CURRENT TIMESTAMP
+                 , DTULT    = DTPROX
+                 , DTPROX   = :DTPROX
+                 , DTREF    = :DTREF
+                 , ESTADO   = "OK"
+               WHERE   CDEMP   =:CDEMP
+                 AND   NMPROC  =:NMPROC
+                 AND   NMPROG  =:NMPROG
+                 AND   NRSEQ   =:NRSEQ
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURSOR-TBAT"       TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-UPDATE-ESTADO-NOK.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+           UPDATE  BPCTBAT
+              SET  TMSINI   = :S-SYSTMST
+                 , TMSFIM   = CURRENT TIMESTAMP
+                 , ESTADO   = "NOK"
+               WHERE   CDEMP   =:CDEMP
+                 AND   NMPROC  =:NMPROC
+                 AND   NMPROG  =:NMPROG
+                 AND   NRSEQ   =:NRSEQ
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURSOR-TBAT"       TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*****************************************************************
+       P400-CLOSE-CURSOR-TBAT.
+     š*****************************************************************
+     š*-
+           EXEC SQL
+               CLOSE CURTBAT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET     FIM-P001         TO TRUE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURSOR-FDBCLI"     TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "BPCP900"    TO  ERRPRG OF KYCT900A.
+
+           EXEC SQL  INSERT
+                INTO KYCT900A
+                VALUES  (
+                           :KYCT900A.RACINE
+                         , :KYCT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :KYCT900A.ERRRTC
+                         , :KYCT900A.ERRCOD
+                         , :KYCT900A.ERRMSG
+                         , :KYCT900A.ERRPRG
+                         , :KYCT900A.ERRAPL
+                         , :KYCT900A.ERROBJ
+                         , :KYCT900A.ERRFLD
+                         , :KYCT900A.ERRCMD
+                         , :KYCT900A.ERRKEY1
+                         , :KYCT900A.ERRVAL1
+                         , :KYCT900A.ERRKEY2
+                         , :KYCT900A.ERRVAL2 )
+           END-EXEC.
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "KYCT900A"       TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+     š*****************************************************************
+       P999-FIMPGM.
+     š*****************************************************************
+           EXEC SQL    COMMIT    HOLD         END-EXEC
+           EXIT PROGRAM.
+           STOP RUN.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA BPCP900
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *

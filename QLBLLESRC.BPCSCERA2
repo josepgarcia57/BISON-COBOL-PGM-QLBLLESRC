@@ -1,0 +1,433 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    BPCSCERA2   INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2018-Jul-04.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: BPC - Centralização de Responsabilidades   *
+     š*   OBJECTIVO ......: Este Interface destina-se a Extrair Info   *
+     š*                     de Relação entre Entidades                 *
+     š*   ANALISTA .......: PEDRO GARCIA                               *
+     š*   PROGRAMADOR.....:                                            *
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 EXECUTA-CURPRT             PIC 9(01).
+          88 INICIO-CURPRT           VALUE 0.
+          88 FIM-CURPRT              VALUE 1.
+      *
+       01 EXISTE-INFO                PIC 9(01).
+          88 SIM-EXISTE              VALUE 1.
+          88 NAO-EXISTE              VALUE 0.
+      *
+       01 NR-ADM                     PIC 9(06) VALUE ZEROS.
+       01 NR-READ                    PIC 9(06) VALUE ZEROS.
+       01 NR-PROC                    PIC 9(06) VALUE ZEROS.
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-ANOIN                PIC X(04).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-DIAIN                PIC X(02).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01 WX-ANO-CONVER.
+          03 WS-ANO-12               PIC X(02).
+          03 WS-ANO-34               PIC X(02).
+
+       01  W-CONSTANTS.
+           05  K-APLICACAO           PIC X(3)    VALUE "BPC".
+           05  K-PROGRAMA            PIC X(8)    VALUE "BPCSCERA2".
+
+     š* Indice para Pesquisa de String
+       01 S-CHAR-L                   PIC S9(4)   COMP.
+       01 S-CHAR-V                   PIC X(50).
+       01 W-CHAR.
+          03 W-NOMECHR               PIC X       OCCURS 50.
+
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+
+       01 WS-TST-DATE          PIC X(10).
+       01 WS-VAL-DATE          PIC X(10).
+       01 WS-RACINE            PIC X(07).
+       01 WS-NURACI            PIC X(07).
+       01 WS-IDENT             PIC X(25).
+       01 WS-TYPER             PIC X(02).
+     š* W- Numeros de Contribuinte
+       01 WS-NUREFE-022-NIF    PIC X(50).
+
+     š* Copy : Tabela de Historico de Relacionamentos
+           EXEC SQL
+               INCLUDE BPCHCERA2
+           END-EXEC.
+
+     š* Copy : Tabela de Other Numbering
+       01  R-FDBNUM.
+           COPY DDS-ALL-FORMATS OF FDBNUM.
+
+     š* Copy : Tabela de KYCT900A
+       01  R-KYCT900A.
+           COPY DDS-ALL-FORMATS OF KYCT900A.
+
+     š* Cursor Entidades Relacionadas
+           EXEC SQL DECLARE CURJCLIR  CURSOR FOR
+             SELECT B.NURACI
+              FROM FDBNUM A
+                 , FDBNUM B
+              WHERE A.NUTYPE = "979"
+               AND  A.NUTYPE = B.NUTYPE
+               AND  A.NUREFE = B.NUREFE
+               AND  A.NURACI = :WS-RACINE
+               AND  B.NURACI <> A.NURACI
+               AND  B.NUETAT <> "A"
+               AND EXISTS ( SELECT 1 FROM FDBCLI X
+                            WHERE X.CLRACI = B.NURACI
+                            AND X.CLETAT NOT IN ( "A" , "E" ) )
+           END-EXEC.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+           COPY BPCBCERA2.
+      *================================================================*
+       PROCEDURE DIVISION USING BPCBCERA2-LKPARMS.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+
+           PERFORM P001-INICIO
+
+           PERFORM P100-OPEN-CURJCLIR.
+           PERFORM P200-FETCH-CURJCLIR.
+           PERFORM P300-TRATA-CURJCLIR
+                   WITH TEST BEFORE
+                           UNTIL FIM-CURPRT
+           PERFORM P400-CLOSE-CURSOR-CURJCLIR
+
+           PERFORM P999-FIMPGM.
+     š*---------------------------------------------------------------------
+       P001-INICIO.
+     š*---------------------------------------------------------------------
+           INITIALIZE  CERA2-REC
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10) TO WS-DATA-DIA.
+           MOVE BPCBCERA2-RACINE TO WS-RACINE.
+           MOVE BPCBCERA2-IDENT  TO WS-IDENT.
+           MOVE BPCBCERA2-TYPER  TO WS-TYPER.
+     š*---------------------------------------------------------------------
+       P100-OPEN-CURJCLIR.
+     š*---------------------------------------------------------------------
+           INITIALIZE  CERA2-REC
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           EXEC SQL
+                OPEN CURJCLIR
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-CURPRT         TO TRUE
+           WHEN OTHER
+              SET  FIM-CURPRT            TO TRUE
+              MOVE "CURJCLIR"            TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR        TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P200-FETCH-CURJCLIR.
+     š*---------------------------------------------------------------------
+           EXEC SQL FETCH CURJCLIR
+                     INTO  :WS-NURACI
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             ADD 1 TO NR-READ
+           WHEN SQLCODE-NOTFOUND
+              SET  FIM-CURPRT          TO TRUE
+           WHEN OTHER
+              SET   FIM-CURPRT         TO TRUE
+              MOVE "CURJCLIR"          TO W-OBJECT-NAME
+              SET   CMD-FETCH-CURSOR   TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P300-TRATA-CURJCLIR.
+     š*---------------------------------------------------------------------
+     š*-
+           PERFORM P300-MOVE-BPCJCERA2.
+           PERFORM P300-INSERT-BPCJCERA2.
+           PERFORM P200-FETCH-CURJCLIR.
+     š*-
+     š*----------------------------------------------------------------
+       P300-MOVE-BPCJCERA2.
+     š*----------------------------------------------------------------
+     š*-
+           PERFORM P300-GET-DOC-NIF
+
+           MOVE  WS-IDENT             TO CERA2-IDENT
+           MOVE  WS-TYPER             TO CERA2-TYPER
+           MOVE  WS-RACINE            TO CERA2-REFEXTENT
+
+     š*- TYPER - Residente i1 - Residentes / i2 - N.Residentes
+           IF WS-NUREFE-022-NIF EQUAL SPACES
+               MOVE "i2"              TO CERA2-TYPERR
+               MOVE WS-NURACI         TO CERA2-IDENTREL
+           ELSE
+              MOVE "i1"               TO CERA2-TYPERR
+              MOVE  WS-NUREFE-022-NIF TO CERA2-IDENTREL
+           END-IF.
+           MOVE WS-NURACI             TO CERA2-REFEXTENTR
+           MOVE "004"                 TO CERA2-MOTIVOREL
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-DOC-NIF.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                 SELECT FDBNUM.NUREFE
+                  INTO :WS-NUREFE-022-NIF
+                  FROM  FDBNUM
+                  WHERE FDBNUM.NURACI = :WS-NURACI
+                   AND  FDBNUM.NUETAT = " "
+                   AND  FDBNUM.NUTYPE = "022"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+             MOVE SPACES TO WS-NUREFE-022-NIF
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-INSERT-BPCJCERA2.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE WS-TMS-NULA  TO CERA2-TMSALT
+           EXEC SQL
+                 INSERT INTO BPCJCERA2
+
+                 VALUES ( :CERA2-IDENT
+                        , :CERA2-TYPER
+                        , :CERA2-REFEXTENT
+                        , :CERA2-IDENTREL
+                        , :CERA2-TYPERR
+                        , :CERA2-REFEXTENTR
+                        , :CERA2-MOTIVOREL
+                        , CURRENT TIMESTAMP
+                        , :CERA2-USERCRIA
+                        , :CERA2-TMSALT
+                        , :CERA2-USERALT )
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "BPCJCERA2"         TO W-OBJECT-NAME
+              SET CMD-INSERT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P400-CLOSE-CURSOR-CURJCLIR.
+     š*---------------------------------------------------------------------
+           EXEC SQL
+               CLOSE CURJCLIR
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  FIM-CURPRT            TO TRUE
+           WHEN OTHER
+              SET  FIM-CURPRT            TO TRUE
+              MOVE "CURJCLIR"            TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR       TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           MOVE WS-NURACI         TO RACINE   OF  KYCT900A
+           MOVE MSG-ERRO-SQL      TO ERRMSG   OF  KYCT900A
+           MOVE W-SQLCODE         TO ERRCOD   OF  KYCT900A
+           MOVE "SQL"             TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME     TO ERROBJ   OF  KYCT900A
+           MOVE  2                TO ERRRTC   OF  KYCT900A
+           SET BPCBCERA2-MSGSGBD  TO TRUE
+           MOVE W-OBJECT-NAME     TO BPCBCERA2-IDPARERR
+           MOVE W-SQLCODE         TO BPCBCERA2-CODERR
+           MOVE MSG-ERRO-SQL      TO BPCBCERA2-DESCERR
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "BPCSCERA2"    TO  ERRPRG OF KYCT900A.
+           MOVE   WS-NURACI      TO  RACINE OF KYCT900A.
+
+           EXEC SQL  INSERT
+                INTO KYCT900A
+                VALUES  (
+                           :KYCT900A.RACINE
+                         , :KYCT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :KYCT900A.ERRRTC
+                         , :KYCT900A.ERRCOD
+                         , :KYCT900A.ERRMSG
+                         , :KYCT900A.ERRPRG
+                         , :KYCT900A.ERRAPL
+                         , :KYCT900A.ERROBJ
+                         , :KYCT900A.ERRFLD
+                         , :KYCT900A.ERRCMD
+                         , :KYCT900A.ERRKEY1
+                         , :KYCT900A.ERRVAL1
+                         , :KYCT900A.ERRKEY2
+                         , :KYCT900A.ERRVAL2 )
+           END-EXEC.
+
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "INSERT-T900A"   TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+
+     š*****************************************************************
+       P999-FIMPGM.
+     š*****************************************************************
+           GOBACK.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA BPCSCERA2
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *

@@ -1,0 +1,826 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    AMLP250   INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2018-OUT-06.
+     š*---------------------------------------------------------------*
+     š*   APLICACO .......: AML - Anti Money Loundering               *
+     š*   OBJECTIVO ......: Este programa destina-se ao Envio de      *
+     š*                     Mensagens destinadas ao Temenos           *
+     š*   ANALISTA .......: PEDRO GARCIA                              *
+     š*   PROGRAMADOR.....:                                           *
+     š*===============================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *------------------------------------------------------------------------*
+       FILE-CONTROL.
+      *------------------------------------------------------------------------*
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 GRS-FILE-STATUS            PIC XX.
+      *
+       01 EXECUTA-P001               PIC 9(01).
+          88 INICIO-P001             VALUE 0.
+          88 FIM-P001                VALUE 1.
+      *
+       01 EXISTE-INFO-CLI            PIC 9(01).
+          88 SIM-EXISTE-CLI          VALUE 1.
+          88 NAO-EXISTE-CLI          VALUE 0.
+      *
+       01 EXISTE-INFO-CNT            PIC 9(01).
+          88 SIM-EXISTE-CNT          VALUE 1.
+          88 NAO-EXISTE-CNT          VALUE 0.
+      *
+       01 EXISTE-INFO-IES            PIC 9(01).
+          88 SIM-EXISTE-IES          VALUE 1.
+          88 NAO-EXISTE-IES          VALUE 0.
+      *
+       01 EXISTE-INFO-IBAN           PIC 9(01).
+          88 SIM-EXISTE-IBAN         VALUE 1.
+          88 NAO-EXISTE-IBAN         VALUE 0.
+      *
+       01 PGM-STATUS                 PIC 9(01).
+          88 SEM-ERRO                VALUE 0.
+          88 COM-ERRO                VALUE 1.
+      *
+       01 WS-TRATA                   PIC 9(01).
+          88 SIM-TRATA               VALUE 1.
+          88 NAO-TRATA               VALUE 2.
+      *
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-ANOIN                PIC X(04).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-DIAIN                PIC X(02).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01 WX-ANO-CONVER.
+          03 WS-ANO-12               PIC X(02).
+          03 WS-ANO-34               PIC X(02).
+
+       01  W-CONSTANTS.
+           05  K-APLICACAO           PIC X(3)    VALUE "AML".
+           05  K-PROGRAMA            PIC X(8)    VALUE "AMLP250".
+
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+     š* EMAIL
+       01 WS-IDPRC    PIC 9(5).
+       01 WS-MSGEMAIL PIC X(1000).
+       01 Edit-Nbr-Mn PIC      ---------9,99.
+       01 Edit-Int-Mn PIC      ----------9.
+       01 WS-Nbr-Mn   PIC X(25).
+       01 WS-Int-Mn   PIC X(11).
+
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA        PIC 9(04).
+           03  FILLER              PIC X VALUE "-".
+           03  WS-MESIN-DIA        PIC 9(02).
+           03  FILLER              PIC X VALUE "-".
+           03  WS-DIAIN-DIA        PIC 9(02).
+
+       01 WS-NURACI                PIC X(07).
+       01 WS-LPDTAA                PIC X(04).
+       01 WS-LPDTMM                PIC X(02).
+       01 WS-LPDTJJ                PIC X(02).
+     š*
+       01 WS-NAME-CLI              PIC X(150).
+     š* Ordenante
+       01 WS-IBAN                  PIC X(30).
+
+       01 WS-SOAIEREF              PIC X(16).
+     š* Cliente do Banco
+       01 WS-VALOR                 PIC S9(13)V9(2).
+       01 WS-RACINE-CLI            PIC X(7).
+       01 WS-RACINE-IBAN           PIC X(7).
+       01 WS-CONTA.
+          05 WS-RACINE             PIC X(7).
+          05 WS-SEP1               PIC X(1).
+          05 WS-GENRE              PIC X(3).
+          05 WS-SEP2               PIC X(1).
+          05 WS-RUB                PIC X(3).
+          05 WS-SEP3               PIC X(1).
+          05 WS-MON                PIC X(3).
+       01 WS-AVISO                 PIC X(150).
+       01 WS-INFO-IES              PIC X(150).
+       01 WS-CODE-IES              PIC X(4).
+       01 WS-IND-ERR               PIC X(1).
+       01 WS-OPID                  PIC X(3).
+       01 WS-DESCTYPE              PIC X(40).
+
+     š* ------------------------------------------------------
+     š* Copy : Tabela de AML
+       01  R-AMLJSEPARX.
+           COPY DDS-ALL-FORMATS OF AMLJSEPARX.
+
+     š* Copy : Tabela de Clientes
+       01  R-FDBCLI.
+           COPY DDS-ALL-FORMATS OF FDBCLI.
+
+     š* Copy : Tabela de Clientes
+       01  R-FDBCPT.
+           COPY DDS-ALL-FORMATS OF FDBCPT.
+
+     š* Copy : Tabela de Other Numbering
+       01  R-FDBNUM.
+           COPY DDS-ALL-FORMATS OF FDBNUM.
+
+     š* Copy : Tabela de Other Numbering
+       01  R-MAINIES.
+           COPY DDS-ALL-FORMATS OF MAINIES.
+
+     š* Copy : Tabela de AMLT900A
+       01  R-AMLT900A.
+           COPY DDS-ALL-FORMATS OF AMLT900A.
+
+           EXEC SQL DECLARE SEPARX CURSOR FOR
+           SELECT    RTRFDATE
+                  ,  RREFCODE
+                  ,  RIEREF
+                  ,  RIDPACS8
+                  ,  RTXID
+                  ,  RPAYPUR
+                  ,  RDESPAYPUR
+                  ,  RCDOPER
+                  ,  RDESCDOPER
+                  ,  RBICORD
+                  ,  RIBANORD
+                  ,  RNAMEORD
+                  ,  RMSGINFO
+                  ,  RIBAN
+                  ,  RAMOUNT
+                  ,  RESTADO
+                  ,  RCONTA
+                  ,  RAMLSTAT
+                FROM AMLJSEPARX
+                WHERE  RAMLSTAT= " "
+
+           END-EXEC.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       PROCEDURE DIVISION.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+           PERFORM P001-INICIO
+           PERFORM P100-OPEN-CURSOR-SEPARX
+           PERFORM P200-FETCH-CURSOR-SEPARX
+           PERFORM P300-PROCESSO-GERAL
+                           UNTIL FIM-P001
+           PERFORM P400-CLOSE-CURSOR-SEPARX
+           PERFORM P999-FIMPGM.
+     š*---------------------------------------------------------------------
+       P001-INICIO.
+     š*---------------------------------------------------------------------
+           SET  INICIO-P001         TO  TRUE.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10) TO WS-DATA-DIA.
+           MOVE WS-ANOIN-DIA    TO WS-LPDTAA
+           MOVE WS-MESIN-DIA    TO WS-LPDTMM
+           MOVE WS-DIAIN-DIA    TO WS-LPDTJJ
+     š*-
+     š*---------------------------------------------------------------------
+       P100-OPEN-CURSOR-SEPARX.
+     š*---------------------------------------------------------------------
+     š*-
+           EXEC SQL
+                OPEN SEPARX
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-P001         TO TRUE
+           WHEN OTHER
+              SET  FIM-P001            TO TRUE
+              MOVE "SEPARX"            TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*---------------------------------------------------------------------
+       P200-FETCH-CURSOR-SEPARX.
+     š*---------------------------------------------------------------------
+     š*-
+           EXEC SQL FETCH SEPARX
+              INTO :RTRFDATE
+                 , :RREFCODE
+                 , :RIEREF
+                 , :RIDPACS8
+                 , :RTXID
+                 , :RPAYPUR
+                 , :RDESPAYPUR
+                 , :RCDOPER
+                 , :RDESCDOPER
+                 , :RBICORD
+                 , :RIBANORD
+                 , :RNAMEORD
+                 , :RMSGINFO
+                 , :RIBAN
+                 , :RAMOUNT
+                 , :RESTADO
+                 , :RCONTA
+                  ,:RAMLSTAT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             SET SEM-ERRO TO TRUE
+             STRING "SEPA"
+                     RIEREF  DELIMITED BY SIZE
+                     INTO WS-SOAIEREF
+             MOVE RCONTA(1:7)  TO  WS-RACINE
+                                   WS-RACINE-CLI
+             MOVE RCONTA(9:3)  TO  WS-GENRE
+             MOVE RCONTA(13:3) TO  WS-RUB
+             MOVE RCONTA(13:3) TO  WS-MON
+             MOVE "." TO W-DATA-SEP1
+                         W-DATA-SEP2
+     š*-
+           WHEN SQLCODE-NOTFOUND
+              SET  FIM-P001          TO TRUE
+           WHEN OTHER
+              SET  FIM-P001          TO TRUE
+              MOVE "SEPARX"          TO W-OBJECT-NAME
+              SET  CMD-FETCH-CURSOR  TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-PROCESSO-GERAL.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE SPACES TO WS-AVISO WS-INFO-IES
+
+           PERFORM P300-GET-MAINIES
+           IF SIM-EXISTE-IES
+              MOVE OPBIA1(25:4 )  TO WS-CODE-IES
+              MOVE OPBIA1(22:1 )  TO WS-IND-ERR
+           END-IF
+
+           IF WS-IND-ERR NOT EQUAL "0"
+             PERFORM P300-VALIDA-NIB
+             IF NAO-EXISTE-IBAN
+                MOVE "IBAN Inexistente"    TO WS-AVISO
+             END-IF
+             IF WS-AVISO EQUAL SPACES  AND
+                WS-RACINE-IBAN NOT EQUAL WS-RACINE
+               MOVE "IBAN não Pertence à Conta Indicada"  TO WS-AVISO
+             END-IF
+             IF WS-AVISO EQUAL SPACES
+               PERFORM P300-GET-FDBCLI
+               IF NAO-EXISTE-CLI
+                  MOVE "Cliente Inexistente" TO WS-AVISO
+               END-IF
+             END-IF
+
+             IF WS-AVISO EQUAL SPACES
+               PERFORM P300-VALIDA-BLOQUEIO
+               IF SIM-EXISTE-CNT AND
+                  CPETAT EQUAL "B"
+                  MOVE "Conta Bloqueada"     TO WS-AVISO
+               END-IF
+               IF NAO-EXISTE-CNT
+                  MOVE "Conta Inexistente"   TO WS-AVISO
+                END-IF
+             END-IF
+
+           IF WS-IND-ERR NOT EQUAL "0"  AND
+              SIM-EXISTE-IES
+              PERFORM P450-SEND-EMAIL-ERR
+              PERFORM P400-UPDATE-STATUS
+           END-IF.
+
+           IF WS-IND-ERR NOT EQUAL "0"  AND
+              NAO-EXISTE-IES
+              PERFORM P450-SEND-EMAIL-ERR
+              PERFORM P400-UPDATE-STATUS
+           END-IF.
+
+           PERFORM P200-FETCH-CURSOR-SEPARX.
+     š*-
+     š*----------------------------------------------------------------
+       P300-VALIDA-NIB.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE RIBAN   TO WS-IBAN
+           MOVE SPACES  TO WS-RACINE-IBAN
+
+           EXEC SQL
+                SELECT  NURACI
+                 INTO  :WS-RACINE-IBAN
+                FROM   FDBNUM A
+                 WHERE A.NUREFE = :WS-IBAN
+                  AND  A.NUTYPE = "020"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET SIM-EXISTE-IBAN      TO TRUE
+           WHEN SQLCODE-NOTFOUND
+              SET NAO-EXISTE-IBAN      TO TRUE
+              MOVE SPACES TO WS-RACINE-IBAN
+           WHEN OTHER
+              SET NAO-EXISTE-IBAN      TO TRUE
+              MOVE "NUM-IBAN"          TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+           MOVE ZEROS TO SQLCODE W-SQLCODE, W-EDTSQLC.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-FDBCLI.
+     š*----------------------------------------------------------------
+     š*-
+     š*- Obtem Informação Mestre de Clientes
+     š*-
+           INITIALIZE R-FDBCLI
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+
+           EXEC SQL
+                SELECT  CLRACI
+                     ,  CLETAT
+                     ,  CLDTOU
+                     ,  CLDTMU
+                     ,  CLDTAN
+                     ,  CLNBRM
+                     ,  CLOPRN
+                     ,  CLGRPE
+                     ,  CLAGNT
+                     ,  CLCENT
+                     ,  CLGERA
+                     ,  CLETCV
+                     ,  CLNOM
+                     ,  CLPRNM
+                     ,  CLORIG
+                     ,  CLTYPE
+                     ,  CLNOMC
+                     ,  CLDTNA
+                     ,  CLDTDC
+                     ,  CLSRCD
+                     ,  CLLNGE
+                     ,  CLCDEX
+                     ,  CLDESI
+                     ,  CLAD01
+                     ,  CLAD02
+                     ,  CLAD03
+                     ,  CLAD04
+                     ,  CLAD05
+                     ,  CLAD06
+                     ,  CLDOMI
+                     ,  CLREGI
+                     ,  CLNATI
+                     ,  CLACTI
+                     ,  CLSECT
+                     ,  CLRGMA
+                     ,  CLSYMP
+                     ,  CLMONE
+                     ,  CLMONP
+                     ,  CLTLPH
+                     ,  CLTLEX
+                     ,  CLTLFX
+                     ,  CLSWFT
+                     ,  CLSIC
+                     ,  CLAUTR
+                     ,  CLGIRO
+                     ,  CLPROF
+                     ,  CLGEST
+                     ,  CLOBJE
+                     ,  CLGRPG
+                     ,  CLGER2
+                     ,  CLGER3
+                     ,  CLNACP
+                     ,  CLDOMR
+
+                INTO   :CLRACI
+                     , :CLETAT
+                     , :CLDTOU
+                     , :CLDTMU
+                     , :CLDTAN
+                     , :CLNBRM
+                     , :CLOPRN
+                     , :CLGRPE
+                     , :CLAGNT
+                     , :CLCENT
+                     , :CLGERA
+                     , :CLETCV
+                     , :CLNOM
+                     , :CLPRNM
+                     , :CLORIG
+                     , :CLTYPE
+                     , :CLNOMC
+                     , :CLDTNA
+                     , :CLDTDC
+                     , :CLSRCD
+                     , :CLLNGE
+                     , :CLCDEX
+                     , :CLDESI
+                     , :CLAD01
+                     , :CLAD02
+                     , :CLAD03
+                     , :CLAD04
+                     , :CLAD05
+                     , :CLAD06
+                     , :CLDOMI
+                     , :CLREGI
+                     , :CLNATI
+                     , :CLACTI
+                     , :CLSECT
+                     , :CLRGMA
+                     , :CLSYMP
+                     , :CLMONE
+                     , :CLMONP
+                     , :CLTLPH
+                     , :CLTLEX
+                     , :CLTLFX
+                     , :CLSWFT
+                     , :CLSIC
+                     , :CLAUTR
+                     , :CLGIRO
+                     , :CLPROF
+                     , :CLGEST
+                     , :CLOBJE
+                     , :CLGRPG
+                     , :CLGER2
+                     , :CLGER3
+                     , :CLNACP
+                     , :CLDOMR
+                FROM  FDBCLI A
+                WHERE A.CLRACI = :WS-RACINE
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET SIM-EXISTE-CLI       TO TRUE
+           WHEN SQLCODE-NOTFOUND
+              SET NAO-EXISTE-CLI       TO TRUE
+           WHEN OTHER
+              MOVE "FDBCLI "           TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-VALIDA-BLOQUEIO.
+     š*----------------------------------------------------------------
+     š*-
+     š*- Obtem Informação Mestre de Saldos
+     š*-
+           INITIALIZE  R-FDBCPT
+                       REPLACING ALPHANUMERIC BY SPACES
+
+           EXEC SQL
+                SELECT  CPRACI
+                     ,  CPGRE
+                     ,  CPRUB
+                     ,  CPMON
+                     ,  CPETAT
+                     ,  CPSOLD
+                INTO   :CPRACI
+                     , :CPGRE
+                     , :CPRUB
+                     , :CPMON
+                     , :CPETAT
+                     , :CPSOLD
+                FROM  FDBCPT A
+                WHERE A.CPRACI = :WS-RACINE
+                 AND  A.CPGRE  = "001"
+                 AND  A.CPRUB  = "000"
+                 AND  A.CPMON  = :WS-MON
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET SIM-EXISTE-CNT       TO TRUE
+           WHEN SQLCODE-NOTFOUND
+              SET NAO-EXISTE-CNT       TO TRUE
+           WHEN OTHER
+              SET NAO-EXISTE-CNT       TO TRUE
+              MOVE "FDBCPT "           TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-MAINIES.
+     š*----------------------------------------------------------------
+     š*-
+           INITIALIZE  R-MAINIES
+                       REPLACING ALPHANUMERIC BY SPACES
+
+           EXEC SQL
+                SELECT  IEORIG
+                     ,  IEREF
+                     ,  IECDGC
+                     ,  OPBIA1
+                     ,  OPBIA3
+                     ,  OPBIA4
+                INTO   :IEORIG
+                     , :IEREF
+                     , :IECDGC
+                     , :OPBIA1
+                     , :OPBIA3
+                     , :OPBIA4
+                FROM  MAINIES A
+                WHERE A.IEREF  = :WS-SOAIEREF
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET SIM-EXISTE-IES       TO TRUE
+              MOVE OPBIA4              TO WS-INFO-IES
+              MOVE OPID                TO WS-OPID
+           WHEN SQLCODE-NOTFOUND
+              SET NAO-EXISTE-IES       TO TRUE
+           WHEN OTHER
+              SET NAO-EXISTE-IES       TO TRUE
+              MOVE "MAINIES"           TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*---------------------------------------------------------------------
+       P450-SEND-EMAIL-ERR.
+     š*---------------------------------------------------------------------
+     š*-
+     š*-  Descritivos
+           EVALUATE TRUE
+             WHEN WS-OPID            =   "102"
+               MOVE "Transf. AT2/SWIFT Entrada"
+                                         TO WS-DESCTYPE
+             WHEN WS-OPID            =   "123"
+               MOVE "Transf. SEPA Entrada"
+                                         TO WS-DESCTYPE
+             WHEN OTHER
+               CONTINUE
+           END-EVALUATE
+     š*-  Email
+           MOVE RAMOUNT          TO Edit-Nbr-Mn
+           MOVE Edit-Nbr-Mn      TO WS-Nbr-Mn
+
+           MOVE "00008" TO WS-IDPRC
+           STRING "Transacção: "           DELIMITED BY SIZE
+                   WS-SOAIEREF             DELIMITED BY SIZE
+                  "  / Data  : "           DELIMITED BY SIZE
+                   RTRFDATE                DELIMITED BY SIZE
+                  "  / Nome Dest /Rem : "  DELIMITED BY SIZE
+                   AMLH200N-OPDOA2         DELIMITED BY SIZE
+                  "  / Racine Debito: "    DELIMITED BY SIZE
+                   AMLH200N-OPDBRC         DELIMITED BY SIZE
+                  "  / Racine Credito: "   DELIMITED BY SIZE
+                   AMLH200N-OPCRRC         DELIMITED BY SIZE
+                   " / Valor :"            DELIMITED BY SIZE
+                   WS-Nbr-Mn               DELIMITED BY SIZE
+                   " / Moeda :"            DELIMITED BY SIZE
+                   WS-MON                  DELIMITED BY SIZE
+                  "  / OPID: "             DELIMITED BY SIZE
+                   WS-OPID                 DELIMITED BY SIZE
+                   " - "                   DELIMITED BY SIZE
+                   WS-DESCTYPE             DELIMITED BY SIZE
+                                          INTO WS-MSGEMAIL
+               CALL "UTLP050" USING WS-IDPRC WS-MSGEMAIL.
+     š*-
+     š*----------------------------------------------------------------
+       P400-UPDATE-STATUS.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                 UPDATE AMLJSEPARX
+                 SET RAMLSTAT = "REP"
+                 WHERE RIEREF = :RIEREF
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "AMLJSEPARX"           TO W-OBJECT-NAME
+              SET CMD-UPDATE           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-GET-IBAN.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                SELECT  NUREFE
+                 INTO   :WS-IBAN
+                FROM   FDBNUM A
+                 WHERE A.NURACI = :WS-RACINE
+                  AND  A.NUTYPE = "020"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN SQLCODE-NOTFOUND
+              MOVE SPACES TO WS-IBAN
+           WHEN OTHER
+              MOVE "NUM-IBAN"          TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+           MOVE ZEROS TO SQLCODE W-SQLCODE, W-EDTSQLC.
+     š*-
+     š*----------------------------------------------------------------
+       P400-CLOSE-CURSOR-SEPARX.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+               CLOSE SEPARX
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET     FIM-P001         TO TRUE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURSOR-SEPARX"     TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   AMLT900A
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           MOVE MSG-ERRO-SQL    TO ERRMSG   OF  AMLT900A
+           MOVE W-SQLCODE       TO ERRCOD   OF  AMLT900A
+           MOVE "SQL"           TO ERRAPL   OF  AMLT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  AMLT900A
+           MOVE  2              TO ERRRTC   OF  AMLT900A
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "AMLP250"      TO  ERRPRG OF AMLT900A.
+           MOVE   WS-NURACI      TO  RACINE OF AMLT900A.
+
+           EXEC SQL  INSERT
+                INTO AMLT900A
+                VALUES  (
+                           :AMLT900A.RACINE
+                         , :AMLT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :AMLT900A.ERRRTC
+                         , :AMLT900A.ERRCOD
+                         , :AMLT900A.ERRMSG
+                         , :AMLT900A.ERRPRG
+                         , :AMLT900A.ERRAPL
+                         , :AMLT900A.ERROBJ
+                         , :AMLT900A.ERRFLD
+                         , :AMLT900A.ERRCMD
+                         , :AMLT900A.ERRKEY1
+                         , :AMLT900A.ERRVAL1
+                         , :AMLT900A.ERRKEY2
+                         , :AMLT900A.ERRVAL2 )
+           END-EXEC.
+
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              MOVE "AMLT900A"       TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+
+     š*****************************************************************
+       P999-FIMPGM.
+     š*****************************************************************
+           EXEC SQL    COMMIT    HOLD         END-EXEC
+           EXIT PROGRAM.
+           STOP RUN.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA AMLP250
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *

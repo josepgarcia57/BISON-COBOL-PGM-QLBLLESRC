@@ -1,0 +1,568 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    AMLP001   INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2018-AGO-20.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: AML - Comunicação Diária de Clientes       *
+     š*   OBJECTIVO ......: Este programa destina-se a Extrair Info    *
+     š*                     a enviar ao Banco de Portugal CRI - 2008   *
+     š*   ANALISTA .......: PEDRO GARCIA                               *
+     š*   PROGRAMADOR.....:                                            *
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 TRATA-INFO                 PIC 9(01).
+          88 SIM-TRATA               VALUE 1.
+          88 NAO-TRATA               VALUE 0.
+      *
+       01 TESTE-ALTER                PIC 9(01).
+          88 SIM-ALTER               VALUE 1.
+          88 NAO-ALTER               VALUE 0.
+      *
+       01 EXECUTA-P001               PIC 9(01).
+          88 INICIO-P001             VALUE 0.
+          88 FIM-P001                VALUE 1.
+      *
+       01 PGM-STATUS                 PIC 9(01).
+          88 SEM-ERRO                VALUE 0.
+          88 COM-ERRO                VALUE 1.
+      *
+       01 NR-ADM                     PIC 9(06) VALUE ZEROS.
+       01 NR-READ                    PIC 9(06) VALUE ZEROS.
+       01 NR-PROC                    PIC 9(06) VALUE ZEROS.
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-ANOIN                PIC X(04).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-DIAIN                PIC X(02).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01 WX-ANO-CONVER.
+          03 WS-ANO-12               PIC X(02).
+          03 WS-ANO-34               PIC X(02).
+
+       01 W-CONSTANTS.
+          05  K-APLICACAO           PIC X(3)    VALUE "AML".
+          05  K-PROGRAMA            PIC X(8)    VALUE "AMLP001".
+
+       01 W-NOME-DEST.
+          05 K-PREFIX               PIC X(8)    VALUE "AMLF001.".
+          05 K-TMS                  PIC X(26).
+          05 K-EXT                  PIC X(4)    VALUE ".CSV".
+
+       01 WS-ERRO                  PIC X(10).
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+     š* Parametros para chamada de QCMDEXEC
+       01  W-CMD                  PIC X(100) VALUE SPACES.
+       01  W-LEN                  PIC 9(10)V9(5) COMP-3.
+
+     š* Área de Ligação para o FTP
+       01 AMLL001M-FICH-ORIGEM    PIC  X(15).
+       01 AMLL001M-FICH-DESTINO   PIC  X(50).
+       01 AMLL001M-ERRO-AMLPFTP   PIC  X(01).
+     š* EMAIL
+       01 WS-IDPRC    PIC 9(5).
+       01 WS-MSGEMAIL PIC X(1000).
+     š* Parametros p/ Interface Clientes
+           COPY AMLB001.
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+
+       01  WS-DTINIISO              PIC X(10).
+
+     š* Copy : Tabela de Saldos Posição
+       01  R-FDBCPT.
+           COPY DDS-ALL-FORMATS OF FDBCPT.
+
+     š* Copy : Tabela de Clientes
+       01  R-FDBCLI.
+           COPY DDS-ALL-FORMATS OF FDBCLI.
+
+     š* Copy : Tabela de KYCT900A
+       01  R-KYCT900A.
+           COPY DDS-ALL-FORMATS OF KYCT900A.
+
+       01 WS-NURACI                PIC X(07).
+       01 WS-DATA-DIA-DB2          PIC X(10).
+       01 DB-VARDUMMY              PIC S9(4)    COMP-3.
+
+     š*--Selecção de Todas Contas DO's com ou sem saldo e não anuladas
+     š*--Mesmo Critérios de Clientes Activos
+           EXEC SQL DECLARE CURAML001 CURSOR FOR
+               SELECT  DISTINCT A.CPRACI
+                   FROM FDBCLI C
+                   INNER JOIN   FDBCPT  A
+                   ON (     A.CPRACI = C.CLRACI
+                        AND
+                             "20"
+                            ||SUBSTR(CPDTOU, 5, 2 )||"-"
+                            ||SUBSTR(CPDTOU, 3, 2 )||"-"
+                            ||SUBSTR(CPDTOU, 1, 2 )
+                            >= :WS-DTINIISO
+                      )
+
+               LEFT JOIN FDBTAB D
+                  ON (     D.TBID   = "005"
+                       AND D.TBCODE = C.CLTYPE  )
+
+               LEFT JOIN FDBTAB X
+                  ON (     X.TBID   = "030"
+                      AND  X.TBCODE = A.CPGRE  )
+               WHERE
+                           C.CLRACI > "0100000"
+               AND  SUBSTR(C.CLRACI , 1 , 1 ) <> "1"
+               AND  SUBSTR(C.CLRACI , 1 , 1 ) <> "8"
+               AND  C.CLTYPE <> "C"
+               AND  C.CLTYPE <> "T"
+               AND  C.CLTYPE <> "Q"
+               AND  C.CLTYPE <> "H"
+               AND  C.CLTYPE <> "I"
+
+               AND ( CLDTAN  = " "      OR
+                     CLDTAN  = "000000" OR
+                    "20"
+                  ||SUBSTR(CLDTOU, 5, 2 ) || "-"
+                  ||SUBSTR(CLDTOU, 3, 2 ) || "-"
+                  ||SUBSTR(CLDTOU, 1, 2 )
+                  >= :WS-DTINIISO )
+
+           END-EXEC.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       PROCEDURE DIVISION.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+           PERFORM P001-INICIO
+           IF NOT SIM-ERRO
+             PERFORM P100-OPEN-CURSOR-AML001
+             PERFORM P200-FETCH-CURSOR-AML001
+             PERFORM P300-PROCESSO-GERAL
+                             UNTIL FIM-P001
+             PERFORM P400-CLOSE-CURSOR-AML001
+           END-IF
+           PERFORM P450-TESTA-ALTER
+           PERFORM P450-SEND-EMAIL
+           PERFORM P450-CL-COPY
+           PERFORM P450-FTP-FILE
+           PERFORM P999-FIMPGM.
+     š*---------------------------------------------------------------------
+       P001-INICIO.
+     š*---------------------------------------------------------------------
+           SET  INICIO-P001         TO  TRUE.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10) TO  WS-DATA-DIA.
+           MOVE "2016-10-10"        TO WS-DTINIISO.
+
+     š*---------------------------------------------------------------------
+       P100-OPEN-CURSOR-AML001.
+     š*---------------------------------------------------------------------
+     š*-
+           INITIALIZE  R-FDBCPT
+
+           EXEC SQL
+                OPEN CURAML001
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-P001         TO TRUE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURAML001"         TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*****************************************************************
+       P200-FETCH-CURSOR-AML001.
+     š*****************************************************************
+     š*-
+           EXEC SQL FETCH CURAML001
+                     INTO
+                       :WS-NURACI
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             ADD 1 TO NR-READ
+     š*-
+           WHEN SQLCODE-NOTFOUND
+              SET  FIM-P001          TO TRUE
+           WHEN OTHER
+              SET   FIM-P001         TO TRUE
+              MOVE "CURAML001"       TO W-OBJECT-NAME
+              SET   CMD-FETCH-CURSOR TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*****************************************************************
+       P300-PROCESSO-GERAL.
+     š*****************************************************************
+     š*-
+           SET SIM-TRATA TO TRUE
+           IF SQLCODE-OK
+              IF SIM-TRATA
+                PERFORM P400-CALL-AMLS001
+              END-IF
+           END-IF.
+           PERFORM P200-FETCH-CURSOR-AML001.
+     š*----------------------------------------------------------------
+       P400-CALL-AMLS001.
+     š*----------------------------------------------------------------
+           INITIALIZE              AMLB001-LKPARMS.
+           MOVE WS-NURACI      TO  AMLB001-RACINE
+           MOVE WS-DATA-DIA    TO  AMLB001-DTPROC
+
+           CALL "AMLS001" USING  AMLB001-LKPARMS
+           IF AMLB001-PROC-OK
+              CONTINUE
+           ELSE
+             SET  FIM-P001            TO TRUE
+             INITIALIZE   KYCT900A
+             MOVE AMLB001-DESCERR  TO ERRMSG   OF  KYCT900A
+             MOVE AMLB001-CODERR   TO ERRCOD   OF  KYCT900A
+             MOVE "AMLS001"        TO ERRPRG   OF  KYCT900A
+             MOVE "AML"             TO ERRAPL   OF  KYCT900A
+             MOVE AMLB001-IDMSGEXE TO ERROBJ   OF  KYCT900A
+             MOVE  1                TO ERRRTC   OF  KYCT900A
+             PERFORM P995-INSERT-ERROS
+           END-IF.
+     š*-
+     š*****************************************************************
+       P400-CLOSE-CURSOR-AML001.
+     š*****************************************************************
+     š*-
+           EXEC SQL
+               CLOSE CURAML001
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET     FIM-P001         TO TRUE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURSOR-AML001"     TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P450-TESTA-ALTER.
+     š*---------------------------------------------------------------------
+           MOVE  WS-DATA-DIA           TO WS-DATA-DIA-DB2
+
+           EXEC SQL
+              SELECT COUNT(*) INTO :DB-VARDUMMY
+                 FROM AMLJ001
+                 WHERE SUBSTR(TMSALT , 1, 10 ) = :WS-DATA-DIA-DB2
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             IF DB-VARDUMMY = 0
+                SET NAO-ALTER  TO TRUE
+             ELSE
+                SET SIM-ALTER  TO TRUE
+             END-IF
+           WHEN OTHER
+              MOVE "AMLJ001"           TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P450-SEND-EMAIL.
+     š*---------------------------------------------------------------------
+           IF NAO-ALTER
+             MOVE "00001" TO WS-IDPRC
+             MOVE "Nao Existem Alterações ao Ficheiro AML BP"
+                                               TO WS-MSGEMAIL
+             CALL "UTLP050" USING WS-IDPRC WS-MSGEMAIL
+           ELSE
+             MOVE "00002" TO WS-IDPRC
+             STRING "Existem Alterações ao Ficheiro AML BP."
+                                            DELIMITED BY SIZE
+                 "Ficheiro Disponivel em: "
+                                            DELIMITED BY SIZE
+                 "\\filesharing2\binvestor2\"
+                                            DELIMITED BY SIZE
+                 "Share departamental\Projectos\BCB Base Dados "
+                                            DELIMITED BY SIZE
+                 "Clientes BP\AML Informacao Banco Portugal\Send"
+                                            DELIMITED BY SIZE
+                                            INTO WS-MSGEMAIL
+                 CALL "UTLP050" USING WS-IDPRC WS-MSGEMAIL
+           END-IF.
+     š*---------------------------------------------------------------------
+       P450-CL-COPY.
+     š*---------------------------------------------------------------------
+
+           MOVE SPACES TO W-CMD
+           MOVE ZEROS  TO W-LEN
+
+           STRING "CPYF FROMFILE(AMLF001C)"
+                  " TOFILE(AMLF001)"
+                  " MBROPT(*REPLACE)"
+           DELIMITED BY SIZE INTO W-CMD
+
+           COMPUTE  W-LEN  = 56
+
+           CALL "QCMDEXC" USING W-CMD
+                                W-LEN.
+
+           MOVE SPACES TO W-CMD
+           MOVE ZEROS  TO W-LEN
+
+           STRING "CPYTOIMPF FROMFILE(AMLJ001)"
+                  " TOFILE(AMLF001)"
+                  " ORDERBY('TMSALT DESC' )"
+                  " MBROPT(*ADD)"
+                  " FLDDLM(';')"
+           DELIMITED BY SIZE INTO W-CMD
+
+           COMPUTE  W-LEN  = 93
+
+           CALL "QCMDEXC" USING W-CMD
+                                W-LEN.
+     š*---------------------------------------------------------------------
+       P450-FTP-FILE.
+     š*---------------------------------------------------------------------
+           INITIALIZE AMLL001M-FICH-ORIGEM
+                      AMLL001M-FICH-DESTINO
+                      AMLL001M-ERRO-AMLPFTP
+                      REPLACING ALPHANUMERIC BY SPACES
+                                    NUMERIC BY ZEROS.
+
+           MOVE  "AMLF001"             TO AMLL001M-FICH-ORIGEM
+           MOVE  "AMLF001."            TO K-PREFIX
+           MOVE  S-SYSTMST             TO K-TMS
+           MOVE  W-NOME-DEST           TO AMLL001M-FICH-DESTINO
+
+           CALL "AMLCFTP" USING AMLL001M-FICH-ORIGEM
+                                AMLL001M-FICH-DESTINO
+                                AMLL001M-ERRO-AMLPFTP
+
+           IF AMLL001M-ERRO-AMLPFTP NOT EQUAL SPACES
+             MOVE "001"                     TO W-FILE-CODE
+             MOVE WS-ERRO                   TO MSG-ERRO-FS
+             MOVE "ALMCFTP"                 TO W-OBJECT-NAME
+             MOVE "FTP"                     TO W-CMDEXEC
+             MOVE "P450-FTP-FILE"           TO W-PARAGRAFO
+             PERFORM P990-ERRO-FS
+           END-IF.
+
+     š*---------------------------------------------------------------------
+       P990-ERRO-FS.
+     š*---------------------------------------------------------------------
+           EVALUATE TRUE
+           WHEN GRS-READ-DUP-KEY
+                  STRING "ERRO DE DADOS: CHAVE DUPLICADA NO FICHEIRO <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-FS
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ ERRO    <"
+                      W-EDTFILC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-FS
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           SET  COM-ERRO        TO TRUE
+           MOVE  1              TO ERRRTC   OF  KYCT900A
+           MOVE W-FILE-CODE     TO ERRCOD   OF  KYCT900A
+           MOVE MSG-ERRO-FS     TO ERRMSG   OF  KYCT900A
+           MOVE "BCBCCNTX"      TO ERRPRG   OF  KYCT900A
+           MOVE "BCB"           TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE W-CMDEXEC       TO ERRCMD   OF  KYCT900A
+           MOVE W-PARAGRAFO     TO ERRFLD   OF  KYCT900A
+
+           PERFORM    P995-INSERT-ERROS.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           MOVE MSG-ERRO-SQL    TO ERRMSG   OF  KYCT900A
+           MOVE W-SQLCODE       TO ERRCOD   OF  KYCT900A
+           MOVE "SQL"           TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE  2              TO ERRRTC   OF  KYCT900A
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "AMLP001"      TO  ERRPRG OF KYCT900A.
+           MOVE   WS-NURACI       TO  RACINE OF KYCT900A.
+
+           EXEC SQL  INSERT
+                INTO KYCT900A
+                VALUES  (
+                           :KYCT900A.RACINE
+                         , :KYCT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :KYCT900A.ERRRTC
+                         , :KYCT900A.ERRCOD
+                         , :KYCT900A.ERRMSG
+                         , :KYCT900A.ERRPRG
+                         , :KYCT900A.ERRAPL
+                         , :KYCT900A.ERROBJ
+                         , :KYCT900A.ERRFLD
+                         , :KYCT900A.ERRCMD
+                         , :KYCT900A.ERRKEY1
+                         , :KYCT900A.ERRVAL1
+                         , :KYCT900A.ERRKEY2
+                         , :KYCT900A.ERRVAL2 )
+           END-EXEC.
+
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "KYCT900A"       TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+
+
+     š*****************************************************************
+       P999-FIMPGM.
+     š*****************************************************************
+           EXEC SQL    COMMIT    HOLD         END-EXEC
+           EXIT PROGRAM.
+           STOP RUN.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA AMLP001
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *

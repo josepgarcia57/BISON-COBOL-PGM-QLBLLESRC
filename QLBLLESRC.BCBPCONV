@@ -1,0 +1,124 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    BCBPCONV.
+       AUTHOR.        PEDRO GARCIA.
+       INSTALLATION.  BANIF SA.
+       DATE-WRITTEN.  2017-JUL-19.
+     ‚**************************************************************************
+     ‚*   SISTEMA: BCB - BD de Contas do Banco de Portugal.                    *
+     ‚*   CRIACAO: 2017/07/19, B.B.I. - J.P.GARCIA                             *
+     ‚*   FUNCAO:  Conversão UTF-16 --> ASCII(UTF-16)                          *
+     ‚*   (C) BANIF - 2017                                                     *
+     ‚**************************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES. LOCAL-DATA    IS LDATA.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+     *** BCBFRSPC: Resposta do Banco de Portugal. ***
+           SELECT BCBFRSPC ASSIGN TO DATABASE-BCBFRSPC
+                  ORGANIZATION IS SEQUENTIAL
+                  ACCESS MODE  IS SEQUENTIAL
+                  FILE STATUS  IS ST-F399.
+     ‚*********************************
+       DATA DIVISION.
+     ‚*********************************
+       FILE SECTION.
+       FD  BCBFRSPC LABEL RECORDS STANDARD.
+       01  R-FRSPC.
+           COPY DDS-ALL-FORMATS OF BCBFRSPC.
+     ‚*********************************
+       WORKING-STORAGE SECTION.
+     ‚*********************************
+     ‚* Status de ficheiros. *
+       01 ST-F399                   PIC XX.
+     ‚* Campos auxiliares. *
+       01 W-MIRROR                  PIC X(5000).
+       01 W                         PIC 9(4).
+       01 Y                         PIC 9(4).
+       01 W-COMP1                   PIC X          VALUE X"00".
+       01 W-COMP8                   PIC XXX        VALUE X"000D00".
+       01 W-COMP9                   PIC XXX        VALUE X"004040".
+     ‚*********************************
+       PROCEDURE DIVISION.
+     ‚*********************************
+       INICIO.
+           OPEN INPUT BCBFRSPC
+           OPEN I-O BCBFRSPC.
+           INITIALIZE R-FRSPC REPLACING ALPHANUMERIC BY SPACES
+                                            NUMERIC BY ZEROS.
+       MEIO.
+           PERFORM SR-CICLO THRU F-CICLO
+             UNTIL ST-F399 NOT= "00".
+       FIM.
+           CLOSE BCBFRSPC.
+           GOBACK.
+     ‚********************
+     ‚* Ciclo principal. *
+       SR-CICLO.
+     ‚********************
+           READ BCBFRSPC AT END
+                GO TO F-CICLO.
+
+           IF R-FRSPC = SPACES
+              GO TO F-CICLO.
+
+           MOVE SPACES TO W-MIRROR.
+           MOVE 1      TO W, Y.
+
+           PERFORM SR-UTF16 THRU F-UTF16
+             UNTIL W = 5000.
+
+           IF W-MIRROR = SPACES
+              GO TO F-CICLO.
+
+           IF W-MIRROR(1:2) = "@@"
+              MOVE SPACES TO W-MIRROR.
+
+     ***   IF  R-FRSPC(W:35) = '  e n c o d i n g = " u t f - 1 6 "'
+     ***       ADD 35 TO W
+     ***       GO TO F-UTF16.
+           INSPECT W-MIRROR REPLACING ALL
+                   'encoding="utf-16"' BY "                 ".
+
+           MOVE SPACES   TO R-FRSPC.
+           MOVE W-MIRROR TO R-FRSPC.
+
+           REWRITE R-FRSPC.
+
+       F-CICLO.
+           EXIT.
+     ‚************
+     ‚* Converte *
+       SR-UTF16.
+     ‚************
+
+           IF R-FRSPC(W:3) = W-COMP9
+              MOVE "@@" TO W-MIRROR(Y:2)
+              MOVE 1024 TO W
+              GO TO F-UTF16.
+
+           IF R-FRSPC(W:3) = W-COMP8
+              MOVE 1024 TO W
+              GO TO F-UTF16.
+
+           IF R-FRSPC(W:1) = W-COMP1
+              ADD 1 TO W
+              GO TO F-UTF16.
+
+           IF  R-FRSPC(W:1) NOT= "<"
+           AND W-MIRROR = SPACES
+               ADD 1 TO W
+               GO TO F-UTF16.
+
+     ***   IF  R-FRSPC(W:35) = '  e n c o d i n g = " u t f - 1 6 "'
+     ***       ADD 35 TO W
+     ***       GO TO F-UTF16.
+
+           MOVE R-FRSPC(W:1) TO W-MIRROR(Y:1).
+           ADD 1 TO W, Y.
+
+       F-UTF16.
+           EXIT.
+     ‚*===== (Fim da Fonte) ===========================================*
