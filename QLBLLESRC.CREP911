@@ -1,0 +1,892 @@
+      *================================================================*
+       IDENTIFICATION DIVISION.
+      *================================================================*
+
+       PROGRAM-ID.     CREP911.
+      *----------------------------------------------------------------*
+      * APLICACAO : GESTAO DE EMPRESTIMOS
+      * PROGRAMA .: CREP911
+      * OBJECTIVO : IMPLEMENTAR AS REGRAS DE PROCESSAMENTO DO PROCESSO
+      *             "CREP911"
+      * CRIADO EM : 2005/FEVEREIRO
+      * POR ......: FERNANDO SILVA (CAPGEMINI PORTUGAL)
+      *----------------------------------------------------------------*
+
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       CONFIGURATION               SECTION.
+      *----------------------------------------------------------------*
+       SPECIAL-NAMES.  DECIMAL-POINT  IS COMMA.
+
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE             SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB950.
+
+       01  WS-VARSTRAB.
+           05  WS-IDREGSEL.
+               10  WS-IDPRCAPL         PIC X(08).
+               10  WS-NMVARDLG         PIC X(10).
+               10  FILLER              PIC X(62).
+
+           05  WS-PARMSLDV             PIC X(80).
+           05  WS-LVPRCAPL-I   REDEFINES WS-PARMSLDV.
+               10  WS-IDPRCAPL         PIC X(08).
+               10  WS-IDAPLICA         PIC X(03).
+               10  WS-IDTIPDLG         PIC XX.
+               10  WS-MCSITEXE         PIC X.
+           05  WS-LVPRCAPL-O   REDEFINES WS-PARMSLDV.
+               10  WS-IDPRCAPL         PIC X(08).
+
+           05  WS-ARRYNDX1             PIC S9(4)       BINARY.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-CNSTANTS.
+           05  KV-IDTIPDLG-LS.
+               10  KV-IDTIPDLG-MNTD    PIC XX      VALUE "MD".
+               10  FILLER              PIC X(19)   VALUE
+                                               "Manutenção Directa".
+               10  KV-IDTIPDLG-MNTI    PIC XX      VALUE "MI".
+               10  FILLER              PIC X(19)   VALUE
+                                               "Manutenção c/ Apoio".
+               10  KV-IDTIPDLG-MNTA    PIC XX      VALUE "MA".
+               10  FILLER              PIC X(19)   VALUE
+                                               "Manutenção de Apoio".
+               10  KV-IDTIPDLG-CNSD    PIC XX      VALUE "CD".
+               10  FILLER              PIC X(19)   VALUE
+                                               "Consulta Directa".
+               10  KV-IDTIPDLG-CNSL    PIC XX      VALUE "CL".
+               10  FILLER              PIC X(19)   VALUE
+                                               "Consulta em Lista".
+               10  KV-IDTIPDLG-PEDX    PIC XX      VALUE "PD".
+               10  FILLER              PIC X(19)   VALUE
+                                               "Pedido de Execução".
+           05  KV-IDTIPDLG-LV  REDEFINES KV-IDTIPDLG-LS    OCCURS 6.
+               10  KV-IDTIPDLG-ID      PIC XX.
+               10  KV-IDTIPDLG-DS      PIC X(19).
+           05  KV-IDTIPDLG-OCC         PIC 9       VALUE 6.
+
+           05  KV-MCARADLG-LS.
+               10  KV-MCARADLG-IDT     PIC X       VALUE "I".
+               10  FILLER              PIC X(14)   VALUE
+                                               "Identificação".
+               10  KV-MCARADLG-PRM     PIC X       VALUE "P".
+               10  FILLER              PIC X(14)   VALUE
+                                               "Parms.pesquisa".
+               10  KV-MCARADLG-DET     PIC X       VALUE "D".
+               10  FILLER              PIC X(14)   VALUE
+                                               "Detalhe".
+           05  KV-MCARADLG-LV  REDEFINES KV-MCARADLG-LS    OCCURS 3.
+               10  KV-MCARADLG-ID      PIC X.
+               10  KV-MCARADLG-DS      PIC X(14).
+           05  KV-MCARADLG-OCC         PIC 9       VALUE 3.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           COPY CREB961.
+           COPY CREB999.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           EXEC SQL INCLUDE SQLCA                              END-EXEC.
+
+           EXEC SQL BEGIN DECLARE  SECTION                     END-EXEC.
+       01  WS-DBGBVARS.
+           COPY DDS-CRET901 OF CRET901.
+           COPY DDS-CRET903 OF CRET903.
+           COPY DDS-CRET904 OF CRET904.
+           COPY DDS-CRET905 OF CRET905.
+
+       01  WS-DBLCVARS.
+           05  DB-VARDUMMY             PIC S9(4)       BINARY.
+           EXEC SQL END   DECLARE  SECTION                     END-EXEC.
+
+      *----------------------------------------------------------------*
+       LINKAGE                     SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB000.
+
+      *================================================================*
+       PROCEDURE DIVISION USING CREB000-LKGERAL.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       P0000-RAIZ                  SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P1000-INICIO
+
+           PERFORM P2000-PROCESSO
+
+           PERFORM P3000-FIM
+           .
+       P0000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P1000-INICIO                SECTION.
+      *----------------------------------------------------------------*
+
+           MOVE CREB000-IDREGSEL     TO WS-IDREGSEL
+           IF  CREB000-MSGDLG-P > 1
+           OR  CREB000-IDCANALC = CREB950-IDCANALC-RM
+               MOVE CREB000-MSGDLG-V(CREB000-MSGDLG-P:)
+                                     TO CREB961-MSGDIALG
+           END-IF
+           INITIALIZE CREB950-IDMSGAPL, CREB961-PCURSOR, WS-DBGBVARS
+           .
+       P1000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P2000-PROCESSO              SECTION.
+      *----------------------------------------------------------------*
+
+           EVALUATE TRUE
+           WHEN(CREB000-INITDLG AND NOT CREB000-PROCLOV)
+           OR   CREB000-PROCIDT
+               PERFORM P2100-INICIALIZA
+               IF  CREB000-PROCNLF
+               AND(CREB000-PROC-OK OR  CREB000-MSGINFO)
+               AND CREB000-IDREG-OK
+                   PERFORM P2500-PROC-REGEXIST
+               END-IF
+           WHEN CREB000-PROCLOV
+               PERFORM P2200-PROC-LISTVALS
+           WHEN CREB000-IDREG-NV
+               PERFORM P2300-FRMT-IDREGNVG
+           WHEN CREB000-PROCCRT
+           OR  (CREB000-PROCVRF AND CREB000-IDREG-NF)
+               PERFORM P2400-PROC-NOVOREG
+           WHEN CREB000-PROCSEL
+           OR  (CREB000-PROCVRF AND CREB000-IDREG-OK)
+               PERFORM P2500-PROC-REGEXIST
+           WHEN CREB000-PROCPRT
+               PERFORM P2600-PROC-IMPRESSO
+           WHEN CREB000-PROCCNF
+               PERFORM P2700-EXEC-ALTERABD
+           WHEN CREB000-PROCCAN
+               PERFORM P2800-PROC-CANCELA
+           END-EVALUATE
+           .
+       P2000-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2100-INICIALIZA            SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           INITIALIZE CREB961-MSGDIALG
+           SET  CREB000-IDREG-NF TO TRUE
+
+           EVALUATE TRUE
+           WHEN CREB000-PROC-ERR
+               CONTINUE
+           WHEN CREB000-PROCIDT OR CREB000-PROCSEL
+               PERFORM P2110-READ-REGEXIST
+           WHEN CREB000-PROCCRT
+               PERFORM P2120-INIT-NOVOREG
+           END-EVALUATE
+           .
+       P2100-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2110-READ-REGEXIST         SECTION.
+
+           MOVE WS-IDPRCAPL OF WS-IDREGSEL TO CREB961-IDPRCAPL-V
+           MOVE WS-NMVARDLG OF WS-IDREGSEL TO CREB961-NMVARDLG-V
+           PERFORM P9000-READ-CRET905
+
+           EVALUATE TRUE
+           WHEN CREB000-PROC-ERR
+               CONTINUE
+           WHEN CREB000-IDREG-OK
+               PERFORM P2111-FRMT-MSGDIALG
+           WHEN OTHER
+               SET  CREB950-FUNCAO-INTERRP TO TRUE
+               SET  CREB000-MSGFUNC        TO TRUE
+           END-EVALUATE
+
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P9000-PROTEG-IDT
+               IF  CREB000-FUNCMODF-ON
+               AND NOT CREB950-FUNCAO-INTERRP
+                   PERFORM P9000-PERMIT-DET
+               ELSE
+                   PERFORM P9000-PROTEG-DET
+               END-IF
+               PERFORM P9000-DISPLY-DET
+           END-IF
+           .
+       P2110-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2111-FRMT-MSGDIALG         SECTION.
+
+           MOVE DSVALVAR OF CRET905       TO CREB961-DSVALVAR-V
+           MOVE IDPRGGST OF CRET905       TO CREB961-IDGSTLDV-V
+           MOVE MCARADLG OF CRET905       TO CREB961-MCARADLG-V
+           MOVE DHCRIREG OF CRET905       TO CREB950-DTHR-ISO
+           MOVE CORR CREB950-DTHR-ISO     TO CREB950-DTHR-X14
+           MOVE CREB950-DTHR-N14          TO CREB961-DHCRIREG-V
+           IF  DHMDFREG OF CRET905 NOT = CREB950-TMSTPMIN
+               MOVE DHMDFREG OF CRET905   TO CREB950-DTHR-ISO
+               MOVE CORR CREB950-DTHR-ISO TO CREB950-DTHR-X14
+               MOVE CREB950-DTHR-N14      TO CREB961-DHMDFREG-V
+           END-IF
+           MOVE DHMDFREG OF CRET905       TO CREB000-DHMDFREG
+           PERFORM P9000-READ-MCARADLG
+           PERFORM P9000-READ-IDPRCAPL
+
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P9000-READ-IDTIPDLG
+           END-IF
+           .
+       P2111-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2120-INIT-NOVOREG          SECTION.
+
+           MOVE WS-IDPRCAPL OF WS-IDREGSEL TO CREB961-IDPRCAPL-V
+           MOVE WS-NMVARDLG OF WS-IDREGSEL TO CREB961-NMVARDLG-V
+
+           PERFORM P9000-PERMIT-IDT
+           PERFORM P9000-PERMIT-DET
+           .
+       P2120-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2200-PROC-LISTVALS         SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           IF  CREB000-INITDLG
+               PERFORM P2210-FRMT-PARMSLDV
+           ELSE
+               PERFORM P2220-RECB-IDSELLDV
+           END-IF
+           .
+       P2200-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2210-FRMT-PARMSLDV         SECTION.
+
+           MOVE SPACES                  TO WS-PARMSLDV
+
+           EVALUATE CREB000-IDVARCSR
+           WHEN "IDPRCAPL"
+               MOVE CREB961-IDPRCAPL-V  TO WS-IDPRCAPL OF WS-LVPRCAPL-I
+               MOVE CREB950-MCPESQGN    TO WS-IDAPLICA OF WS-LVPRCAPL-I
+               MOVE CREB950-MCPESQGN    TO WS-IDTIPDLG OF WS-LVPRCAPL-I
+               MOVE CREB950-MCPESQGN    TO WS-MCSITEXE OF WS-LVPRCAPL-I
+               SET  CREB961-IDPRCAPL-PC TO TRUE
+           END-EVALUATE
+
+           MOVE WS-PARMSLDV             TO CREB000-PARMSINP
+           .
+       P2210-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2220-RECB-IDSELLDV         SECTION.
+
+           MOVE CREB000-PARMSINP        TO WS-PARMSLDV
+
+           EVALUATE TRUE
+           WHEN CREB000-PARMSINP = SPACES
+               CONTINUE
+           WHEN CREB000-IDVARCSR = "IDPRCAPL"
+           AND  WS-IDPRCAPL OF WS-LVPRCAPL-O NOT = SPACES
+               MOVE WS-IDPRCAPL OF WS-LVPRCAPL-O TO CREB961-IDPRCAPL-V
+               SET  CREB961-IDPRCAPL-PC          TO TRUE
+           END-EVALUATE
+           .
+       P2220-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2300-FRMT-IDREGNVG         SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE CREB000-IDPRCDST     TO CREB999-IDPRCNVG
+           INITIALIZE                   CREB999-PARMSINP
+           MOVE CREB961-IDPRCAPL-V   TO CREB999-IDPRCAPL
+           MOVE CREB961-NMVARDLG-V   TO CREB999-NMVARDLG
+           CALL CREB950-SRPRENVG USING CREB999-LKGERAL
+
+           IF  CREB999-PROC-OK
+               MOVE CREB999-PARMSNVG TO CREB000-PARMSINP
+           ELSE
+               SET  CREB000-MSGSROT  TO TRUE
+               MOVE CREB999-CDRETORN TO CREB000-CDRETORN
+               MOVE CREB999-NMOBJECT TO CREB000-NMOBJECT
+           END-IF
+           .
+       P2300-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2400-PROC-NOVOREG          SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           INITIALIZE CREB961-VARSOUT
+           PERFORM P2410-VRIF-NIVEL01
+
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P2420-VRIF-NIVEL02
+           END-IF
+
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P2430-FRMT-MSGDIALG
+           END-IF
+
+           EVALUATE TRUE
+           WHEN CREB000-PROC-ERR
+               CONTINUE
+           WHEN CREB000-PROCCRT
+               PERFORM P9000-PROTEG-IDT
+               PERFORM P9000-PROTEG-DET
+               PERFORM P9000-NDISPL-DET
+           WHEN OTHER
+               PERFORM P9000-PERMIT-IDT
+               PERFORM P9000-PERMIT-DET
+               PERFORM P9000-NDISPL-DET
+           END-EVALUATE
+           .
+       P2400-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2410-VRIF-NIVEL01          SECTION.
+
+           EVALUATE TRUE
+           WHEN CREB961-IDPRCAPL-V = SPACES
+               SET  CREB961-IDPRCAPL-PC    TO TRUE
+               SET  CREB950-PCAMPO-OBRIGAT TO TRUE
+               SET  CREB000-MSGFUNC        TO TRUE
+           WHEN CREB961-NMVARDLG-V = SPACES
+               SET  CREB961-NMVARDLG-PC    TO TRUE
+               SET  CREB950-PCAMPO-OBRIGAT TO TRUE
+               SET  CREB000-MSGFUNC        TO TRUE
+           WHEN OTHER
+               PERFORM P2510-VRIF-NIVEL01
+           END-EVALUATE
+           .
+       P2410-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2420-VRIF-NIVEL02          SECTION.
+
+           PERFORM P9000-READ-IDPRCAPL
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+               PERFORM P9000-READ-IDTIPDLG
+           WHEN SQLCODE-NOTFOUND
+               SET  CREB961-IDPRCAPL-PC        TO TRUE
+               SET  CREB950-VCAMPO-INVALID     TO TRUE
+               SET  CREB000-MSGFUNC            TO TRUE
+           END-EVALUATE
+
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P9000-READ-CRET905
+
+               IF (CREB000-PROC-OK OR CREB000-MSGINFO)
+               AND CREB000-IDREG-OK
+                   SET  CREB961-IDPRCAPL-PC    TO TRUE
+                   SET  CREB950-REGIST-JEXISTE TO TRUE
+                   SET  CREB000-MSGFUNC        TO TRUE
+                   SET  CREB000-IDREG-NF       TO TRUE
+               END-IF
+           END-IF
+
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               PERFORM P2520-VRIF-NIVEL02
+           END-IF
+           .
+       P2420-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2430-FRMT-MSGDIALG         SECTION.
+
+           CONTINUE
+           .
+       P2430-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2500-PROC-REGEXIST         SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           IF  CREB000-PROCMDF OR CREB000-PROCVRF
+               INITIALIZE CREB961-VARSOUT
+               PERFORM P2510-VRIF-NIVEL01
+
+               IF  CREB000-PROC-OK OR CREB000-MSGINFO
+                   PERFORM P2520-VRIF-NIVEL02
+               END-IF
+
+               IF  CREB000-PROC-OK OR CREB000-MSGINFO
+                   PERFORM P2530-FRMT-MSGDIALG
+               END-IF
+           ELSE
+               PERFORM P2540-VRIF-RELDPEND
+           END-IF
+
+           EVALUATE TRUE
+           WHEN CREB000-PROC-ERR
+               CONTINUE
+           WHEN CREB000-PROCVRF
+               PERFORM P9000-PROTEG-IDT
+               PERFORM P9000-PERMIT-DET
+               PERFORM P9000-DISPLY-DET
+           WHEN OTHER
+               PERFORM P9000-PROTEG-IDT
+               PERFORM P9000-PROTEG-DET
+               PERFORM P9000-DISPLY-DET
+           END-EVALUATE
+           .
+       P2500-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2510-VRIF-NIVEL01          SECTION.
+
+           EVALUATE TRUE
+           WHEN CREB961-DSVALVAR-V = SPACES
+               SET  CREB961-DSVALVAR-PC    TO TRUE
+               SET  CREB950-PCAMPO-OBRIGAT TO TRUE
+               SET  CREB000-MSGFUNC        TO TRUE
+           WHEN CREB961-MCARADLG-V = SPACES
+               SET  CREB961-MCARADLG-PC    TO TRUE
+               SET  CREB950-PCAMPO-OBRIGAT TO TRUE
+               SET  CREB000-MSGFUNC        TO TRUE
+           WHEN CREB961-IDGSTLDV-V = SPACES
+               SET  CREB961-IDGSTLDV-PC    TO TRUE
+               SET  CREB950-PCAMPO-OBRIGAT TO TRUE
+               SET  CREB000-MSGFUNC        TO TRUE
+           WHEN OTHER
+               PERFORM P9000-VLID-MCARADLG
+           END-EVALUATE
+           .
+       P2510-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2520-VRIF-NIVEL02          SECTION.
+
+           IF (CREB961-MCARADLG-V NOT = KV-MCARADLG-PRM
+           AND(CREB961-IDTIPDLG-V     = KV-IDTIPDLG-MNTI
+               OR                       KV-IDTIPDLG-CNSL))
+           OR (CREB961-MCARADLG-V     = KV-MCARADLG-DET
+           AND CREB961-IDTIPDLG-V NOT = KV-IDTIPDLG-MNTD
+               AND                      KV-IDTIPDLG-MNTA)
+           OR (CREB961-MCARADLG-V     = KV-MCARADLG-PRM
+           AND CREB961-IDTIPDLG-V NOT = KV-IDTIPDLG-MNTI
+               AND                      KV-IDTIPDLG-CNSL)
+               SET  CREB961-MCARADLG-PC         TO TRUE
+               SET  CREB950-VCAMPO-NCMPDLG      TO TRUE
+               SET  CREB000-MSGFUNC             TO TRUE
+           END-IF
+           .
+       P2520-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2530-FRMT-MSGDIALG         SECTION.
+
+           CONTINUE
+           .
+       P2530-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2540-VRIF-RELDPEND         SECTION.
+
+           CONTINUE
+           .
+       P2540-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2600-PROC-IMPRESSO         SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           CONTINUE
+           .
+       P2600-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2700-EXEC-ALTERABD         SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           EVALUATE TRUE
+           WHEN CREB000-DOCREAT
+               PERFORM P2710-EXEC-TRNCRIAR
+           WHEN CREB000-DOMODFY
+               PERFORM P2720-EXEC-TRNMODIF
+           WHEN CREB000-DONULFY
+               PERFORM P2730-EXEC-TRNANULA
+           END-EVALUATE
+
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               SET  CREB000-TRNDONE TO TRUE
+           END-IF
+           .
+       P2700-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2710-EXEC-TRNCRIAR         SECTION.
+
+           PERFORM P9000-FRMT-CRET905-CHAV
+           PERFORM P9000-FRMT-CRET905-ATRB
+           PERFORM P9000-INSR-CRET905
+
+           IF  CREB000-PROC-OK OR CREB000-MSGINFO
+               MOVE CREB961-IDPRCAPL-V TO WS-IDPRCAPL OF WS-IDREGSEL
+               MOVE CREB961-NMVARDLG-V TO WS-NMVARDLG OF WS-IDREGSEL
+           END-IF
+           .
+       P2710-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2720-EXEC-TRNMODIF         SECTION.
+
+           PERFORM P9000-FRMT-CRET905-CHAV
+           PERFORM P9000-FRMT-CRET905-ATRB
+           PERFORM P9000-UPDT-CRET905
+           .
+       P2720-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2730-EXEC-TRNANULA         SECTION.
+
+           PERFORM P9000-FRMT-CRET905-CHAV
+           PERFORM P9000-DELT-CRET905
+           .
+       P2730-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2800-PROC-CANCELA          SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           EVALUATE TRUE
+           WHEN CREB000-IDREG-NF
+               PERFORM P9000-PERMIT-IDT
+               PERFORM P9000-PERMIT-DET
+           WHEN CREB000-FUNCMODF-ON
+               PERFORM P9000-PERMIT-DET
+           END-EVALUATE
+           .
+       P2800-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P3000-FIM                   SECTION.
+      *----------------------------------------------------------------*
+
+           EVALUATE TRUE
+           WHEN CREB000-PROCLOV
+           OR   CREB000-IDCANALC = CREB950-IDCANALC-RM
+               CONTINUE
+           WHEN CREB000-MSGDLG-P = 1
+               COMPUTE CREB000-MSGDLG-P
+                     = CREB000-MSGDLG-L + 1
+               COMPUTE CREB000-MSGDLG-L
+                     = CREB000-MSGDLG-L + LENGTH OF CREB961-MSGDIALG
+           END-EVALUATE
+           MOVE CREB961-MSGDIALG       TO CREB000-MSGDLG-V
+                                         (CREB000-MSGDLG-P:)
+           IF  NOT CREB000-PROC-OK
+               MOVE CREB950-IDMSGAPL   TO CREB000-IDMSGAPL
+           END-IF
+           GOBACK
+           .
+       P3000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P9000-PERMIT-IDT            SECTION.
+
+           SET  CREB961-IDPRCAPL-UP TO TRUE
+           SET  CREB961-NMVARDLG-UP TO TRUE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-PROTEG-IDT            SECTION.
+
+           SET  CREB961-IDPRCAPL-PR TO TRUE
+           SET  CREB961-NMVARDLG-PR TO TRUE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-PERMIT-DET            SECTION.
+
+           SET  CREB961-DSVALVAR-UP TO TRUE
+           SET  CREB961-IDGSTLDV-UP TO TRUE
+           SET  CREB961-MCARADLG-UP TO TRUE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-PROTEG-DET            SECTION.
+
+           SET  CREB961-DSVALVAR-PR TO TRUE
+           SET  CREB961-MCARADLG-PR TO TRUE
+           SET  CREB961-IDGSTLDV-PR TO TRUE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-DISPLY-DET            SECTION.
+
+           SET  CREB961-DHCRIREG-PR TO TRUE
+           SET  CREB961-DHMDFREG-PR TO TRUE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-NDISPL-DET            SECTION.
+
+           SET  CREB961-DHCRIREG-ND TO TRUE
+           SET  CREB961-DHMDFREG-ND TO TRUE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-READ-CRET905          SECTION.
+
+           MOVE CREB961-IDPRCAPL-V TO IDPRCAPL OF CRET905
+           MOVE CREB961-NMVARDLG-V TO NMVARDLG OF CRET905
+           EXEC SQL SELECT DSVALVAR
+                         , MCARADLG
+                         , IDPRGGST
+                         , DHMDFREG
+                         , DHCRIREG
+                      INTO :CRET905.DSVALVAR
+                         , :CRET905.MCARADLG
+                         , :CRET905.IDPRGGST
+                         , :CRET905.DHMDFREG
+                         , :CRET905.DHCRIREG
+                      FROM CRET905
+                     WHERE IDPRCAPL = :CRET905.IDPRCAPL
+                       AND NMVARDLG = :CRET905.NMVARDLG        END-EXEC
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+               SET  CREB000-IDREG-OK  TO TRUE
+           WHEN SQLCODE-NOTFOUND
+               SET  CREB000-IDREG-NF  TO TRUE
+           WHEN OTHER
+               MOVE CREB950-SQLCODE   TO CREB000-CDRETORN
+               MOVE "CREP911.CRET905" TO CREB000-NMOBJECT
+               SET  CREB000-SLCT      TO TRUE
+               SET  CREB000-MSGSGBD   TO TRUE
+           END-EVALUATE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-VLID-MCARADLG         SECTION.
+
+           PERFORM P9000-READ-MCARADLG
+           IF  WS-ARRYNDX1 > KV-MCARADLG-OCC
+               SET  CREB961-MCARADLG-PC         TO TRUE
+               SET  CREB950-ARADLG-INVALID      TO TRUE
+               SET  CREB000-MSGFUNC             TO TRUE
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-READ-MCARADLG         SECTION.
+
+           PERFORM
+           VARYING WS-ARRYNDX1 FROM 1 BY 1
+             UNTIL WS-ARRYNDX1 > KV-MCARADLG-OCC
+             OR    KV-MCARADLG-ID(WS-ARRYNDX1) = CREB961-MCARADLG-V
+               CONTINUE
+           END-PERFORM
+           IF  WS-ARRYNDX1 <= KV-MCARADLG-OCC
+               MOVE KV-MCARADLG-DS(WS-ARRYNDX1) TO CREB961-DSARADLG-V
+           ELSE
+               MOVE CREB950-DSABRVNF            TO CREB961-DSARADLG-V
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-READ-IDPRCAPL         SECTION.
+
+           PERFORM P9000-READ-CRET903
+
+           IF  SQLCODE-NOTFOUND
+               PERFORM P9000-READ-CRET904
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-READ-CRET903          SECTION.
+
+           INITIALIZE CRET903
+           MOVE CREB961-IDPRCAPL-V      TO IDPRCAPL OF CRET903
+           EXEC SQL SELECT DSPRCAPL
+                         , NMAPLICA
+                         , IDPRGGST
+                         , IDDIALOG
+                         , IDTIPDLG
+                      INTO :CRET903.DSPRCAPL
+                         , :CRET901.NMAPLICA
+                         , :CRET903.IDPRGGST
+                         , :CRET903.IDDIALOG
+                         , :CRET903.IDTIPDLG
+                      FROM CRET903 P, CRET901 A
+                     WHERE P.IDAPLICA = A.IDAPLICA
+                       AND P.IDPRCAPL = :CRET903.IDPRCAPL      END-EXEC
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+               MOVE DSPRCAPL OF CRET903 TO CREB961-DSPRCAPL-V
+               MOVE NMAPLICA OF CRET901 TO CREB961-NMAPLICA-V
+               MOVE IDPRGGST OF CRET903 TO CREB961-IDGSTPRC-V
+               MOVE IDDIALOG OF CRET903 TO CREB961-IDDIALOG-V
+               MOVE IDTIPDLG OF CRET903 TO CREB961-IDTIPDLG-V
+           WHEN SQLCODE-NOTFOUND
+               CONTINUE
+           WHEN OTHER
+               MOVE CREB950-SQLCODE     TO CREB000-CDRETORN
+               MOVE "CREP911.CRET903"   TO CREB000-NMOBJECT
+               SET  CREB000-SLCT        TO TRUE
+               SET  CREB000-MSGSGBD     TO TRUE
+           END-EVALUATE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-READ-CRET904          SECTION.
+
+           INITIALIZE CRET904
+           MOVE CREB961-IDPRCAPL-V    TO IDPRCAPL OF CRET904
+           EXEC SQL SELECT DSPRCAPL
+                         , NMAPLICA
+                         , IDPRGGST
+                         , IDDIALOG
+                      INTO :CRET904.DSPRCAPL
+                         , :CRET901.NMAPLICA
+                         , :CRET904.IDPRGGST
+                         , :CRET904.IDDIALOG
+                      FROM CRET904 P, CRET901 A
+                     WHERE P.IDAPLICA = A.IDAPLICA
+                       AND P.IDPRCAPL = :CRET904.IDPRCAPL      END-EXEC
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+               MOVE DSPRCAPL OF CRET904 TO CREB961-DSPRCAPL-V
+               MOVE NMAPLICA OF CRET901 TO CREB961-NMAPLICA-V
+               MOVE IDPRGGST OF CRET904 TO CREB961-IDGSTPRC-V
+               MOVE IDDIALOG OF CRET904 TO CREB961-IDDIALOG-V
+               MOVE KV-IDTIPDLG-MNTA    TO CREB961-IDTIPDLG-V
+           WHEN SQLCODE-NOTFOUND
+               MOVE CREB950-DSABRVNF    TO CREB961-DSPRCAPL-V
+           WHEN OTHER
+               MOVE CREB950-SQLCODE     TO CREB000-CDRETORN
+               MOVE "CREP911.CRET904"   TO CREB000-NMOBJECT
+               SET  CREB000-SLCT        TO TRUE
+               SET  CREB000-MSGSGBD     TO TRUE
+           END-EVALUATE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-READ-IDTIPDLG         SECTION.
+
+           PERFORM
+           VARYING WS-ARRYNDX1 FROM 1 BY 1
+             UNTIL WS-ARRYNDX1 > KV-IDTIPDLG-OCC
+             OR    KV-IDTIPDLG-ID(WS-ARRYNDX1) = CREB961-IDTIPDLG-V
+               CONTINUE
+           END-PERFORM
+           IF  WS-ARRYNDX1 <= KV-IDTIPDLG-OCC
+               MOVE KV-IDTIPDLG-DS(WS-ARRYNDX1) TO CREB961-DSTIPDLG-V
+           ELSE
+               MOVE CREB950-DSABRVNF            TO CREB961-DSTIPDLG-V
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-FRMT-CRET905-CHAV     SECTION.
+
+           MOVE CREB961-IDPRCAPL-V     TO IDPRCAPL OF CRET905
+           MOVE CREB961-NMVARDLG-V     TO NMVARDLG OF CRET905
+           IF  CREB000-DOMODFY OR CREB000-DONULFY
+               MOVE CREB000-DHMDFREG   TO DHMDFREG OF CRET905
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-FRMT-CRET905-ATRB     SECTION.
+
+           MOVE CREB961-DSVALVAR-V     TO DSVALVAR OF CRET905
+           MOVE CREB961-MCARADLG-V     TO MCARADLG OF CRET905
+           MOVE CREB961-IDGSTLDV-V     TO IDPRGGST OF CRET905
+           EVALUATE TRUE
+           WHEN CREB000-DOCREAT
+               MOVE CREB000-IDUTILIZ   TO IDUTLCRI OF CRET905
+               MOVE CREB950-TMSTPMIN   TO DHMDFREG OF CRET905
+           WHEN CREB000-DOMODFY
+               MOVE CREB000-IDUTILIZ   TO IDUTLMDF OF CRET905
+           END-EVALUATE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-INSR-CRET905          SECTION.
+
+           EXEC SQL INSERT INTO CRET905
+                         ( IDPRCAPL
+                         , NMVARDLG
+                         , DSVALVAR
+                         , MCARADLG
+                         , IDPRGGST
+                         , DHMDFREG
+                         , IDUTLMDF
+                         , DHCRIREG
+                         , IDUTLCRI
+                         )
+                    VALUES
+                         ( :CRET905.IDPRCAPL
+                         , :CRET905.NMVARDLG
+                         , :CRET905.DSVALVAR
+                         , :CRET905.MCARADLG
+                         , :CRET905.IDPRGGST
+                         , :CRET905.DHMDFREG
+                         , :CRET905.IDUTLMDF
+                         , CURRENT TIMESTAMP
+                         , :CRET905.IDUTLCRI
+                         )                                     END-EXEC
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           IF  NOT SQLCODE-OK
+               MOVE CREB950-SQLCODE   TO CREB000-CDRETORN
+               MOVE "CREP911.CRET905" TO CREB000-NMOBJECT
+               SET  CREB000-INSR      TO TRUE
+               SET  CREB000-MSGSGBD   TO TRUE
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-UPDT-CRET905          SECTION.
+
+           EXEC SQL UPDATE CRET905
+                       SET DSVALVAR = :CRET905.DSVALVAR
+                         , MCARADLG = :CRET905.MCARADLG
+                         , IDPRGGST = :CRET905.IDPRGGST
+                         , DHMDFREG = CURRENT TIMESTAMP
+                         , IDUTLMDF = :CRET905.IDUTLMDF
+                     WHERE IDPRCAPL = :CRET905.IDPRCAPL
+                       AND NMVARDLG = :CRET905.NMVARDLG
+                       AND DHMDFREG = :CRET905.DHMDFREG        END-EXEC
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+               CONTINUE
+           WHEN SQLCODE-NOTFOUND
+               SET  CREB950-FUNCAO-INTERRP TO TRUE
+               SET  CREB000-MSGFUNC        TO TRUE
+           WHEN OTHER
+               MOVE CREB950-SQLCODE        TO CREB000-CDRETORN
+               MOVE "CREP911.CRET905"      TO CREB000-NMOBJECT
+               SET  CREB000-UPDT           TO TRUE
+               SET  CREB000-MSGSGBD        TO TRUE
+           END-EVALUATE
+           .
+       P9000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P9000-DELT-CRET905          SECTION.
+
+           EXEC SQL DELETE FROM CRET905
+                     WHERE IDPRCAPL = :CRET905.IDPRCAPL
+                       AND NMVARDLG = :CRET905.NMVARDLG
+                       AND DHMDFREG = :CRET905.DHMDFREG        END-EXEC
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+               CONTINUE
+           WHEN SQLCODE-NOTFOUND
+               SET  CREB950-FUNCAO-INTERRP TO TRUE
+               SET  CREB000-MSGFUNC        TO TRUE
+           WHEN OTHER
+               MOVE CREB950-SQLCODE        TO CREB000-CDRETORN
+               MOVE "CREP911.CRET905"      TO CREB000-NMOBJECT
+               SET  CREB000-DELT           TO TRUE
+               SET  CREB000-MSGSGBD        TO TRUE
+           END-EVALUATE
+           .
+       P9000-EXIT.                 EXIT.
+      *--- FIM DO PROGRAMA CREP911 ------------------------------------*

@@ -1,0 +1,2013 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    BPRPIMORX   INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2017-MAR-13.
+     š*---------------------------------------------------------------+*
+     š*   APLICACO .......: BPR - Reporting Prudencial                **
+     š*   OBJECTIVO ......: Geração do Ficheior IMOREP                **
+     š*                     a enviar ao Banco de Portugal             *
+     š*   ANALISTA .......: PEDRO GARCIA                              **
+     š*   PROGRAMADOR.....:                                           **
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *------------------------------------------------------------------------*
+       FILE-CONTROL.
+      *------------------------------------------------------------------------*
+           SELECT BPRFIMORA
+                  ASSIGN TO DATABASE-BPRFIMORA
+                  ORGANIZATION IS SEQUENTIAL
+                  ACCESS MODE  IS SEQUENTIAL
+                  FILE STATUS  IS GRS-FILE-STATUS.
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+       FD  BPRFIMORA.
+       01  REG-BPRFIMORA.
+           COPY DDS-ALL-FORMATS OF BPRFIMORA.
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 GRS-FILE-STATUS            PIC XX.
+
+       01 EXECUTA-P001               PIC 9(01).
+          88 INICIO-P001             VALUE 0.
+          88 FIM-P001                VALUE 1.
+
+       01 EXECUTA-P002               PIC 9(01).
+          88 INICIO-P002             VALUE 0.
+          88 FIM-P002                VALUE 1.
+
+       01 FIL-QUADRO0                PIC 9(01).
+          88 SIM-FILQ0               VALUE 0.
+          88 NAO-FILQ0               VALUE 1.
+
+       01 FIL-QUADRO1                PIC 9(01).
+          88 SIM-FILQ1               VALUE 0.
+          88 NAO-FILQ1               VALUE 1.
+
+       01 FIL-QUADRO2                PIC 9(01).
+          88 SIM-FILQ2               VALUE 0.
+          88 NAO-FILQ2               VALUE 1.
+
+       01 FIL-QUADRO3                PIC 9(01).
+          88 SIM-FILQ3               VALUE 0.
+          88 NAO-FILQ3               VALUE 1.
+
+       01 FIL-QUADRO4                PIC 9(01).
+          88 SIM-FILQ4               VALUE 0.
+          88 NAO-FILQ4               VALUE 1.
+      *
+       01 PGM-STATUS                 PIC 9(01).
+          88 SEM-ERRO                VALUE 0.
+          88 COM-ERRO                VALUE 1.
+
+       01 NR-ADM                     PIC 9(06) VALUE ZEROS.
+       01 NR-READ                    PIC 9(06) VALUE ZEROS.
+       01 NR-PROC                    PIC 9(06) VALUE ZEROS.
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-ANOIN                PIC X(04).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-DIAIN                PIC X(02).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01 WX-ANO-CONVER.
+          03 WS-ANO-12               PIC X(02).
+          03 WS-ANO-34               PIC X(02).
+
+       01  W-CONSTANTS.
+           05  K-APLICACAO           PIC X(3)    VALUE "BPC".
+           05  K-PROGRAMA            PIC X(8)    VALUE "BPRPIMORX".
+
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+     š* ------------------------------------------------------
+     š* Linha com XML gerado HardCode pelo programa
+       01 XML-OUTPUT       PIC X(1000).
+
+       01 Ws-dtCriacao.
+          05 ws-Data         PIC X(10).
+          05 ws-SepT         PIC X(1).
+          05 ws-HH           PIC X(2).
+          05 ws-SepH         PIC X(1).
+          05 ws-MM           PIC X(2).
+          05 ws-SepM         PIC X(1).
+          05 ws-SS           PIC X(2).
+
+     š* ------------------------------------------------------
+       01 WS-STRING.
+          05 WS-STRING-CHR         PIC X           OCCURS 300.
+       01 WS-VAL-TAG-A             PIC X(80).
+       01 WS-NOME-TAG              PIC X(80).
+       01 WS-VAL-TAG-L             PIC S9(4)       COMP   VALUE 0.
+       01 WS-NOM-TAG-L             PIC S9(4)       COMP   VALUE 0.
+     š* ------------------------------------------------------
+     š* Determina Comprimento de uma String
+       01 WS-POS-I                 PIC S9(4)       COMP   VALUE 0.
+       01 WS-POS-S                 PIC S9(4)       COMP   VALUE 0.
+       01 WS-POS-XML               PIC S9(4)       COMP   VALUE 0.
+       01 WS-STRING-L              PIC S9(4)       COMP   VALUE 0.
+       01 W-NUM                    PIC 9(3).
+       01 Edit-Nbr-Tx PIC      -----9,99999.
+       01 Edit-Nbr-Mn PIC      --------9,99.
+       01 Edit-Nbr-In PIC      -----------9.
+
+     š* Campos de Caracteres Invalidos
+        01 CHAR-TESTE                PIC X.
+           88 CARACTER-VALIDO      VALUE
+      *                             - letras minusculas
+                                          "a", "b", "c", "d", "e",
+                                          "f", "g", "h", "i", "j",
+                                          "k", "l", "m", "n", "o",
+                                          "p", "q", "r", "s", "t",
+                                          "u", "v", "w", "x", "y",
+                                          "z",
+      *                             - letras maiusculas
+                                          "A", "B", "C", "D", "E",
+                                          "F", "G", "H", "I", "J",
+                                          "K", "L", "M", "N", "O",
+                                          "P", "Q", "R", "S", "T",
+                                          "U", "V", "W", "X", "Y",
+                                          "Z",
+      *                             - numeros
+                                          "0", "1", "2", "3", "4",
+                                          "5", "6", "7", "8", "9",
+      *                             - outros
+                                          " ", "/", "-", "?", ":",
+                                          "(", ")", ".", ",",
+                                          "+", "_".
+
+      * "'" passou a ser considerado invalido
+
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+
+       01  WS-CONTEXT     PIC X(25).
+       01  WS-COUNT       PIC S9(5).
+       01  WS-DATAREF     PIC X(10).
+       01  WS-TST-DATE    PIC X(10).
+       01  WS-VAL-DATE    PIC X(10).
+       01  WS-OUT-DATE    PIC X(10).
+
+     š* Copy : Tabela XMP BP - CENT - Comunicação de Entidades
+       01  R-JIMOR.
+           COPY DDS-ALL-FORMATS OF BPRJIMORA.
+
+     š* Copy : Tabela de KYCT900A
+       01  R-KYCT900A.
+           COPY DDS-ALL-FORMATS OF KYCT900A.
+
+     š* Cursor Contextos
+           EXEC SQL DECLARE CURJCONT CURSOR FOR
+            SELECT    DISTINCT
+                      CONTEXT
+                FROM  BPRJIMORA A
+           END-EXEC.
+
+     š* Cursor Contextos
+           EXEC SQL DECLARE CURJDIM  CURSOR FOR
+            SELECT    DISTINCT
+                      DIM0
+                   ,  DIMVAL0
+                   ,  DIM1
+                   ,  DIMVAL1
+                   ,  DIM2
+                   ,  DIMVAL2
+                   ,  DIM3
+                   ,  DIMVAL3
+                   ,  DIM4
+                   ,  DIMVAL4
+                   ,  DIM5
+                   ,  DIMVAL5
+                   ,  CONTEXT
+                FROM  BPRJIMORA A
+                WHERE CONTEXT =:WS-CONTEXT
+           END-EXEC.
+
+     š* Cursor Factos
+           EXEC SQL DECLARE CURJIMOR CURSOR FOR
+            SELECT    QUADRO
+                   ,  FACTID
+                   ,  TAG
+                   ,  TPTAG
+                   ,  VALTAGN
+                   ,  CDUNIT
+                   ,  NRDEC
+                   ,  VALTAGA
+                   ,  DIM0
+                   ,  DIMTYP0
+                   ,  DIMVAL0
+                   ,  DIM1
+                   ,  DIMVAL1
+                   ,  DIM2
+                   ,  DIMVAL2
+                   ,  DIM3
+                   ,  DIMVAL3
+                   ,  DIM4
+                   ,  DIMVAL4
+                   ,  DIM5
+                   ,  DIMVAL5
+                   ,  CONTEXT
+                FROM  BPRJIMORA A
+                WHERE ( TPTAG = "A"  AND
+                        VALTAGA <> " " )
+                  OR ( TPTAG = "D"  AND
+                       VALTAGA <> " " )
+                  OR  TPTAG = "N"
+                  OR  TPTAG = "L"
+
+           END-EXEC.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       PROCEDURE DIVISION.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+           PERFORM P002-INICIO.
+           PERFORM P002-UPDATE-CONTEXTOS
+           PERFORM P002-SET-FIL-QUADROS
+           PERFORM P300-OPEN-XBRL-FILE
+     š*- Gera Tags xbrli:xbrl                                          -----
+           PERFORM P300-GERA-TAG-XBRL
+           PERFORM P300-GERA-TAG-SCHEMAREF
+     š*- Gera Tags xbrli:context                                       -----
+           PERFORM P100-OPEN-CURSOR-CURJCONT
+           PERFORM P200-FETCH-CURSOR-CURJCONT
+           PERFORM P300-PROCESSO-CONT
+                           UNTIL FIM-P001
+           PERFORM P400-CLOSE-CURSOR-CURJCONT
+     š*- Gera Tags xbrli:unit                                          -----
+           PERFORM P300-GERA-TAG-Context-filing
+     š*- Gera Tags xbrli:unit                                          -----
+           PERFORM P300-GERA-TAG-Context-pure
+     š*- Gera Tags xbrli:unit                                          -----
+           PERFORM P300-GERA-TAG-Context-Eur
+     š*- Gera Tags find:fIndicators                                    -----
+           PERFORM P300-GERA-TAG-fIndicators
+     š*- Gera Tags bdp_met:                                            -----
+           PERFORM P100-OPEN-CURSOR-CURJIMOR.
+           PERFORM P200-FETCH-CURSOR-CURJIMOR.
+           PERFORM P300-PROCESSO-IMOR
+                           UNTIL FIM-P001
+           PERFORM P400-CLOSE-CURSOR-CURJIMOR
+           PERFORM P300-CLOSE-TAG-XBRL.
+           PERFORM P999-FIMPGM.
+     š*---------------------------------------------------------------------
+       P002-INICIO.
+     š*---------------------------------------------------------------------
+           SET  INICIO-P001         TO  TRUE.
+           EXEC SQL
+              DELETE FROM BPRFIMORA
+           END-EXEC.
+
+           MOVE 1 TO WS-POS-XML
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10) TO WS-DATA-DIA.
+
+           MOVE "2017-12-31" TO WS-DATAREF.
+
+     š*---------------------------------------------------------------------
+       P002-UPDATE-CONTEXTOS.
+     š*---------------------------------------------------------------------
+
+           EXEC SQL
+            DELETE FROM BPRJCONT
+           END-EXEC.
+
+           EXEC SQL
+                INSERT INTO BPRJCONT
+                SELECT
+                  " "
+                ,  A.DIMVAL0
+                ,  A.DIMVAL1
+                ,  A.DIMVAL2
+                ,  A.DIMVAL3
+                ,  A.DIMVAL4
+                ,  A.DIMVAL5
+               FROM BPRJIMORA A
+               GROUP BY  DIMVAL0, DIMVAL1, DIMVAL2, DIMVAL3, DIMVAL4 ,
+                         DIMVAL5
+           END-EXEC.
+
+           EXEC SQL
+                UPDATE  BPRJCONT a
+                SET CONTEXT = "Context" || (rrn(a))
+           END-EXEC
+
+     š*-- Gera Contexto                                                -----
+
+           EXEC SQL
+           UPDATE BPRJIMORA A
+           SET CONTEXT = ( SELECT CONTEXT
+               FROM BPRJCONT B
+               WHERE A.DIMVAL1 = B.DIMVAL1
+                AND  A.DIMVAL2 = B.DIMVAL2
+                AND  A.DIMVAL3 = B.DIMVAL3
+                AND  A.DIMVAL4 = B.DIMVAL4
+                AND  A.DIMVAL5 = B.DIMVAL5
+                AND  A.DIMVAL0 = B.DIMVAL0 )
+           END-EXEC.
+     š*---------------------------------------------------------------------
+       P002-SET-FIL-QUADROS.
+     š*---------------------------------------------------------------------
+     š*-Init Flags                                                     -----
+           SET NAO-FILQ0 TO TRUE.
+           SET NAO-FILQ1 TO TRUE.
+           SET NAO-FILQ2 TO TRUE.
+           SET NAO-FILQ3 TO TRUE.
+           SET NAO-FILQ4 TO TRUE.
+           MOVE ZEROS TO WS-COUNT.
+
+     š*-Init Flags 0                                                   -----
+           EXEC SQL
+                SELECT COUNT(*)
+                INTO  :WS-COUNT
+                FROM   BPRJIMORA
+                WHERE  QUADRO = "IMO 00.01"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              IF WS-COUNT > 0
+                SET SIM-FILQ0 TO TRUE
+              END-IF
+           WHEN OTHER
+              MOVE "FQUADRO0"          TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-Init Flags 1                                                   -----
+           MOVE ZEROS TO WS-COUNT.
+           EXEC SQL
+                SELECT COUNT(*)
+                INTO  :WS-COUNT
+                FROM   BPRJIMORA
+                WHERE  QUADRO = "IMO 01.00.a"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              IF WS-COUNT > 0
+                SET SIM-FILQ1 TO TRUE
+              END-IF
+           WHEN OTHER
+              MOVE "FQUADRO1"          TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*-Init Flags 2                                                   -----
+           MOVE ZEROS TO WS-COUNT.
+           EXEC SQL
+                SELECT COUNT(*)
+                INTO  :WS-COUNT
+                FROM   BPRJIMORA
+                WHERE  QUADRO = "IMO 02.00.a"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              IF WS-COUNT > 0
+                SET SIM-FILQ2 TO TRUE
+              END-IF
+           WHEN OTHER
+              MOVE "FQUADRO2"          TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*-Init Flags 3                                                   -----
+           MOVE ZEROS TO WS-COUNT.
+           EXEC SQL
+                SELECT COUNT(*)
+                INTO  :WS-COUNT
+                FROM   BPRJIMORA
+                WHERE  QUADRO = "IMO 03.00.a"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              IF WS-COUNT > 0
+                SET SIM-FILQ3 TO TRUE
+              END-IF
+           WHEN OTHER
+              MOVE "FQUADRO3"          TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*-Init Flags 4                                                   -----
+           MOVE ZEROS TO WS-COUNT.
+           EXEC SQL
+                SELECT COUNT(*)
+                INTO  :WS-COUNT
+                FROM   BPRJIMORA
+                WHERE  QUADRO = "IMO 04.00.a"
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              IF WS-COUNT > 0
+                SET SIM-FILQ4 TO TRUE
+              END-IF
+           WHEN OTHER
+              MOVE "FQUADRO4"          TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P300-OPEN-XBRL-FILE.
+     š*---------------------------------------------------------------------
+           PERFORM P300-BPRFIMORA-OPEN
+           IF SEM-ERRO
+             INITIALIZE REG-BPRFIMORA  XML-OUTPUT
+           END-IF.
+     š*---------------------------------------------------------------------
+       P100-OPEN-CURSOR-CURJCONT.
+     š*---------------------------------------------------------------------
+           INITIALIZE  R-JIMOR
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           EXEC SQL
+                OPEN CURJCONT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-P001         TO TRUE
+           WHEN OTHER
+              SET  FIM-P001            TO TRUE
+              MOVE "CURJCONT"          TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P200-FETCH-CURSOR-CURJCONT.
+     š*---------------------------------------------------------------------
+
+           EXEC SQL FETCH CURJCONT
+                     INTO  :WS-CONTEXT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             ADD 1 TO NR-READ
+           WHEN SQLCODE-NOTFOUND
+              SET  FIM-P001          TO TRUE
+           WHEN OTHER
+              SET   FIM-P001         TO TRUE
+              MOVE "CURJCONT"        TO W-OBJECT-NAME
+              SET   CMD-FETCH-CURSOR TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P100-OPEN-CURSOR-CURJDIM.
+     š*---------------------------------------------------------------------
+           INITIALIZE  R-JIMOR
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+
+           EXEC SQL
+                OPEN CURJDIM
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-P002         TO TRUE
+           WHEN OTHER
+              SET  FIM-P002            TO TRUE
+              MOVE "CURJDIM"           TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P200-FETCH-CURSOR-CURJDIM.
+     š*---------------------------------------------------------------------
+
+           EXEC SQL FETCH CURJDIM
+                     INTO  :BPRJIMORA.DIM0
+                         , :BPRJIMORA.DIMVAL0
+                         , :BPRJIMORA.DIM1
+                         , :BPRJIMORA.DIMVAL1
+                         , :BPRJIMORA.DIM2
+                         , :BPRJIMORA.DIMVAL2
+                         , :BPRJIMORA.DIM3
+                         , :BPRJIMORA.DIMVAL3
+                         , :BPRJIMORA.DIM4
+                         , :BPRJIMORA.DIMVAL4
+                         , :BPRJIMORA.DIM5
+                         , :BPRJIMORA.DIMVAL5
+                         , :BPRJIMORA.CONTEXT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             ADD 1 TO NR-READ
+           WHEN SQLCODE-NOTFOUND
+              SET  FIM-P002          TO TRUE
+           WHEN OTHER
+              SET   FIM-P002         TO TRUE
+              MOVE "CURJDIM"         TO W-OBJECT-NAME
+              SET   CMD-FETCH-CURSOR TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P100-OPEN-CURSOR-CURJIMOR.
+     š*---------------------------------------------------------------------
+           INITIALIZE  R-JIMOR
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           EXEC SQL
+                OPEN CURJIMOR
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-P001         TO TRUE
+           WHEN OTHER
+              SET  FIM-P001            TO TRUE
+              MOVE "CURJIMOR"          TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P200-FETCH-CURSOR-CURJIMOR.
+     š*---------------------------------------------------------------------
+
+           EXEC SQL FETCH CURJIMOR
+                     INTO  :BPRJIMORA.QUADRO
+                         , :BPRJIMORA.FACTID
+                         , :BPRJIMORA.TAG
+                         , :BPRJIMORA.TPTAG
+                         , :BPRJIMORA.VALTAGN
+                         , :BPRJIMORA.CDUNIT
+                         , :BPRJIMORA.NRDEC
+                         , :BPRJIMORA.VALTAGA
+                         , :BPRJIMORA.DIM0
+                         , :BPRJIMORA.DIMTYP0
+                         , :BPRJIMORA.DIMVAL0
+                         , :BPRJIMORA.DIM1
+                         , :BPRJIMORA.DIMVAL1
+                         , :BPRJIMORA.DIM2
+                         , :BPRJIMORA.DIMVAL2
+                         , :BPRJIMORA.DIM3
+                         , :BPRJIMORA.DIMVAL3
+                         , :BPRJIMORA.DIM4
+                         , :BPRJIMORA.DIMVAL4
+                         , :BPRJIMORA.DIM5
+                         , :BPRJIMORA.DIMVAL5
+                         , :BPRJIMORA.CONTEXT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             ADD 1 TO NR-READ
+           WHEN SQLCODE-NOTFOUND
+              SET  FIM-P001          TO TRUE
+           WHEN OTHER
+              SET   FIM-P001         TO TRUE
+              MOVE "CURJIMOR"        TO W-OBJECT-NAME
+              SET   CMD-FETCH-CURSOR TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P300-PROCESSO-CONT.
+     š*---------------------------------------------------------------------
+           IF SEM-ERRO
+     š*- Gera Contexto
+              PERFORM P300-OPEN-TAG-context
+              PERFORM P300-GERA-TAG-entity
+              PERFORM P300-GERA-TAG-period
+              PERFORM P300-GERA-TAG-scenario
+              PERFORM P300-CLOSE-TAG-context
+           END-IF.
+           IF SEM-ERRO
+     š*- Novo Ciclo
+              PERFORM P200-FETCH-CURSOR-CURJCONT
+           END-IF.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-XBRL.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+     š*-XML Doc Declaration
+           MOVE "<?xml version='1.0' encoding='UTF-8'?>"
+                       TO XML-OUTPUT.
+
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+     š*-XML Comment
+           INITIALIZE XML-OUTPUT
+           MOVE "<!--(C) Banco de Portugal-->"
+                       TO XML-OUTPUT.
+
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+     š*-XBRL Declaration
+           INITIALIZE XML-OUTPUT
+           STRING "<xbrli:xbrl "
+           "xmlns:eba_BT="
+           "'http://www.eba.europa.eu/xbrl/crr/dict/dom/BT' "
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:xsi="
+           "'http://www.w3.org/2001/XMLSchema-instance' "
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:xlink="
+           "'http://www.w3.org/1999/xlink' "
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:eba_BA="
+           "'http://www.eba.europa.eu/xbrl/crr/dict/dom/BA'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:bdp_met="
+           "'http://www.bportugal.pt/xbrl/crr/dict/met'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:eba_AS="
+           "'http://www.eba.europa.eu/xbrl/crr/dict/dom/AS'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:find="
+           "'http://www.eurofiling.info/xbrl/ext/filing-indicators'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:bdp_eba_ZZ="
+           "'http://www.bportugal.pt/xbrl/crr/dict/dom/eba_ZZ'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:eba_GA="
+           "'http://www.eba.europa.eu/xbrl/crr/dict/dom/GA'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:bdp_SI="
+           "'http://www.bportugal.pt/xbrl/crr/dict/dom/SI'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:eba_MC="
+           "'http://www.eba.europa.eu/xbrl/crr/dict/dom/MC'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:iso4217="
+           "'http://www.xbrl.org/2003/iso4217'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:eba_SC="
+           "'http://www.eba.europa.eu/xbrl/crr/dict/dom/SC'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:eba_typ="
+           "'http://www.eba.europa.eu/xbrl/crr/dict/typ'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:xbrldi="
+           "'http://xbrl.org/2006/xbrldi'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:bdp_eba_GA="
+           "'http://www.bportugal.pt/xbrl/crr/dict/dom/eba_GA'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:eba_dim="
+           "'http://www.eba.europa.eu/xbrl/crr/dict/dim'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:eba_RF="
+           "'http://www.eba.europa.eu/xbrl/crr/dict/dom/RF'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:xbrli="
+           "'http://www.xbrl.org/2003/instance'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:bdp_eba_RP="
+           "'http://www.bportugal.pt/xbrl/crr/dict/dom/eba_RP'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:link="
+           "'http://www.xbrl.org/2003/linkbase'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:bdp_typ="
+           "'http://www.bportugal.pt/xbrl/crr/dict/typ'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:eba_PL="
+           "'http://www.eba.europa.eu/xbrl/crr/dict/dom/PL'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:eba_met="
+           "'http://www.eba.europa.eu/xbrl/crr/dict/met'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:bdp_dim="
+           "'http://www.bportugal.pt/xbrl/crr/dict/dim'"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           STRING "            xmlns:bdp_CD="
+           "'http://www.bportugal.pt/xbrl/crr/dict/dom/CD'>"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-SCHEMAREF.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+     š*-XBRL Declaration
+           STRING "<link:schemaRef xlink:type='simple' "
+           "xlink:href='http://www.bportugal.pt/pt/fr/xbrl/"
+           "crr/fws/re/i-2016-04/2017-11-30/mod/realestate_a.xsd'/>"
+           DELIMITED BY SIZE
+                       INTO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+     š*---------------------------------------------------------------------
+       P300-OPEN-TAG-context.
+     š*---------------------------------------------------------------------
+           MOVE "xbrli:context"          TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+
+           MOVE  "id"                    TO  WS-NOME-TAG
+           MOVE   WS-CONTEXT             TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+           PERFORM P300-END-TAG
+
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-entity.
+     š*---------------------------------------------------------------------
+           MOVE "<xbrli:entity>"         TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE
+
+           MOVE "xbrli:identifier"       TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+
+           MOVE  "scheme"                TO  WS-NOME-TAG
+           MOVE  "http://standards.iso.org/iso/17442"
+                                            TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+           PERFORM P300-END-TAG
+
+           MOVE   "549300V4H4USWZUCE073"  TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+
+           MOVE  "xbrli:identifier"     TO  WS-NOME-TAG
+           MOVE  SPACES                 TO  WS-VAL-TAG-A
+           PERFORM P300-CLOSE-TAG.
+
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+
+           MOVE "</xbrli:entity>"        TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-period.
+     š*---------------------------------------------------------------------
+           MOVE "<xbrli:period>"         TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+
+           MOVE "xbrli:instant"          TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG
+
+           MOVE WS-DATAREF               TO WS-TST-DATE
+           PERFORM P450-VALIDA-DATE
+           MOVE WS-OUT-DATE              TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+
+           MOVE  "xbrli:instant"         TO  WS-NOME-TAG
+           MOVE  SPACES                  TO  WS-VAL-TAG-A
+           PERFORM P300-CLOSE-TAG.
+
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           MOVE "</xbrli:period>"        TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-scenario.
+     š*---------------------------------------------------------------------
+           MOVE "<xbrli:scenario>"       TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+
+           PERFORM P100-OPEN-CURSOR-CURJDIM
+           PERFORM P200-FETCH-CURSOR-CURJDIM
+           PERFORM P300-PROCESSO-DIM
+                           UNTIL FIM-P002
+           PERFORM P400-CLOSE-CURSOR-CURJDIM
+
+           MOVE "</xbrli:scenario>"      TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-PROCESSO-DIM.
+     š*---------------------------------------------------------------------
+           IF SEM-ERRO
+              PERFORM P300-GERA-TAG-explicitMember
+           IF SEM-ERRO
+     š*- Novo Ciclo
+              PERFORM P200-FETCH-CURSOR-CURJDIM
+           END-IF.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-explicitMember.
+     š*---------------------------------------------------------------------
+     š*-Dim1                                                           -----
+           IF DIM1 OF R-JIMOR NOT EQUAL SPACES
+             MOVE "xbrldi:explicitMember"  TO  WS-NOME-TAG
+             PERFORM P300-OPEN-TAG
+             MOVE  "dimension"             TO  WS-NOME-TAG
+             MOVE  DIM1 OF R-JIMOR         TO  WS-VAL-TAG-A
+
+             PERFORM P300-ATRIBUTE
+             PERFORM P300-END-TAG
+
+             MOVE  DIMVAL1 OF R-JIMOR      TO  WS-VAL-TAG-A
+             PERFORM P300-DATA-TAG
+
+             MOVE  "xbrldi:explicitMember" TO  WS-NOME-TAG
+             MOVE  SPACES                  TO  WS-VAL-TAG-A
+             PERFORM P300-CLOSE-TAG
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT
+           END-IF.
+
+     š*-Dim2                                                           -----
+           IF DIM2 OF R-JIMOR NOT EQUAL SPACES
+             MOVE "xbrldi:explicitMember"  TO  WS-NOME-TAG
+             PERFORM P300-OPEN-TAG
+             MOVE  "dimension"             TO  WS-NOME-TAG
+             MOVE  DIM2 OF R-JIMOR         TO  WS-VAL-TAG-A
+
+             PERFORM P300-ATRIBUTE
+             PERFORM P300-END-TAG
+
+             MOVE  DIMVAL2 OF R-JIMOR      TO  WS-VAL-TAG-A
+             PERFORM P300-DATA-TAG
+
+             MOVE  "xbrldi:explicitMember" TO  WS-NOME-TAG
+             MOVE  SPACES                  TO  WS-VAL-TAG-A
+             PERFORM P300-CLOSE-TAG
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT
+           END-IF.
+
+     š*-Dim3                                                           -----
+           IF DIM3 OF R-JIMOR NOT EQUAL SPACES
+             MOVE "xbrldi:explicitMember"  TO  WS-NOME-TAG
+             PERFORM P300-OPEN-TAG
+             MOVE  "dimension"             TO  WS-NOME-TAG
+             MOVE  DIM3 OF R-JIMOR         TO  WS-VAL-TAG-A
+
+             PERFORM P300-ATRIBUTE
+             PERFORM P300-END-TAG
+
+             MOVE  DIMVAL3 OF R-JIMOR      TO  WS-VAL-TAG-A
+             PERFORM P300-DATA-TAG
+
+             MOVE  "xbrldi:explicitMember" TO  WS-NOME-TAG
+             MOVE  SPACES                  TO  WS-VAL-TAG-A
+             PERFORM P300-CLOSE-TAG
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT
+           END-IF.
+
+     š*-Dim4                                                           -----
+           IF DIM4 OF R-JIMOR NOT EQUAL SPACES
+             MOVE "xbrldi:explicitMember"  TO  WS-NOME-TAG
+             PERFORM P300-OPEN-TAG
+             MOVE  "dimension"             TO  WS-NOME-TAG
+             MOVE  DIM4 OF R-JIMOR         TO  WS-VAL-TAG-A
+
+             PERFORM P300-ATRIBUTE
+             PERFORM P300-END-TAG
+
+             MOVE  DIMVAL4 OF R-JIMOR      TO  WS-VAL-TAG-A
+             PERFORM P300-DATA-TAG
+
+             MOVE  "xbrldi:explicitMember" TO  WS-NOME-TAG
+             MOVE  SPACES                  TO  WS-VAL-TAG-A
+             PERFORM P300-CLOSE-TAG
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT
+           END-IF.
+
+     š*-Dim5                                                           -----
+           IF DIM5 OF R-JIMOR NOT EQUAL SPACES
+             MOVE "xbrldi:explicitMember"  TO  WS-NOME-TAG
+             PERFORM P300-OPEN-TAG
+             MOVE  "dimension"             TO  WS-NOME-TAG
+             MOVE  DIM5 OF R-JIMOR         TO  WS-VAL-TAG-A
+
+             PERFORM P300-ATRIBUTE
+             PERFORM P300-END-TAG
+
+             MOVE  DIMVAL5 OF R-JIMOR      TO  WS-VAL-TAG-A
+             PERFORM P300-DATA-TAG
+
+             MOVE  "xbrldi:explicitMember" TO  WS-NOME-TAG
+             MOVE  SPACES                  TO  WS-VAL-TAG-A
+             PERFORM P300-CLOSE-TAG
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT
+           END-IF.
+
+           IF DIM0 OF R-JIMOR NOT EQUAL SPACES
+              PERFORM P300-GERA-TAG-typedMember
+              INITIALIZE XML-OUTPUT
+           END-IF.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-typedMember.
+     š*---------------------------------------------------------------------
+           MOVE "xbrldi:typedMember"     TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+
+           MOVE  "dimension"             TO  WS-NOME-TAG
+           MOVE  DIM0 OF R-JIMOR         TO  WS-VAL-TAG-A
+
+           PERFORM P300-ATRIBUTE
+           PERFORM P300-END-TAG
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           MOVE "bdp_typ:IC"             TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG
+           MOVE  DIMVAL0 OF R-JIMOR      TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG
+
+           MOVE  "bdp_typ:IC"            TO  WS-NOME-TAG
+           MOVE  SPACES                  TO  WS-VAL-TAG-A
+           PERFORM P300-CLOSE-TAG
+
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           MOVE  "xbrldi:typedMember"    TO  WS-NOME-TAG
+           MOVE  SPACES                  TO  WS-VAL-TAG-A
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG-context.
+     š*---------------------------------------------------------------------
+           MOVE "</xbrli:context>"       TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-Context-pure.
+     š*---------------------------------------------------------------------
+     š*- Gera TAG Pure                                                 -----
+           MOVE "<xbrli:unit id='pure'>" TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+
+           MOVE "<xbrli:measure>xbrli:pure</xbrli:measure>"
+                                         TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+
+           MOVE "</xbrli:unit>"          TO XML-OUTPUT
+
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-Context-EUR.
+     š*---------------------------------------------------------------------
+     š*- Gera TAG EUR                                                  -----
+           MOVE "<xbrli:unit id='EUR'>"  TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+
+           MOVE "<xbrli:measure>iso4217:EUR</xbrli:measure>"
+                                         TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+
+           MOVE "</xbrli:unit>"          TO XML-OUTPUT
+
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-Context-filing.
+     š*---------------------------------------------------------------------
+     š*- Gera TAG EUR                                                  -----
+           MOVE "<xbrli:context id='context_filing_indicators'>"
+                                         TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           MOVE "<xbrli:entity>"         TO XML-OUTPUT
+
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+
+           MOVE "xbrli:identifier"       TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+
+           MOVE  "scheme"                TO  WS-NOME-TAG
+           MOVE  "http://standards.iso.org/iso/17442"
+                                            TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+           PERFORM P300-END-TAG
+
+           MOVE   "549300V4H4USWZUCE073"  TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+
+           MOVE  "xbrli:identifier"     TO  WS-NOME-TAG
+           MOVE  SPACES                 TO  WS-VAL-TAG-A
+           PERFORM P300-CLOSE-TAG.
+
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+
+           MOVE "</xbrli:entity>"        TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+
+           MOVE "<xbrli:period>"         TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+
+           MOVE "xbrli:instant"          TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG
+
+           MOVE WS-DATAREF               TO WS-TST-DATE
+           PERFORM P450-VALIDA-DATE
+           MOVE WS-OUT-DATE              TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+
+           MOVE  "xbrli:instant"         TO  WS-NOME-TAG
+           MOVE  SPACES                  TO  WS-VAL-TAG-A
+           PERFORM P300-CLOSE-TAG.
+
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           MOVE "</xbrli:period>"        TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+           INITIALIZE XML-OUTPUT
+
+           MOVE "</xbrli:context>"       TO XML-OUTPUT
+
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-fIndicators.
+     š*---------------------------------------------------------------------
+           MOVE "<find:fIndicators>"     TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+
+     š*- Fil Quadro0                                                   -----
+           IF SIM-FILQ0
+             STRING "<find:filingIndicator "
+                     "find:filed='true' "
+                     "contextRef='context_filing_indicators'>"
+                     "IMO_00.01"
+                     "</find:filingIndicator>"
+                     DELIMITED BY SIZE
+                         INTO XML-OUTPUT
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT
+           ELSE
+             STRING "<find:filingIndicator "
+                     "find:filed='false' "
+                     "contextRef='context_filing_indicators'>"
+                     "IMO_00.01"
+                     "</find:filingIndicator>"
+                     DELIMITED BY SIZE
+                         INTO XML-OUTPUT
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT
+           END-IF.
+
+     š*- Fil Quadro1                                                   -----
+           IF SIM-FILQ1
+             STRING "<find:filingIndicator "
+                     "find:filed='true' "
+                     "contextRef='context_filing_indicators'>"
+                     "IMO_01.00"
+                     "</find:filingIndicator>"
+                     DELIMITED BY SIZE
+                         INTO XML-OUTPUT
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT
+           ELSE
+             STRING "<find:filingIndicator "
+                     "find:filed='false' "
+                     "contextRef='context_filing_indicators'>"
+                     "IMO_01.00"
+                     "</find:filingIndicator>"
+                     DELIMITED BY SIZE
+                         INTO XML-OUTPUT
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT
+           END-IF.
+
+     š*- Fil Quadro2                                                   -----
+           IF SIM-FILQ2
+             STRING "<find:filingIndicator "
+                     "find:filed='true' "
+                     "contextRef='context_filing_indicators'>"
+                     "IMO_02.00"
+                     "</find:filingIndicator>"
+                     DELIMITED BY SIZE
+                         INTO XML-OUTPUT
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT
+           ELSE
+             STRING "<find:filingIndicator "
+                     "find:filed='false' "
+                     "contextRef='context_filing_indicators'>"
+                     "IMO_02.00"
+                     "</find:filingIndicator>"
+                     DELIMITED BY SIZE
+                         INTO XML-OUTPUT
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT
+           END-IF.
+     š*- Fil Quadro3                                                   -----
+           IF SIM-FILQ3
+             STRING "<find:filingIndicator "
+                     "find:filed='true' "
+                     "contextRef='context_filing_indicators'>"
+                     "IMO_03.00"
+                     "</find:filingIndicator>"
+                     DELIMITED BY SIZE
+                         INTO XML-OUTPUT
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT
+           ELSE
+             STRING "<find:filingIndicator "
+                     "find:filed='false' "
+                     "contextRef='context_filing_indicators'>"
+                     "IMO_03.00"
+                     "</find:filingIndicator>"
+                     DELIMITED BY SIZE
+                         INTO XML-OUTPUT
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT
+           END-IF.
+     š*- Fil Quadro4                                                   -----
+           IF SIM-FILQ4
+             STRING "<find:filingIndicator "
+                     "find:filed='true' "
+                     "contextRef='context_filing_indicators'>"
+                     "IMO_04.00"
+                     "</find:filingIndicator>"
+                     DELIMITED BY SIZE
+                         INTO XML-OUTPUT
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT
+           ELSE
+             STRING "<find:filingIndicator "
+                     "find:filed='false' "
+                     "contextRef='context_filing_indicators'>"
+                     "IMO_04.00"
+                     "</find:filingIndicator>"
+                     DELIMITED BY SIZE
+                         INTO XML-OUTPUT
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT
+           END-IF.
+
+     š*- Fecha TAG                                                     -----
+           MOVE "</find:fIndicators>"    TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-met.
+     š*---------------------------------------------------------------------
+     š*- Open  TAG                                                     -----
+             MOVE TAG OF R-JIMOR           TO  WS-NOME-TAG
+             PERFORM P300-OPEN-TAG
+
+             IF TPTAG = "N" AND
+                NRDEC  OF R-JIMOR NOT EQUAL SPACES
+               MOVE  "decimals"            TO  WS-NOME-TAG
+               MOVE  NRDEC OF R-JIMOR      TO  WS-VAL-TAG-A
+               PERFORM P300-ATRIBUTE
+             END-IF
+
+             MOVE  "contextRef"            TO  WS-NOME-TAG
+             MOVE CONTEXT OF R-JIMOR       TO  WS-VAL-TAG-A
+             PERFORM P300-ATRIBUTE
+
+             IF  TPTAG = "N" AND
+                CDUNIT OF R-JIMOR NOT EQUAL SPACES
+               MOVE  "unitRef"             TO  WS-NOME-TAG
+               MOVE  CDUNIT OF R-JIMOR     TO  WS-VAL-TAG-A
+               PERFORM P300-ATRIBUTE
+             END-IF
+             PERFORM P300-END-TAG
+
+             IF TPTAG = "N"
+               IF CDUNIT = "pure"
+                 MOVE  VALTAGN  OF R-JIMOR      TO  Edit-Nbr-In
+                 MOVE   Edit-Nbr-In            TO  WS-VAL-TAG-A
+                 PERFORM P300-DATA-TAG-N
+               ELSE
+                 MOVE  VALTAGN  OF R-JIMOR      TO   Edit-Nbr-Mn
+                 MOVE  Edit-Nbr-Mn             TO  WS-VAL-TAG-A
+                 PERFORM P300-DATA-TAG-N
+               END-IF
+             ELSE
+               MOVE  VALTAGA OF R-JIMOR      TO  WS-VAL-TAG-A
+               PERFORM P300-DATA-TAG
+             END-IF.
+
+     š*- Fecha TAG                                                     -----
+             MOVE TAG OF R-JIMOR           TO  WS-NOME-TAG
+             PERFORM P300-CLOSE-TAG.
+
+             MOVE XML-OUTPUT TO REG-BPRFIMORA
+             PERFORM P300-BPRFIMORA-WRITE
+             INITIALIZE XML-OUTPUT.
+
+     š*---------------------------------------------------------------------
+       P300-BPRFIMORA-OPEN.
+     š*---------------------------------------------------------------------
+           OPEN OUTPUT BPRFIMORA
+           MOVE GRS-FILE-STATUS TO W-FILE-CODE W-EDTFILC
+           IF  GRS-GOOD-IO                OR
+               GRS-FILE-ALREADY-OPENED
+               CONTINUE
+           ELSE
+               SET  FIM-P001             TO TRUE
+               MOVE "BPRPIMORX"          TO W-PROGRAMA
+               MOVE "P300-BPRFIMORA-OPEN" TO W-PARAGRAFO
+               MOVE "BPRFIMORA"           TO W-OBJECT-NAME
+               MOVE "OPEN"               TO W-CMDEXEC
+               MOVE SPACES               TO W-CHAVE
+               PERFORM  P990-ERRO-FS
+           END-IF.
+     š*---------------------------------------------------------------------
+       P400-BPRFIMORA-CLOSE.
+     š*---------------------------------------------------------------------
+           CLOSE BPRFIMORA
+           MOVE GRS-FILE-STATUS TO W-FILE-CODE W-EDTFILC
+           IF  GRS-GOOD-IO                OR
+               GRS-FILE-ALREADY-CLOSED
+               CONTINUE
+           ELSE
+               SET  FIM-P001              TO TRUE
+               MOVE "BPRPIMORX"           TO W-PROGRAMA
+               MOVE "P300-BPRFIMORA-CLOSE" TO W-PARAGRAFO
+               MOVE "BPRFIMORA"            TO W-OBJECT-NAME
+               MOVE "CLOSE"               TO W-CMDEXEC
+               MOVE SPACES                TO W-CHAVE
+               PERFORM  P990-ERRO-FS
+           END-IF.
+     š*---------------------------------------------------------------------
+       P300-BPRFIMORA-WRITE.
+     š*---------------------------------------------------------------------
+           WRITE REG-BPRFIMORA
+           MOVE GRS-FILE-STATUS TO W-FILE-CODE W-EDTFILC
+           IF  GRS-GOOD-IO       OR
+               GRS-DUP-KEY
+                INITIALIZE REG-BPRFIMORA
+                ADD 1 TO NR-PROC
+           ELSE
+               SET  FIM-P001              TO TRUE
+               MOVE "BPRPIMORX"           TO W-PROGRAMA
+               MOVE "P300-BPRFIMORA-WRITE" TO W-PARAGRAFO
+               MOVE "BPRFIMORA"            TO W-OBJECT-NAME
+               MOVE "WRITE"               TO W-CMDEXEC
+               MOVE SPACES                TO W-CHAVE
+               PERFORM  P990-ERRO-FS
+           END-IF.
+
+           MOVE 1 TO WS-POS-XML.
+
+     š*---------------------------------------------------------------------
+       P400-CLOSE-CURSOR-CURJCONT.
+     š*---------------------------------------------------------------------
+           EXEC SQL
+               CLOSE CURJCONT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  FIM-P001            TO TRUE
+           WHEN OTHER
+              SET  FIM-P001            TO TRUE
+              MOVE "CURJCONT"          TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P400-CLOSE-CURSOR-CURJDIM.
+     š*---------------------------------------------------------------------
+           EXEC SQL
+               CLOSE CURJDIM
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  FIM-P002            TO TRUE
+           WHEN OTHER
+              SET  FIM-P002            TO TRUE
+              MOVE "CURJDIM"           TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P400-CLOSE-CURSOR-CURJIMOR.
+     š*---------------------------------------------------------------------
+           EXEC SQL
+               CLOSE CURJIMOR
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  FIM-P001            TO TRUE
+           WHEN OTHER
+              SET  FIM-P001            TO TRUE
+              MOVE "CURJIMOR"          TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P300-PROCESSO-IMOR.
+     š*---------------------------------------------------------------------
+           IF SEM-ERRO
+              PERFORM P300-GERA-TAG-met
+           IF SEM-ERRO
+     š*- Novo Ciclo
+              PERFORM P200-FETCH-CURSOR-CURJIMOR
+           END-IF.
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG-XBRL.
+     š*---------------------------------------------------------------------
+     š*- Fecha TAG                                                     -----
+           MOVE "</xbrli:xbrl>"          TO XML-OUTPUT
+           MOVE XML-OUTPUT TO REG-BPRFIMORA
+           PERFORM P300-BPRFIMORA-WRITE.
+
+     š*----------------------------------------------------------------
+       P450-VALIDA-DATE.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+               SET :WS-VAL-DATE  = DATE(:WS-TST-DATE)
+           END-EXEC
+           EVALUATE SQLCODE
+              WHEN +0
+                  MOVE  WS-TST-DATE TO WS-OUT-DATE
+              WHEN -180
+                  MOVE "0001-01-01" TO WS-OUT-DATE
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P300-OPEN-TAG.
+     š*---------------------------------------------------------------------
+     š*-Trata Nome da TAG
+           MOVE WS-NOME-TAG TO WS-STRING
+           PERFORM P300-COMPRIMENTO
+           MOVE WS-STRING-L  TO WS-NOM-TAG-L
+
+           STRING "<"
+                   WS-NOME-TAG(1: WS-NOM-TAG-L)
+           DELIMITED BY SIZE INTO XML-OUTPUT
+           WITH POINTER WS-POS-XML.
+
+     š*---------------------------------------------------------------------
+       P300-ATRIBUTE.
+     š*---------------------------------------------------------------------
+     š*-Trata Valor Atributo
+           MOVE WS-VAL-TAG-A TO WS-STRING
+           IF WS-STRING  NOT = SPACES
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-VAL-TAG-L
+             MOVE WS-STRING    TO WS-VAL-TAG-A
+
+     š*-Trata Nome e Valor Atributo
+             MOVE WS-NOME-TAG TO WS-STRING
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-NOM-TAG-L
+
+             STRING  " "
+                   WS-NOME-TAG(1: WS-NOM-TAG-L)
+                   "='"
+                   WS-VAL-TAG-A(1: WS-VAL-TAG-L)
+                   "'"
+             DELIMITED BY SIZE INTO XML-OUTPUT
+             WITH POINTER WS-POS-XML.
+
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG.
+     š*---------------------------------------------------------------------
+     š*-Trata Valor da TAG
+           MOVE WS-VAL-TAG-A TO WS-STRING
+           IF  WS-VAL-TAG-A NOT = SPACES
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-VAL-TAG-L
+             MOVE WS-STRING    TO WS-VAL-TAG-A
+
+     š*-Trata Nome da TAG
+             MOVE WS-NOME-TAG TO WS-STRING
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-NOM-TAG-L
+             MOVE WS-STRING    TO WS-NOME-TAG
+
+             STRING "<"
+                   WS-NOME-TAG(1: WS-NOM-TAG-L)
+                   ">"
+                   WS-VAL-TAG-A(1: WS-VAL-TAG-L)
+                   "</"
+                   WS-NOME-TAG(1: WS-NOM-TAG-L)
+                   ">"
+             DELIMITED BY SIZE INTO XML-OUTPUT
+             WITH POINTER WS-POS-XML.
+
+     š*---------------------------------------------------------------------
+       P300-DATA-TAG.
+     š*---------------------------------------------------------------------
+     š*-Trata Valor da TAG
+           MOVE WS-VAL-TAG-A TO WS-STRING
+           IF  WS-VAL-TAG-A NOT = SPACES
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-VAL-TAG-L
+             MOVE WS-STRING    TO WS-VAL-TAG-A
+
+             STRING
+                   WS-VAL-TAG-A(1: WS-VAL-TAG-L)
+             DELIMITED BY SIZE INTO XML-OUTPUT
+             WITH POINTER WS-POS-XML
+           END-IF.
+     š*---------------------------------------------------------------------
+       P300-DATA-TAG-N.
+     š*---------------------------------------------------------------------
+     š*-Trata Valor da TAG
+           MOVE WS-VAL-TAG-A TO WS-STRING
+           IF  WS-VAL-TAG-A NOT = SPACES
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             PERFORM P300-PRIMEIRO-ESPACO
+             INSPECT WS-STRING REPLACING
+                      all "," by "."
+             MOVE WS-STRING TO WS-VAL-TAG-A
+             MOVE WS-STRING-L  TO WS-VAL-TAG-L
+
+             STRING
+                   WS-VAL-TAG-A( WS-POS-S: WS-VAL-TAG-L)
+             DELIMITED BY SIZE INTO XML-OUTPUT
+             WITH POINTER WS-POS-XML
+           END-IF.
+     š*---------------------------------------------------------------------
+       P300-ATRIBUTE-N.
+     š*---------------------------------------------------------------------
+     š*-Trata Valor da TAG
+           MOVE WS-VAL-TAG-A TO WS-STRING
+           IF  WS-VAL-TAG-A NOT = SPACES
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             PERFORM P300-PRIMEIRO-ESPACO
+             INSPECT WS-STRING REPLACING
+                      all "," by "."
+             MOVE WS-STRING TO WS-VAL-TAG-A
+             MOVE WS-STRING-L  TO WS-VAL-TAG-L
+
+     š*-Trata Nome e Valor Atributo
+             MOVE WS-NOME-TAG TO WS-STRING
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-NOM-TAG-L
+
+             STRING  " "
+                   WS-NOME-TAG(1: WS-NOM-TAG-L)
+                   "='"
+                   WS-VAL-TAG-A(WS-POS-S: WS-VAL-TAG-L)
+                   "'"
+             DELIMITED BY SIZE INTO XML-OUTPUT
+             WITH POINTER WS-POS-XML
+
+           END-IF.
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG.
+     š*---------------------------------------------------------------------
+     š*-Trata Nome da TAG
+           MOVE WS-NOME-TAG TO WS-STRING
+           PERFORM P300-COMPRIMENTO
+           MOVE WS-STRING-L  TO WS-NOM-TAG-L
+
+           STRING
+                "</"
+                WS-NOME-TAG(1: WS-NOM-TAG-L)
+                ">"
+
+           DELIMITED BY SIZE INTO XML-OUTPUT
+           WITH POINTER WS-POS-XML.
+
+     š*---------------------------------------------------------------------
+       P300-END-TAG.
+     š*---------------------------------------------------------------------
+           STRING ">"
+           DELIMITED BY SIZE INTO XML-OUTPUT
+           WITH POINTER WS-POS-XML.
+     š*---------------------------------------------------------------------
+       P300-COMPRIMENTO.
+     š*---------------------------------------------------------------------
+     š*--Retira Espaços  WS-STRING
+     š*- WY -Comprimento Final
+           MOVE ZEROES TO WS-POS-I.
+           INSPECT FUNCTION REVERSE(WS-STRING)
+                   TALLYING WS-POS-I      FOR LEADING SPACE.
+           COMPUTE  WS-STRING-L = LENGTH OF WS-STRING  -  WS-POS-I.
+     š*---------------------------------------------------------------------
+       P300-PRIMEIRO-ESPACO.
+     š*---------------------------------------------------------------------
+     š*--Retira Espaços  WS-STRING(1:WS-STRING-L)
+           MOVE ZEROES TO WS-POS-S.
+           INSPECT WS-STRING(1:WS-STRING-L)
+                   TALLYING WS-POS-S      FOR LEADING SPACE.
+           COMPUTE  WS-STRING-L = WS-STRING-L -  WS-POS-S.
+           ADD 1 TO WS-POS-S.
+     š*---------------------------------------------------------------------
+       P300-RETIRA-CARAC-ESPECIAIS.
+     š*---------------------------------------------------------------------
+     š*-Retira Caracters Invalidos de WS-STRING
+           PERFORM P300-UTLS001-TESTA
+                   VARYING W-NUM FROM 1 BY 1
+                   UNTIL W-NUM > LENGTH OF WS-STRING.
+
+     š*---------------------------------------------------------------------
+       P300-UTLS001-TESTA.
+     š*---------------------------------------------------------------------
+           MOVE WS-STRING-CHR(W-NUM)  TO CHAR-TESTE.
+           IF   NOT CARACTER-VALIDO
+                PERFORM  P300-UTLS001-ALTERA
+           END-IF.
+
+     š*---------------------------------------------------------------------
+       P300-UTLS001-ALTERA.
+     š*---------------------------------------------------------------------
+           EVALUATE  TRUE
+
+            WHEN WS-STRING-CHR(W-NUM) = "à" OR
+                 WS-STRING-CHR(W-NUM) = "á" OR
+                 WS-STRING-CHR(W-NUM) = "â" OR
+                 WS-STRING-CHR(W-NUM) = "ã" OR
+                 WS-STRING-CHR(W-NUM) = "ä" OR
+                 WS-STRING-CHR(W-NUM) = "ª"
+              MOVE "a" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "ç"
+              MOVE "c" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "é" OR
+                 WS-STRING-CHR(W-NUM) = "è" OR
+                 WS-STRING-CHR(W-NUM) = "ê" OR
+                 WS-STRING-CHR(W-NUM) = "ë"
+              MOVE "e" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "í" OR
+                 WS-STRING-CHR(W-NUM) = "ì" OR
+                 WS-STRING-CHR(W-NUM) = "ï"
+              MOVE "i" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "ñ"
+              MOVE "n" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "ó" OR
+                 WS-STRING-CHR(W-NUM) = "ò" OR
+                 WS-STRING-CHR(W-NUM) = "õ" OR
+                 WS-STRING-CHR(W-NUM) = "ö"
+              MOVE "o" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "ú" OR
+                 WS-STRING-CHR(W-NUM) = "ù" OR
+                 WS-STRING-CHR(W-NUM) = "û" OR
+                 WS-STRING-CHR(W-NUM) = "ü"
+              MOVE "u" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Á" OR
+                 WS-STRING-CHR(W-NUM) = "À" OR
+                 WS-STRING-CHR(W-NUM) = "Ã" OR
+                 WS-STRING-CHR(W-NUM) = "Â" OR
+                 WS-STRING-CHR(W-NUM) = "Ä"
+              MOVE "A" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Ç"
+              MOVE "C" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "É" OR
+                 WS-STRING-CHR(W-NUM) = "È" OR
+                 WS-STRING-CHR(W-NUM) = "Ê" OR
+                 WS-STRING-CHR(W-NUM) = "Ë"
+              MOVE "E" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Í" OR
+                 WS-STRING-CHR(W-NUM) = "Ì" OR
+                 WS-STRING-CHR(W-NUM) = "Ï"
+              MOVE "I" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Ñ"
+              MOVE "N" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Ó" OR
+                 WS-STRING-CHR(W-NUM) = "Ò" OR
+                 WS-STRING-CHR(W-NUM) = "Õ" OR
+                 WS-STRING-CHR(W-NUM) = "Ô" OR
+                 WS-STRING-CHR(W-NUM) = "Ö"
+              MOVE "O" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Ú" OR
+                 WS-STRING-CHR(W-NUM) = "Ù" OR
+                 WS-STRING-CHR(W-NUM) = "Û" OR
+                 WS-STRING-CHR(W-NUM) = "Ü"
+              MOVE "U" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "\"
+              MOVE "/" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "[" OR
+                 WS-STRING-CHR(W-NUM) = "{"
+              MOVE "(" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "]" OR
+                 WS-STRING-CHR(W-NUM) = "}"
+              MOVE ")" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = """" OR
+                 WS-STRING-CHR(W-NUM) = "«"  OR
+                 WS-STRING-CHR(W-NUM) = "»"
+              MOVE "'" TO WS-STRING-CHR(W-NUM)
+
+            WHEN OTHER
+              MOVE " " TO WS-STRING-CHR(W-NUM)
+
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P990-ERRO-FS.
+     š*---------------------------------------------------------------------
+           EVALUATE TRUE
+           WHEN GRS-READ-DUP-KEY
+                  STRING "ERRO DE DADOS: CHAVE DUPLICADA NO FICHEIRO <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-FS
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ ERRO    <"
+                      W-EDTFILC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-FS
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           SET  COM-ERRO        TO TRUE
+           MOVE  1              TO ERRRTC   OF  KYCT900A
+           MOVE W-FILE-CODE     TO ERRCOD   OF  KYCT900A
+           MOVE MSG-ERRO-FS     TO ERRMSG   OF  KYCT900A
+           MOVE "BPRPIMORX"       TO ERRPRG   OF  KYCT900A
+           MOVE "BPC"           TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE W-CMDEXEC       TO ERRCMD   OF  KYCT900A
+           MOVE W-PARAGRAFO     TO ERRFLD   OF  KYCT900A
+
+           PERFORM    P995-INSERT-ERROS.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           SET  COM-ERRO        TO TRUE
+           MOVE MSG-ERRO-SQL    TO ERRMSG   OF  KYCT900A
+           MOVE W-SQLCODE       TO ERRCOD   OF  KYCT900A
+           MOVE "SQL"           TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE  2              TO ERRRTC   OF  KYCT900A
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "BPRPIMORX"      TO  ERRPRG OF KYCT900A.
+           MOVE   " "              TO  RACINE OF KYCT900A.
+
+           EXEC SQL  INSERT
+                INTO KYCT900A
+                VALUES  (
+                           :KYCT900A.RACINE
+                         , :KYCT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :KYCT900A.ERRRTC
+                         , :KYCT900A.ERRCOD
+                         , :KYCT900A.ERRMSG
+                         , :KYCT900A.ERRPRG
+                         , :KYCT900A.ERRAPL
+                         , :KYCT900A.ERROBJ
+                         , :KYCT900A.ERRFLD
+                         , :KYCT900A.ERRCMD
+                         , :KYCT900A.ERRKEY1
+                         , :KYCT900A.ERRVAL1
+                         , :KYCT900A.ERRKEY2
+                         , :KYCT900A.ERRVAL2 )
+           END-EXEC.
+
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "KYCT900A"       TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P999-FIMPGM.
+     š*---------------------------------------------------------------------
+           EXIT PROGRAM.
+           STOP RUN.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA BPRPIMORX
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+

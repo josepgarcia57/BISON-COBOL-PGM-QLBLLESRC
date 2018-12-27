@@ -1,0 +1,592 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    BPCSPFIN1   INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2017-MAR-13.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: BPC - Centralização de Responsabilidades   *
+     š*   OBJECTIVO ......: Este Interface destina-se a Extrair Info   *
+     š*                     Periódica de Entidade de Instrumentos      *
+     š*   ANALISTA .......: PEDRO GARCIA                               *
+     š*   PROGRAMADOR.....:                                            *
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 ENVIADA-INFO               PIC 9(01).
+          88 SIM-ENVIADA             VALUE 1.
+          88 NAO-ENVIADA             VALUE 0.
+      *
+       01 EXECUTA-P001               PIC 9(01).
+          88 INICIO-P001             VALUE 0.
+          88 FIM-P001                VALUE 1.
+      *
+       01 EXECUTA-CURINT             PIC 9(01).
+          88 INICIO-CURINT           VALUE 0.
+          88 FIM-CURINT              VALUE 1.
+      *
+       01 NR-ADM                     PIC 9(06) VALUE ZEROS.
+       01 NR-READ                    PIC 9(06) VALUE ZEROS.
+       01 NR-PROC                    PIC 9(06) VALUE ZEROS.
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-ANOIN                PIC X(04).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-DIAIN                PIC X(02).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01 WX-ANO-CONVER.
+          03 WS-ANO-12               PIC X(02).
+          03 WS-ANO-34               PIC X(02).
+
+       01  W-CONSTANTS.
+           05  K-APLICACAO           PIC X(3)    VALUE "BPC".
+           05  K-PROGRAMA            PIC X(9)    VALUE "BPCSPFIN1".
+
+     š* Indice para Pesquisa de String
+       01 S-CHAR-L                   PIC S9(4)   COMP.
+       01 S-CHAR-V                   PIC X(50).
+       01 W-CHAR.
+          03 W-NOMECHR               PIC X       OCCURS 50.
+
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+
+       01 WS-TST-DATE      PIC X(10).
+       01 WS-VAL-DATE      PIC X(10).
+       01 WS-OUT-DATE      PIC X(10).
+
+     š* Copy : Tabela de Instrumentos
+           EXEC SQL
+               INCLUDE BPCHPFIN1
+           END-EXEC.
+
+     š* Copy : Tabela de KYCT900A
+       01  R-KYCT900A.
+           COPY DDS-ALL-FORMATS OF KYCT900A.
+
+     š* Copy : Tabela de Intervenientes
+       01  R-JCINT.
+           COPY DDS-ALL-FORMATS OF BPCJCINT.
+
+     š* Copy : Tabela de dados Financeiros
+       01  R-JPFIN.
+           COPY DDS-ALL-FORMATS OF BPCJPFIN.
+
+       01 WS-NURACI                PIC X(07).
+       01 WS-BTGRE                 PIC X(03).
+       01 WS-BTRUB                 PIC X(03).
+       01 WS-BTMON                 PIC X(03).
+       01 WS-CTID                  PIC X(03).
+       01 WS-CTCONT                PIC X(07).
+
+     š* Contrato
+       01 WS-IDCONT                PIC X(32).
+       01 WX-IDCONT REDEFINES WS-IDCONT.
+          05 WS-CTR-CONT           PIC X(03).
+          05 WS-FILLER1-CONT       PIC X(01).
+          05 WS-SEQ-CONT           PIC X(07).
+
+     š* Instrumento de Crédito
+       01 WS-IDINST                 PIC X(32).
+       01 WX-IDINT  REDEFINES WS-IDINST.
+          05 WS-RACINE-INST        PIC X(07).
+          05 WS-FILLER1            PIC X(01).
+          05 WS-GRE-INST           PIC X(03).
+          05 WS-FILLER2            PIC X(01).
+          05 WS-RUB-INST           PIC X(03).
+          05 WS-FILLER3            PIC X(01).
+          05 WS-MON-INST           PIC X(03).
+          05 WS-FILLER4            PIC X(01).
+          05 WS-CTID-INST          PIC X(03).
+          05 WS-FILLER5            PIC X(01).
+          05 WS-CTCONT-INST        PIC X(07).
+
+       01 WS-CAP-VENCIDO           PIC S9(13)V9(2).
+       01 WS-JUR-VENCIDO           PIC S9(13)V9(2).
+
+     š* Cursor de Intervenientes
+           EXEC SQL DECLARE CURINT    CURSOR FOR
+             SELECT IDCONT
+                  , IDINST
+                  , NURACI
+                  , CPGRE
+                  , CPRUB
+                  , CPMON
+                  , CTID
+                  , CTCONT
+                  , NIFNIPC
+                  , REFORIG
+                  , TIPOREL
+                  , DTINI
+                  , DTFIM
+                  , TYPER
+                  , PERCENT
+                  , CODERRO
+                  , TMSCRIA
+                  , USERCRIA
+                  , TMSALT
+                  , USERALT
+             FROM  BPCJCINT  A
+              WHERE  A.IDCONT  = :WS-IDCONT
+                AND  A.IDINST  = :WS-IDINST
+                AND  A.DTFIM   = "0001-01-01"
+                AND  A.TIPOREL = "039"
+                UNION ALL
+             SELECT IDCONT
+                  , IDINST
+                  , NURACI
+                  , CPGRE
+                  , CPRUB
+                  , CPMON
+                  , CTID
+                  , CTCONT
+                  , NIFNIPC
+                  , REFORIG
+                  , TIPOREL
+                  , DTINI
+                  , DTFIM
+                  , TYPER
+                  , PERCENT
+                  , CODERRO
+                  , TMSCRIA
+                  , USERCRIA
+                  , TMSALT
+                  , USERALT
+             FROM  BPCJCINT  B
+              WHERE  B.IDCONT  = :WS-IDCONT
+                AND  B.IDINST  = :WS-IDINST
+                AND  B.DTFIM   = "0001-01-01"
+                AND B.TIPOREL  = "008"
+                AND NOT EXISTS
+                    ( SELECT 1
+                      FROM BPCJCINT X
+                         WHERE X.IDCONT =  B.IDCONT
+                          AND  X.IDINST =  B.IDINST
+                          AND  X.NIFNIPC = B.NIFNIPC
+                          AND  X.TIPOREL = "039" )
+           END-EXEC.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+           COPY BPCBPFIN.
+      *================================================================*
+       PROCEDURE DIVISION USING BPCBPFIN-LKPARMS.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+           PERFORM P001-INICIO
+           PERFORM P401-OPEN-CURSOR-INT.
+           PERFORM P401-FETCH-CURSOR-INT.
+           PERFORM P401-TRATA-CURSOR-INT
+                   WITH TEST BEFORE
+                           UNTIL FIM-CURINT
+           PERFORM P401-CLOSE-CURSOR-INT.
+           PERFORM P999-FIMPGM.
+     š*---------------------------------------------------------------------
+       P001-INICIO.
+     š*---------------------------------------------------------------------
+           INITIALIZE  PFIN1-REC
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10) TO WS-DATA-DIA.
+           MOVE BPCBPFIN-IDCONT  TO WS-IDCONT
+           MOVE BPCBPFIN-IDINST  TO WS-IDINST.
+           MOVE  WS-CTR-CONT     TO WS-CTID
+           MOVE  WS-SEQ-CONT     TO WS-CTCONT.
+     š*-
+     š*----------------------------------------------------------------
+       P401-OPEN-CURSOR-INT.
+     š*----------------------------------------------------------------
+     š*-
+           INITIALIZE  R-JCINT
+
+           EXEC SQL
+                OPEN CURINT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-CURINT       TO TRUE
+           WHEN OTHER
+              SET  FIM-CURINT          TO TRUE
+              MOVE "CURINT"            TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P401-TRATA-CURSOR-INT.
+     š*----------------------------------------------------------------
+     š*-
+           PERFORM P400-GET-DIVIDA-INST.
+           PERFORM P400-MOVE-BPCJPFIN1.
+           PERFORM P500-INSERT-BPCJPFIN1.
+           PERFORM P401-FETCH-CURSOR-INT.
+     š*-
+     š*----------------------------------------------------------------
+       P401-FETCH-CURSOR-INT.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL FETCH CURINT
+             INTO  :BPCJCINT.IDCONT
+                  ,:BPCJCINT.IDINST
+                  ,:BPCJCINT.NURACI
+                  ,:BPCJCINT.CPGRE
+                  ,:BPCJCINT.CPRUB
+                  ,:BPCJCINT.CPMON
+                  ,:BPCJCINT.CTID
+                  ,:BPCJCINT.CTCONT
+                  ,:BPCJCINT.NIFNIPC
+                  ,:BPCJCINT.REFORIG
+                  ,:BPCJCINT.TIPOREL
+                  ,:BPCJCINT.DTINI
+                  ,:BPCJCINT.DTFIM
+                  ,:BPCJCINT.TYPER
+                  ,:BPCJCINT.PERCENT
+                  ,:BPCJCINT.CODERRO
+                  ,:BPCJCINT.TMSCRIA
+                  ,:BPCJCINT.USERCRIA
+                  ,:BPCJCINT.TMSALT
+                  ,:BPCJCINT.USERALT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN SQLCODE-NOTFOUND
+              SET   FIM-CURINT       TO TRUE
+           WHEN OTHER
+              SET   FIM-CURINT       TO TRUE
+              MOVE "CURINT"          TO W-OBJECT-NAME
+              SET   CMD-FETCH-CURSOR TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P401-CLOSE-CURSOR-INT.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+               CLOSE CURINT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET     FIM-CURINT       TO TRUE
+           WHEN OTHER
+              SET     FIM-CURINT       TO TRUE
+              MOVE "CURINT"            TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-GET-DIVIDA-INST.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                SELECT
+                        COMDESPBAL
+                     ,  COMDESPEXP
+                     ,  JURCORR
+                     ,  JURVENCBAL
+                     ,  JURVENCEXT
+                     ,  MONTABATV
+                     ,  MPOTIRREV
+                     ,  MPOTREV
+                     ,  MONTVENC
+                     ,  MONTVIVO
+
+                INTO
+                       :COMDESPBAL
+                     , :COMDESPEXP
+                     , :JURCORR
+                     , :JURVENCBAL
+                     , :JURVENCEXT
+                     , :MONTABATV
+                     , :MPOTIRREV
+                     , :MPOTREV
+                     , :MONTVENC
+                     , :MONTVIVO
+                FROM  BPCJPFIN  A
+                WHERE A.IDCONT  = :WS-IDCONT
+                 AND  A.IDINST  = :WS-IDINST
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              MOVE "BPCJPFIN"          TO W-OBJECT-NAME
+              SET CMD-SELECT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-MOVE-BPCJPFIN1.
+     š*----------------------------------------------------------------
+     š*- IDCONT
+           MOVE WS-IDCONT               TO PFIN1-IDCONT
+     š*- IDINST
+           MOVE WS-IDINST               TO PFIN1-IDINST
+           MOVE TYPER     OF R-JCINT    TO PFIN1-TYPER
+           IF PFIN1-TYPER = 'i1'
+             MOVE NIFNIPC   OF R-JCINT    TO PFIN1-IDENT
+           ELSE
+             MOVE REFORIG   OF R-JCINT    TO PFIN1-IDENT
+           END-IF
+           MOVE "002"                   TO PFIN1-TPRESPENT
+           IF NIFNIPC   OF R-JCINT EQUAL SPACES
+              MOVE  REFORIG   OF R-JCINT    TO PFIN1-IDENT
+           END-IF
+           COMPUTE PFIN1-MTOTENT = MONTVENC  + JURVENCBAL +
+                                   JURCORR  + MONTABATV  + JURVENCEXT +
+                                   COMDESPBAL + COMDESPEXP
+
+           COMPUTE PFIN1-MVENCENT = MONTVENC + JURVENCBAL +
+                                    COMDESPBAL + COMDESPEXP
+
+           MOVE  MPOTREV                TO PFIN1-MPOTRVENT
+           MOVE  MPOTIRREV              TO PFIN1-MPOTIRVENT
+           MOVE  MONTABATV              TO PFIN1-MABATENT
+           MOVE  0                      TO PFIN1-VPRESTENT
+     š*- MONTVENC /JURVENCBAL /MONTVIVO
+     š*- Audit Log
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP       END-EXEC.
+           MOVE S-SYSTMST          TO PFIN1-TMSCRIA.
+           MOVE "BPCSPFI1"         TO PFIN1-USERCRIA.
+     š*-
+     š*----------------------------------------------------------------
+       P500-INSERT-BPCJPFIN1.
+     š*----------------------------------------------------------------
+     š*- Verifica se o Registo Já Existe
+     š*-
+           MOVE WS-TMS-NULA  TO PFIN1-TMSALT
+           EXEC SQL
+                 INSERT INTO BPCJPFIN1
+                 VALUES ( :PFIN1-IDCONT
+                        , :PFIN1-IDINST
+                        , :PFIN1-IDENT
+                        , :PFIN1-TYPER
+                        , :PFIN1-TPRESPENT
+                        , :PFIN1-MTOTENT
+                        , :PFIN1-MVENCENT
+                        , :PFIN1-MPOTRVENT
+                        , :PFIN1-MPOTIRVENT
+                        , :PFIN1-MABATENT
+                        , :PFIN1-VPRESTENT
+                        , :PFIN1-TMSCRIA
+                        , :PFIN1-USERCRIA
+                        , :PFIN1-TMSALT
+                        , :PFIN1-USERALT)
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "BPCJPFIN1"         TO W-OBJECT-NAME
+              SET CMD-INSERT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P450-VALIDA-DATE.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+               SET :WS-VAL-DATE  = DATE(:WS-TST-DATE)
+           END-EXEC
+           EVALUATE SQLCODE
+              WHEN +0
+                  MOVE  WS-TST-DATE TO WS-OUT-DATE
+              WHEN -180
+                  MOVE "0001-01-01" TO WS-OUT-DATE
+           END-EVALUATE.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           MOVE WS-NURACI       TO RACINE   OF  KYCT900A
+           MOVE MSG-ERRO-SQL    TO ERRMSG   OF  KYCT900A
+           MOVE W-SQLCODE       TO ERRCOD   OF  KYCT900A
+           MOVE "SQL"           TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE  2              TO ERRRTC   OF  KYCT900A
+           SET BPCBPFIN-MSGSGBD  TO TRUE
+           MOVE W-OBJECT-NAME   TO BPCBPFIN-IDPARERR
+           MOVE W-SQLCODE       TO BPCBPFIN-CODERR
+           MOVE MSG-ERRO-SQL    TO BPCBPFIN-DESCERR
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "BPCSPFIN1"    TO  ERRPRG OF KYCT900A.
+           MOVE     WS-NURACI    TO  RACINE OF KYCT900A.
+
+           EXEC SQL  INSERT
+                INTO KYCT900A
+                VALUES  (
+                           :KYCT900A.RACINE
+                         , :KYCT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :KYCT900A.ERRRTC
+                         , :KYCT900A.ERRCOD
+                         , :KYCT900A.ERRMSG
+                         , :KYCT900A.ERRPRG
+                         , :KYCT900A.ERRAPL
+                         , :KYCT900A.ERROBJ
+                         , :KYCT900A.ERRFLD
+                         , :KYCT900A.ERRCMD
+                         , :KYCT900A.ERRKEY1
+                         , :KYCT900A.ERRVAL1
+                         , :KYCT900A.ERRKEY2
+                         , :KYCT900A.ERRVAL2 )
+           END-EXEC.
+
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "INSERT-T900A"   TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+
+
+     š*****************************************************************
+       P999-FIMPGM.
+     š*****************************************************************
+           GOBACK.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA BPCSPFIN1
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *

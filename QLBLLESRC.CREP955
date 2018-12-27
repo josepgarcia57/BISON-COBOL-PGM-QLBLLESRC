@@ -1,0 +1,388 @@
+      *================================================================*
+       IDENTIFICATION DIVISION.
+      *================================================================*
+
+       PROGRAM-ID.     CREP955.
+      *----------------------------------------------------------------*
+      * APLICACAO : GESTAO DE EMPRESTIMOS
+      * PROGRAMA .: CREP955
+      * OBJECTIVO : GERIR O ECRAN DE DIALOGO "CREE955"
+      * CRIADO EM : 2005/FEVEREIRO
+      * POR ......: FERNANDO SILVA (CAPGEMINI PORTUGAL)
+      *----------------------------------------------------------------*
+
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       CONFIGURATION               SECTION.
+      *----------------------------------------------------------------*
+       SPECIAL-NAMES.  DECIMAL-POINT  IS COMMA
+                       SYSTEM-CONSOLE IS VIDEO
+                       LOCAL-DATA     IS LDATA
+                       ATTRIBUTE-DATA IS ATTRB.
+
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT                SECTION.
+      *----------------------------------------------------------------*
+       FILE-CONTROL.
+
+           SELECT CREE955
+                  ASSIGN        TO WORKSTATION-CREE955-SI
+                  ORGANIZATION  IS TRANSACTION
+                  FILE STATUS   IS FS-CREE955
+                  CONTROL-AREA  IS CA-CREE955.
+
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       FILE                        SECTION.
+      *----------------------------------------------------------------*
+       FD  CREE955
+           LABEL RECORD OMITTED.
+       01  CREE955-HDR.
+           COPY DDS-CREE955HDR OF CREE955.
+       01  CREE955-D01.
+           COPY DDS-CREE955D01 OF CREE955.
+       01  CREE955-FTR.
+           COPY DDS-CREE955FTR OF CREE955.
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE             SECTION.
+      *----------------------------------------------------------------*
+       01  FS-CREE955                  PIC 99.
+           88  CREE955-OK                          VALUE ZERO.
+
+       01  CA-CREE955.
+           05  IDTECLAF                PIC 99.
+           05  IDTERMNL                PIC X(10).
+           05  FRMTREGT                PIC X(10).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-VARSTRAB.
+           05  WS-ARRYNDX1             PIC S9(4)       BINARY.
+           05  WS-ARRYNDX2             PIC S9(4)       BINARY.
+
+       01  WS-EDITVARS.
+           05  ED-CREEVARS-O.
+               10  IDREGCSR            PIC X(10).
+               10  IDVARCSR            PIC X(10).
+               10  IDDIALOG            PIC X(08).
+               10  IDAPLICA            PIC X(03).
+               10  NMAPLICA            PIC X(34).
+               10  REGLISTA                                OCCURS 11.
+                   15  NROPCLIN        PIC 9.
+                   15  IDDLGLIN        PIC X(08).
+                   15  IDAPLLIN        PIC X(03).
+                   15  SNPGVLIN        PIC X.
+                   15  NRPGHLIN        PIC 9.
+                   15  IDGSTLIN        PIC X(08).
+           05  ED-CREEVARS-I   REDEFINES ED-CREEVARS-O.
+               10  IDREGCSR            PIC X(10).
+               10  IDVARCSR            PIC X(10).
+               10  IDDIALOG            PIC X(08).
+               10  IDAPLICA            PIC X(03).
+               10  NMAPLICA            PIC X(34).
+               10  REGLISTA                                OCCURS 11.
+                   15  NROPCLIN        PIC 9.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-CNSTANTS.
+           05  KV-IDDIALOG             PIC X(08)   VALUE "CREE955".
+           05  KV-IDFMTDLG-HDR         PIC X(10)   VALUE "CREE955HDR".
+           05  KV-IDFMTDLG-D01         PIC X(10)   VALUE "CREE955D01".
+           05  KV-IDFMTDLG-FTR         PIC X(10)   VALUE "CREE955FTR".
+           05  KV-IDDIALOG-HI          PIC 99      VALUE 25.
+           05  KV-IDDIALOG-PC          PIC 99      VALUE 26.
+           05  KV-IDDIALOG-PR          PIC 99      VALUE 27.
+           05  KV-IDAPLICA-HI          PIC 99      VALUE 28.
+           05  KV-IDAPLICA-PC          PIC 99      VALUE 29.
+           05  KV-IDAPLICA-PR          PIC 99      VALUE 30.
+           05  KV-SUBSET01.
+               10  KV-NROPCL01-PC      PIC 99      VALUE 31.
+               10  KV-NROPCL01-PR      PIC 99      VALUE 32.
+               10  KV-NROPCL02-PC      PIC 99      VALUE 33.
+               10  KV-NROPCL02-PR      PIC 99      VALUE 34.
+               10  KV-NROPCL03-PC      PIC 99      VALUE 35.
+               10  KV-NROPCL03-PR      PIC 99      VALUE 36.
+               10  KV-NROPCL04-PC      PIC 99      VALUE 37.
+               10  KV-NROPCL04-PR      PIC 99      VALUE 38.
+               10  KV-NROPCL05-PC      PIC 99      VALUE 39.
+               10  KV-NROPCL05-PR      PIC 99      VALUE 40.
+               10  KV-NROPCL06-PC      PIC 99      VALUE 41.
+               10  KV-NROPCL06-PR      PIC 99      VALUE 42.
+               10  KV-NROPCL07-PC      PIC 99      VALUE 43.
+               10  KV-NROPCL07-PR      PIC 99      VALUE 44.
+               10  KV-NROPCL08-PC      PIC 99      VALUE 45.
+               10  KV-NROPCL08-PR      PIC 99      VALUE 46.
+               10  KV-NROPCL09-PC      PIC 99      VALUE 47.
+               10  KV-NROPCL09-PR      PIC 99      VALUE 48.
+               10  KV-NROPCL10-PC      PIC 99      VALUE 49.
+               10  KV-NROPCL10-PR      PIC 99      VALUE 50.
+               10  KV-NROPCL11-PC      PIC 99      VALUE 51.
+               10  KV-NROPCL11-PR      PIC 99      VALUE 52.
+           05  FILLER      REDEFINES KV-SUBSET01           OCCURS 11.
+               10  KV-NROPCLIN-PC      PIC 99.
+               10  KV-NROPCLIN-PR      PIC 99.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           COPY CREB955.
+
+      *----------------------------------------------------------------*
+       LINKAGE                     SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB000.
+
+      *================================================================*
+       PROCEDURE DIVISION USING CREB000-LKGERAL.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       P0000-RAIZ                  SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P1000-INICIO
+
+           PERFORM P2000-PROCESSO
+
+           PERFORM P3000-FIM
+           .
+       P0000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P1000-INICIO                SECTION.
+      *----------------------------------------------------------------*
+
+           INITIALIZE FS-CREE955, CA-CREE955
+           .
+       P1000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P2000-PROCESSO              SECTION.
+      *----------------------------------------------------------------*
+
+           IF  CREB000-STDIALOG-OFF
+               PERFORM P2100-OPEN-DIALOG
+           END-IF
+
+           EVALUATE TRUE
+           WHEN NOT CREE955-OK
+               CONTINUE
+           WHEN CREB000-EXECPRC
+               PERFORM P2200-PROC-DIALOG
+           WHEN OTHER
+               PERFORM P2300-CLSE-DIALOG
+           END-EVALUATE
+           .
+       P2000-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2100-OPEN-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           OPEN I-O CREE955
+
+           IF  NOT CREE955-OK
+               MOVE FS-CREE955      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-OPEN-IO TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2100-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2200-PROC-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE CREB000-MSGDLG-V(CREB000-MSGDLG-P:) TO CREB955-MSGDIALG
+
+           PERFORM P2210-PREP-ATRIBS
+           PERFORM P2220-WRIT-REGHDR
+           IF  CREE955-OK
+               PERFORM P2230-WRIT-REGFTR
+           END-IF
+           IF  CREE955-OK
+               PERFORM P2240-WRIT-REGDET
+           END-IF
+           IF  CREE955-OK
+               PERFORM P2250-READ-REGDET
+           END-IF
+
+           MOVE CREB955-MSGDIALG TO CREB000-MSGDLG-V(CREB000-MSGDLG-P:)
+           .
+       P2200-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2210-PREP-ATRIBS           SECTION.
+
+           IF  CREB955-IDDIALOG-PR
+               SET  CREB000-INDICDLG-ON (KV-IDDIALOG-PR)     TO TRUE
+           END-IF
+      *
+           IF  CREB955-IDAPLICA-PR
+               SET  CREB000-INDICDLG-ON (KV-IDAPLICA-PR)     TO TRUE
+           END-IF
+      *
+           PERFORM
+           VARYING WS-ARRYNDX1 FROM 1 BY 1
+             UNTIL WS-ARRYNDX1 > CREB955-NRSELLIN-MAX
+               IF  CREB955-NROPCLIN-PR(WS-ARRYNDX1)
+                   MOVE KV-NROPCLIN-PR(WS-ARRYNDX1) TO WS-ARRYNDX2
+                   SET  CREB000-INDICDLG-ON (WS-ARRYNDX2)    TO TRUE
+               END-IF
+           END-PERFORM
+      *
+           EVALUATE TRUE
+           WHEN CREB955-IDDIALOG-PC
+               SET  CREB000-INDICDLG-ON (KV-IDDIALOG-PC)     TO TRUE
+           WHEN CREB955-IDAPLICA-PC
+               SET  CREB000-INDICDLG-ON (KV-IDAPLICA-PC)     TO TRUE
+           WHEN CREB955-PCURSOR > CREB955-NRPARAMS-INP
+               COMPUTE WS-ARRYNDX1 = 24 + (CREB955-NRPARAMS-INP * 3)
+                                   +(CREB955-PCURSOR
+                                   - CREB955-NRPARAMS-INP) * 2 - 1
+               SET  CREB000-INDICDLG-ON (WS-ARRYNDX1)        TO TRUE
+           WHEN CREB955-IDDIALOG-UP
+               SET  CREB000-INDICDLG-ON (KV-IDDIALOG-PC)     TO TRUE
+           WHEN CREB955-NROPCLIN-UP(1)
+               SET  CREB000-INDICDLG-ON (KV-NROPCL01-PC)     TO TRUE
+           END-EVALUATE
+      *
+           EVALUATE TRUE
+           WHEN CREB000-PROC-OK
+               CONTINUE
+           WHEN CREB955-IDDIALOG-PC
+               SET  CREB000-INDICDLG-ON (KV-IDDIALOG-HI)     TO TRUE
+           WHEN CREB955-IDAPLICA-PC
+               SET  CREB000-INDICDLG-ON (KV-IDAPLICA-HI)     TO TRUE
+           END-EVALUATE
+           .
+       P2210-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2220-WRIT-REGHDR           SECTION.
+
+           MOVE SPACES              TO CREE955-HDR
+           MOVE CREB000-SGEMPRSA    TO SGEMPRSA OF CREE955HDR-O
+           MOVE CREB000-DSAPLICA    TO DSAPLICA OF CREE955HDR-O
+           MOVE CREB000-DTPRCAPL    TO DTACTUAL OF CREE955HDR-O
+           MOVE CREB000-IDPRCAPL    TO IDPRCAPL OF CREE955HDR-O
+           MOVE CREB000-IDDIALOG    TO IDDIALOG OF CREE955HDR-O
+           MOVE CREB000-DSPRCAPL    TO DSPRCAPL OF CREE955HDR-O
+           MOVE CREB000-NMFUNDLG    TO NMFUNDLG OF CREE955HDR-O
+           MOVE CREB000-NRENTLST    TO NRENTLST OF CREE955HDR-O
+           MOVE CREB000-DSOPCSEL    TO DSOPCSEL OF CREE955HDR-O
+           WRITE CREE955-HDR
+                 FORMAT KV-IDFMTDLG-HDR INDIC CREB000-TBINDARA
+
+           IF  NOT CREE955-OK
+               MOVE FS-CREE955      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2220-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2230-WRIT-REGFTR           SECTION.
+
+           MOVE SPACES              TO CREE955-FTR
+           MOVE CREB000-DSTECLAS    TO DSTECLAS OF CREE955FTR-O
+           MOVE CREB000-DSMSGAPL    TO DSMSGAPL OF CREE955FTR-O
+           WRITE CREE955-FTR
+                 FORMAT KV-IDFMTDLG-FTR INDIC CREB000-TBINDARA
+
+           IF  NOT CREE955-OK
+               MOVE FS-CREE955      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2230-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2240-WRIT-REGDET           SECTION.
+
+           MOVE SPACES              TO ED-CREEVARS-O
+           MOVE CREB955-IDDIALOG-V  TO IDDIALOG OF ED-CREEVARS-O
+           MOVE CREB955-IDAPLICA-V  TO IDAPLICA OF ED-CREEVARS-O
+           MOVE CREB955-NMAPLICA-V  TO NMAPLICA OF ED-CREEVARS-O
+           PERFORM
+           VARYING WS-ARRYNDX1 FROM 1 BY 1
+             UNTIL WS-ARRYNDX1 > CREB955-NRSELLIN-MAX
+               MOVE CREB955-NROPCLIN-V       (WS-ARRYNDX1)
+                 TO NROPCLIN OF ED-CREEVARS-O(WS-ARRYNDX1)
+               MOVE CREB955-IDDLGLIN-V       (WS-ARRYNDX1)
+                 TO IDDLGLIN OF ED-CREEVARS-O(WS-ARRYNDX1)
+               MOVE CREB955-IDAPLLIN-V       (WS-ARRYNDX1)
+                 TO IDAPLLIN OF ED-CREEVARS-O(WS-ARRYNDX1)
+               MOVE CREB955-SNPGVLIN-V       (WS-ARRYNDX1)
+                 TO SNPGVLIN OF ED-CREEVARS-O(WS-ARRYNDX1)
+               MOVE CREB955-NRPGHLIN-V       (WS-ARRYNDX1)
+                 TO NRPGHLIN OF ED-CREEVARS-O(WS-ARRYNDX1)
+               MOVE CREB955-IDGSTLIN-V       (WS-ARRYNDX1)
+                 TO IDGSTLIN OF ED-CREEVARS-O(WS-ARRYNDX1)
+           END-PERFORM
+           MOVE ED-CREEVARS-O       TO CREE955D01-O
+           WRITE CREE955-D01
+                 FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+
+           IF  NOT CREE955-OK
+               MOVE FS-CREE955      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2240-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2250-READ-REGDET           SECTION.
+
+           READ CREE955
+                FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+                AT END CONTINUE
+           END-READ
+
+           IF  CREE955-OK
+               MOVE CREE955D01-I              TO ED-CREEVARS-I
+               MOVE IDDIALOG OF ED-CREEVARS-I TO CREB955-IDDIALOG-V
+               MOVE IDAPLICA OF ED-CREEVARS-I TO CREB955-IDAPLICA-V
+               PERFORM
+               VARYING WS-ARRYNDX1 FROM 1 BY 1
+                 UNTIL WS-ARRYNDX1 > CREB955-NRSELLIN-MAX
+                   MOVE NROPCLIN OF ED-CREEVARS-I(WS-ARRYNDX1)
+                     TO CREB955-NROPCLIN-V       (WS-ARRYNDX1)
+               END-PERFORM
+               MOVE IDVARCSR OF ED-CREEVARS-I TO CREB000-IDVARCSR
+               MOVE IDTECLAF OF CA-CREE955    TO CREB000-IDTECLAF
+           ELSE
+               MOVE FS-CREE955                TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG               TO CREB000-NMOBJECT
+               SET  CREB000-READ              TO TRUE
+               SET  CREB000-MSGDLOG           TO TRUE
+           END-IF
+           .
+       P2250-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2300-CLSE-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           CLOSE CREE955
+
+           IF  NOT CREE955-OK
+               MOVE FS-CREE955      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-CLSE    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2300-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P3000-FIM                   SECTION.
+      *----------------------------------------------------------------*
+
+           GOBACK
+           .
+       P3000-EXIT.                 EXIT.
+      *--- FIM DO PROGRAMA CREP955 ------------------------------------*
