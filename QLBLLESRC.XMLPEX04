@@ -1,0 +1,253 @@
+       IDENTIFICATION DIVISION.
+     š*----------------------------------------------------------------*
+       PROGRAM-ID.  XMLPEX04.
+     š*----------------------------------------------------------------*
+       Data division.
+       Working-storage section.
+         01 numItems pic 99 global.
+         01 purchaseOrder global.
+          03 po.
+            05 orderDate pic x(10).
+            05 shipTo.
+               10 country pic xx value "US".
+               10 name pic x(30).
+               10 street pic x(30).
+               10 city pic x(30).
+               10 state pic xx.
+               10 zip pic x(10).
+            05 billTo.
+               10 country pic xx value "US".
+               10 name pic x(30).
+               10 street pic x(30).
+               10 city pic x(30).
+               10 state pic xx.
+               10 zip pic x(10).
+            05 orderComment pic x(80).
+            05 items.
+               10 item occurs 0 to 20 times depending on numItems.
+                 15 partNum pic x(6).
+                 15 productName pic x(50).
+                 15 quantity pic 99.
+                 15 USPrice pic 999v99.
+                 15 shipDate pic x(10).
+                  15 itemComment pic x(40).
+         01 numChars comp pic 9999.
+         01 xmlPO      pic x(9999).
+         01 xmlOrg.
+            2 pic x occurs 1 to 9999 depending on nc.
+         01 xmlAsAtt   pic x(9999).
+         01 nc comp    pic 9999.
+         01 nca comp   pic 99999.
+         01 prename    pic x(30).
+         01 tagname    pic x(30).
+         01 ws-xml-text    pic x(30).
+         01 pos comp   pic 999.
+         01 buffer     pic x(99).
+         01 ix comp    pic 999.
+         01 tally comp pic 999.
+         01 tagstate comp pic 9.
+            88 closed value 0.
+            88 opened value 1.
+            88 attributes value 2.
+         01 xmlPOa pic x(9999).
+
+         01 Xnca LIKE NCA.
+
+      *  01 prettyPrint.
+      *     05 pose pic 999.
+      *     05 posd pic 999.
+      *     05 depth pic 99.
+      *     05 element pic x(30).
+      *     05 indent pic x(20).
+      *     05 buffer pic x(100).
+     š*----------------------------------------------------------------*
+       PROCEDURE DIVISION.
+       P000-INICIO.
+            Move 20 to numItems
+            Move spaces to purchaseOrder
+            initialize xmlAsAtt
+
+            Move "1999/10/20" to orderDate
+            Move "US" to country of shipTo
+            Move "Alice Smith" to name of shipTo
+            Move "123 Maple Street" to street of shipTo
+            Move "Mill Valley" to city of shipTo
+            Move "CA" to state of shipTo
+            Move "90952" to zip of shipTo
+
+
+            Move "US" to country of billTo
+            Move "Robert  O  Reilly"  to name of billTo
+            Move "8 Oak Avenue" to street of billTo
+            Move "Old Town" to city of billTo
+            Move "PA" to state of billTo
+            Move "95819" to zip of billTo
+            Move "Hurry, my lawn is going wild!" to orderComment
+
+            Move 0 to numItems
+            perform  addFirstItem
+            perform  addSecondItem
+            move space to xmlPO
+            Xml generate xmlPO from purchaseOrder count in numChars
+              on exception
+                display "XML generation error " xml-code
+            End-xml
+            display "Original XML document:"
+            display " "
+            display "|" xmlPO(1:numChars) "|"
+            display " "
+      *     display "Pretty-printed:"
+      *     display " "
+      *     Call 'pretty' using xmlPO value numChars
+     š*-Transforma o XML
+     š*-xmlPO XML  de Entrada
+     š*-xmlPOa XML de Transformado
+            move  numChars to nc
+            Move  xmlPO    to xmlOrg
+            perform TransformXML
+            move xmlAsAtt to xmlPOa
+            display " "
+
+            display "Transformed document:"
+            display " "
+            display "|" xmlPOa(1:numChars) "|"
+            display " "
+      *     display "Pretty-printed:"
+      *     display " "
+      *     Call "pretty" using xmlPOa value numChars
+            Goback
+            .
+     š*****************************************************************
+       addFirstItem.
+     š*****************************************************************
+     š*-
+            Add 1 to numItems
+            Move '872-AA' to partNum(numItems)
+            Move 'Lawnmower' to productName(numItems)
+            Move 1 to quantity(numItems)
+            Move 148.95 to USPrice(numItems)
+            Move 'Confirm this is electric' to itemComment(numItems)
+     š*****************************************************************
+       addSecondItem.
+     š*****************************************************************
+     š*-
+            Add 1 to numItems
+            Move '926-AA' to partNum(numItems)
+            Move 'Baby Monitor' to productName(numItems)
+            Move 1 to quantity(numItems)
+            Move 39.98 to USPrice(numItems)
+            Move '1999-05-21' to shipDate(numItems)
+     š*****************************************************************
+       TransformXML.
+     š*****************************************************************
+           Initialize tagstate prename tagname
+           Move 1 to nca pos
+           XML PARSE xmlOrg processing procedure TrXml
+              on exception
+                display "XML parse error      " xml-code
+           END-XML.
+           Move nca to nc.
+     š*****************************************************************
+       TrXml.
+     š*****************************************************************
+     š* --> Os Atrubutos surgem deposi de uma TAG Vazia
+           Evaluate xml-event
+     š*
+           When "START-OF-ELEMENT"
+     š* -- Se começa um novo elemento tem de fechar o actual se aberto
+            If opened
+               Move ">" to xmlAsAtt(nca:1)
+               Add 1 to nca
+            End-if
+     š* -- Se havia uma Tag anterior com atributos, fecha também
+            If tagname not = space
+              If attributes
+                Move ">" to xmlAsAtt(nca:1)
+                Add 1 to nca
+              End-if
+     š* -- Open de Nova Tag e gurado o nome da anterior
+              String "<" delimited by size tagname delimited by space
+                   into xmlAsAtt with pointer nca
+              Move tagname to prename
+              Set opened to true
+            End-if
+            Move xml-text to tagname
+     š*
+           When "CONTENT-CHARACTERS"
+            String xml-text delimited by size into buffer
+                with pointer pos
+     š*
+           When "CONTENT-CHARACTER"
+             Evaluate xml-text
+             When "<"
+              String "&lt;" delimited by size into buffer
+                      with pointer pos
+              When "&"
+                  String "&amp;" delimited by size into buffer
+                      with pointer pos
+
+              When other
+                  String xml-text delimited by size into buffer
+                       with pointer pos
+             End-evaluate
+     š*
+           When "END-OF-ELEMENT"
+     š* -- Termina uma TAG que tinha conteudo
+             If pos > 1
+               move xml-text to ws-xml-text
+               Subtract 1 from pos
+               If (prename not = space)
+                 and (ws-xml-text not = "orderComment")
+     š* --> Retira a Plica <-------------
+                 String space xml-text "='" delimited by size
+                  into xmlAsAtt with pointer nca
+     š* --> Retira a Plica <-------------
+                  Move 0 to tally
+                  Inspect buffer(1:pos) tallying tally for all "'"
+                  If tally = 0
+                     Move buffer(1:pos) to xmlAsAtt(nca:pos)
+                     Add pos to nca
+                  Else
+                   Perform varying ix from 1 by 1 until ix > pos
+                     If buffer(ix:1) = "'"
+                       Move "&quot;" to xmlAsAtt(nca:6)
+                       Add 6 to nca
+                     Else
+                       Move buffer(ix:1) to xmlAsAtt(nca:1)
+                       Add 1 to nca
+                     End-if
+                   End-perform
+                  End-if
+     š* --> Retira a Plica <--------------
+     š* -- Tem Atributos se Tem Prename
+                  Move "'" to xmlAsAtt(nca:1)
+                  Add 1 to nca
+                  Set attributes to true
+                Else
+     š* --> Elemento sem Atributos <-----
+                 String
+                 "<" xml-text ">" buffer(1:pos) "</" xml-text ">"
+                     delimited by size into xmlAsAtt
+                      with pointer nca
+                 Set closed to true
+                End-if
+                Move 1 to pos
+               Else
+     š* -- Fecha a TAG que só tem atributos Limpa prename (sem Conteudo)
+                 move xml-text to ws-xml-text
+                 If ws-xml-text = prename
+                    Move "/>" to xmlAsAtt(nca:2)
+                    Add 2 to nca
+                    Move space to prename
+                 Else
+     š* -- Fecha a TAG apos os atributos
+                   String "</" xml-text ">" delimited by size
+                       into xmlAsAtt with pointer nca
+                 End-if
+                 Set closed to true
+               End-if
+               Move space to tagname
+     š*
+            When other
+               Continue
+           End-evaluate.

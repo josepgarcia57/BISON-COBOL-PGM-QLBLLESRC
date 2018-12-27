@@ -1,0 +1,451 @@
+      *================================================================*
+       IDENTIFICATION DIVISION.
+      *================================================================*
+
+       PROGRAM-ID.     CREP976.
+      *----------------------------------------------------------------*
+      * APLICACAO : GESTAO DE EMPRESTIMOS
+      * PROGRAMA .: CREP976
+      * OBJECTIVO : GERIR O ECRAN DE DIALOGO "CREE976"
+      * CRIADO EM : 2005/FEVEREIRO
+      * POR ......: FERNANDO SILVA (CAPGEMINI PORTUGAL)
+      *----------------------------------------------------------------*
+
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       CONFIGURATION               SECTION.
+      *----------------------------------------------------------------*
+       SPECIAL-NAMES.  DECIMAL-POINT  IS COMMA
+                       SYSTEM-CONSOLE IS VIDEO
+                       LOCAL-DATA     IS LDATA
+                       ATTRIBUTE-DATA IS ATTRB.
+
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT                SECTION.
+      *----------------------------------------------------------------*
+       FILE-CONTROL.
+
+           SELECT CREE976
+                  ASSIGN        TO WORKSTATION-CREE976-SI
+                  ORGANIZATION  IS TRANSACTION
+                  FILE STATUS   IS FS-CREE976
+                  CONTROL-AREA  IS CA-CREE976.
+
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       FILE                        SECTION.
+      *----------------------------------------------------------------*
+       FD  CREE976
+           LABEL RECORD OMITTED.
+       01  CREE976-HDR.
+           COPY DDS-CREE976HDR OF CREE976.
+       01  CREE976-D01.
+           COPY DDS-CREE976D01 OF CREE976.
+       01  CREE976-FTR.
+           COPY DDS-CREE976FTR OF CREE976.
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE             SECTION.
+      *----------------------------------------------------------------*
+       01  FS-CREE976                  PIC 99.
+           88  CREE976-OK                          VALUE ZERO.
+
+       01  CA-CREE976.
+           05  IDTECLAF                PIC 99.
+           05  IDTERMNL                PIC X(10).
+           05  FRMTREGT                PIC X(10).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-VARSTRAB.
+           05  WS-ARRYNDX1             PIC S9(4)       BINARY.
+           05  WS-ARRYNDX2             PIC S9(4)       BINARY.
+
+       01  WS-EDITVARS.
+           05  ED-CREEVARS-O.
+               10  IDREGCSR            PIC X(10).
+               10  IDVARCSR            PIC X(10).
+               10  IDUTILIZ            PIC X(08).
+               10  NMUTILIZ            PIC X(30).
+               10  IDEMPRSA            PIC X(03).
+               10  NMEMPRSA            PIC X(50).
+               10  IDBALCAO            PIC X(03).
+               10  NMBALCAO            PIC X(50).
+               10  IDGRFUNC            PIC X(08).
+               10  DSGRFUNC            PIC X(50).
+               10  MCSITEXE            PIC X.
+               10  DSSITEXE            PIC X(07).
+               10  REGLISTA                                OCCURS 8.
+                   15  NROPCLIN        PIC 9.
+                   15  IDUTILIN        PIC X(08).
+                   15  NMUTILIN        PIC X(30).
+                   15  IDEMPLIN        PIC X(03).
+                   15  IDBALLIN        PIC X(03).
+                   15  IDGRFLIN        PIC X(08).
+                   15  STEXELIN        PIC X.
+           05  ED-CREEVARS-I   REDEFINES ED-CREEVARS-O.
+               10  IDREGCSR            PIC X(10).
+               10  IDVARCSR            PIC X(10).
+               10  IDUTILIZ            PIC X(08).
+               10  NMUTILIZ            PIC X(30).
+               10  IDEMPRSA            PIC X(03).
+               10  IDBALCAO            PIC X(03).
+               10  IDGRFUNC            PIC X(08).
+               10  MCSITEXE            PIC X.
+               10  DSSITEXE            PIC X(07).
+               10  REGLISTA                                OCCURS 8.
+                   15  NROPCLIN        PIC 9.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-CNSTANTS.
+           05  KV-IDDIALOG             PIC X(08)   VALUE "CREE976".
+           05  KV-IDFMTDLG-HDR         PIC X(10)   VALUE "CREE976HDR".
+           05  KV-IDFMTDLG-D01         PIC X(10)   VALUE "CREE976D01".
+           05  KV-IDFMTDLG-FTR         PIC X(10)   VALUE "CREE976FTR".
+           05  KV-IDUTILIZ-HI          PIC 99      VALUE 25.
+           05  KV-IDUTILIZ-PC          PIC 99      VALUE 26.
+           05  KV-IDUTILIZ-PR          PIC 99      VALUE 27.
+           05  KV-NMUTILIZ-HI          PIC 99      VALUE 28.
+           05  KV-NMUTILIZ-PC          PIC 99      VALUE 29.
+           05  KV-NMUTILIZ-PR          PIC 99      VALUE 30.
+           05  KV-IDEMPRSA-HI          PIC 99      VALUE 31.
+           05  KV-IDEMPRSA-PC          PIC 99      VALUE 32.
+           05  KV-IDEMPRSA-PR          PIC 99      VALUE 33.
+           05  KV-IDBALCAO-HI          PIC 99      VALUE 34.
+           05  KV-IDBALCAO-PC          PIC 99      VALUE 35.
+           05  KV-IDBALCAO-PR          PIC 99      VALUE 36.
+           05  KV-IDGRFUNC-HI          PIC 99      VALUE 37.
+           05  KV-IDGRFUNC-PC          PIC 99      VALUE 38.
+           05  KV-IDGRFUNC-PR          PIC 99      VALUE 39.
+           05  KV-MCSITEXE-HI          PIC 99      VALUE 40.
+           05  KV-MCSITEXE-PC          PIC 99      VALUE 41.
+           05  KV-MCSITEXE-PR          PIC 99      VALUE 42.
+           05  KV-SUBSET01.
+               10  KV-NROPCL01-PC      PIC 99      VALUE 43.
+               10  KV-NROPCL01-PR      PIC 99      VALUE 44.
+               10  KV-NROPCL02-PC      PIC 99      VALUE 45.
+               10  KV-NROPCL02-PR      PIC 99      VALUE 46.
+               10  KV-NROPCL03-PC      PIC 99      VALUE 47.
+               10  KV-NROPCL03-PR      PIC 99      VALUE 48.
+               10  KV-NROPCL04-PC      PIC 99      VALUE 49.
+               10  KV-NROPCL04-PR      PIC 99      VALUE 50.
+               10  KV-NROPCL05-PC      PIC 99      VALUE 51.
+               10  KV-NROPCL05-PR      PIC 99      VALUE 52.
+               10  KV-NROPCL06-PC      PIC 99      VALUE 53.
+               10  KV-NROPCL06-PR      PIC 99      VALUE 54.
+               10  KV-NROPCL07-PC      PIC 99      VALUE 55.
+               10  KV-NROPCL07-PR      PIC 99      VALUE 56.
+               10  KV-NROPCL08-PC      PIC 99      VALUE 57.
+               10  KV-NROPCL08-PR      PIC 99      VALUE 58.
+           05  FILLER      REDEFINES KV-SUBSET01           OCCURS 8.
+               10  KV-NROPCLIN-PC      PIC 99.
+               10  KV-NROPCLIN-PR      PIC 99.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           COPY CREB976.
+
+      *----------------------------------------------------------------*
+       LINKAGE                     SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB000.
+
+      *================================================================*
+       PROCEDURE DIVISION USING CREB000-LKGERAL.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       P0000-RAIZ                  SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P1000-INICIO
+
+           PERFORM P2000-PROCESSO
+
+           PERFORM P3000-FIM
+           .
+       P0000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P1000-INICIO                SECTION.
+      *----------------------------------------------------------------*
+
+           INITIALIZE FS-CREE976, CA-CREE976
+           .
+       P1000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P2000-PROCESSO              SECTION.
+      *----------------------------------------------------------------*
+
+           IF  CREB000-STDIALOG-OFF
+               PERFORM P2100-OPEN-DIALOG
+           END-IF
+
+           EVALUATE TRUE
+           WHEN NOT CREE976-OK
+               CONTINUE
+           WHEN CREB000-EXECPRC
+               PERFORM P2200-PROC-DIALOG
+           WHEN OTHER
+               PERFORM P2300-CLSE-DIALOG
+           END-EVALUATE
+           .
+       P2000-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2100-OPEN-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           OPEN I-O CREE976
+
+           IF  NOT CREE976-OK
+               MOVE FS-CREE976      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-OPEN-IO TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2100-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2200-PROC-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE CREB000-MSGDLG-V(CREB000-MSGDLG-P:) TO CREB976-MSGDIALG
+
+           PERFORM P2210-PREP-ATRIBS
+           PERFORM P2220-WRIT-REGHDR
+           IF  CREE976-OK
+               PERFORM P2230-WRIT-REGFTR
+           END-IF
+           IF  CREE976-OK
+               PERFORM P2240-WRIT-REGDET
+           END-IF
+           IF  CREE976-OK
+               PERFORM P2250-READ-REGDET
+           END-IF
+
+           MOVE CREB976-MSGDIALG TO CREB000-MSGDLG-V(CREB000-MSGDLG-P:)
+           .
+       P2200-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2210-PREP-ATRIBS           SECTION.
+
+           IF  CREB976-IDUTILIZ-PR
+               SET  CREB000-INDICDLG-ON (KV-IDUTILIZ-PR)     TO TRUE
+           END-IF
+      *
+           IF  CREB976-NMUTILIZ-PR
+               SET  CREB000-INDICDLG-ON (KV-NMUTILIZ-PR)     TO TRUE
+           END-IF
+      *
+           IF  CREB976-IDEMPRSA-PR
+               SET  CREB000-INDICDLG-ON (KV-IDEMPRSA-PR)     TO TRUE
+           END-IF
+      *
+           IF  CREB976-IDBALCAO-PR
+               SET  CREB000-INDICDLG-ON (KV-IDBALCAO-PR)     TO TRUE
+           END-IF
+      *
+           IF  CREB976-IDGRFUNC-PR
+               SET  CREB000-INDICDLG-ON (KV-IDGRFUNC-PR)     TO TRUE
+           END-IF
+      *
+           IF  CREB976-MCSITEXE-PR
+               SET  CREB000-INDICDLG-ON (KV-MCSITEXE-PR)     TO TRUE
+           END-IF
+      *
+           PERFORM
+           VARYING WS-ARRYNDX1 FROM 1 BY 1
+             UNTIL WS-ARRYNDX1 > CREB976-NRSELLIN-MAX
+               IF  CREB976-NROPCLIN-PR(WS-ARRYNDX1)
+                   MOVE KV-NROPCLIN-PR(WS-ARRYNDX1) TO WS-ARRYNDX2
+                   SET  CREB000-INDICDLG-ON (WS-ARRYNDX2)    TO TRUE
+               END-IF
+           END-PERFORM
+      *
+           EVALUATE TRUE
+           WHEN CREB976-IDUTILIZ-PC
+               SET  CREB000-INDICDLG-ON (KV-IDUTILIZ-PC)     TO TRUE
+           WHEN CREB976-NMUTILIZ-PC
+               SET  CREB000-INDICDLG-ON (KV-NMUTILIZ-PC)     TO TRUE
+           WHEN CREB976-IDEMPRSA-PC
+               SET  CREB000-INDICDLG-ON (KV-IDEMPRSA-PC)     TO TRUE
+           WHEN CREB976-IDBALCAO-PC
+               SET  CREB000-INDICDLG-ON (KV-IDBALCAO-PC)     TO TRUE
+           WHEN CREB976-IDGRFUNC-PC
+               SET  CREB000-INDICDLG-ON (KV-IDGRFUNC-PC)     TO TRUE
+           WHEN CREB976-MCSITEXE-PC
+               SET  CREB000-INDICDLG-ON (KV-MCSITEXE-PC)     TO TRUE
+           WHEN CREB976-PCURSOR > CREB976-NRPARAMS-INP
+               COMPUTE WS-ARRYNDX1 = 24 + (CREB976-NRPARAMS-INP * 3)
+                                   +(CREB976-PCURSOR
+                                   - CREB976-NRPARAMS-INP) * 2 - 1
+               SET  CREB000-INDICDLG-ON (WS-ARRYNDX1)        TO TRUE
+           WHEN CREB976-IDUTILIZ-UP
+               SET  CREB000-INDICDLG-ON (KV-IDUTILIZ-PC)     TO TRUE
+           WHEN CREB976-NROPCLIN-UP(1)
+               SET  CREB000-INDICDLG-ON (KV-NROPCL01-PC)     TO TRUE
+           END-EVALUATE
+      *
+           EVALUATE TRUE
+           WHEN CREB000-PROC-OK
+               CONTINUE
+           WHEN CREB976-IDUTILIZ-PC
+               SET  CREB000-INDICDLG-ON (KV-IDUTILIZ-HI)     TO TRUE
+           WHEN CREB976-NMUTILIZ-PC
+               SET  CREB000-INDICDLG-ON (KV-NMUTILIZ-HI)     TO TRUE
+           WHEN CREB976-IDEMPRSA-PC
+               SET  CREB000-INDICDLG-ON (KV-IDEMPRSA-HI)     TO TRUE
+           WHEN CREB976-IDBALCAO-PC
+               SET  CREB000-INDICDLG-ON (KV-IDBALCAO-HI)     TO TRUE
+           WHEN CREB976-IDGRFUNC-PC
+               SET  CREB000-INDICDLG-ON (KV-IDGRFUNC-HI)     TO TRUE
+           WHEN CREB976-MCSITEXE-PC
+               SET  CREB000-INDICDLG-ON (KV-MCSITEXE-HI)     TO TRUE
+           END-EVALUATE
+           .
+       P2210-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2220-WRIT-REGHDR           SECTION.
+
+           MOVE SPACES              TO CREE976-HDR
+           MOVE CREB000-SGEMPRSA    TO SGEMPRSA OF CREE976HDR-O
+           MOVE CREB000-DSAPLICA    TO DSAPLICA OF CREE976HDR-O
+           MOVE CREB000-DTPRCAPL    TO DTACTUAL OF CREE976HDR-O
+           MOVE CREB000-IDPRCAPL    TO IDPRCAPL OF CREE976HDR-O
+           MOVE CREB000-IDDIALOG    TO IDDIALOG OF CREE976HDR-O
+           MOVE CREB000-DSPRCAPL    TO DSPRCAPL OF CREE976HDR-O
+           MOVE CREB000-NMFUNDLG    TO NMFUNDLG OF CREE976HDR-O
+           MOVE CREB000-NRENTLST    TO NRENTLST OF CREE976HDR-O
+           MOVE CREB000-DSOPCSEL    TO DSOPCSEL OF CREE976HDR-O
+           WRITE CREE976-HDR
+                 FORMAT KV-IDFMTDLG-HDR INDIC CREB000-TBINDARA
+
+           IF  NOT CREE976-OK
+               MOVE FS-CREE976      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2220-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2230-WRIT-REGFTR           SECTION.
+
+           MOVE SPACES              TO CREE976-FTR
+           MOVE CREB000-DSTECLAS    TO DSTECLAS OF CREE976FTR-O
+           MOVE CREB000-DSMSGAPL    TO DSMSGAPL OF CREE976FTR-O
+           WRITE CREE976-FTR
+                 FORMAT KV-IDFMTDLG-FTR INDIC CREB000-TBINDARA
+
+           IF  NOT CREE976-OK
+               MOVE FS-CREE976      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2230-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2240-WRIT-REGDET           SECTION.
+
+           MOVE SPACES              TO ED-CREEVARS-O
+           MOVE CREB976-IDUTILIZ-V  TO IDUTILIZ OF ED-CREEVARS-O
+           MOVE CREB976-NMUTILIZ-V  TO NMUTILIZ OF ED-CREEVARS-O
+           MOVE CREB976-IDEMPRSA-V  TO IDEMPRSA OF ED-CREEVARS-O
+           MOVE CREB976-NMEMPRSA-V  TO NMEMPRSA OF ED-CREEVARS-O
+           MOVE CREB976-IDBALCAO-V  TO IDBALCAO OF ED-CREEVARS-O
+           MOVE CREB976-NMBALCAO-V  TO NMBALCAO OF ED-CREEVARS-O
+           MOVE CREB976-IDGRFUNC-V  TO IDGRFUNC OF ED-CREEVARS-O
+           MOVE CREB976-DSGRFUNC-V  TO DSGRFUNC OF ED-CREEVARS-O
+           MOVE CREB976-MCSITEXE-V  TO MCSITEXE OF ED-CREEVARS-O
+           MOVE CREB976-DSSITEXE-V  TO DSSITEXE OF ED-CREEVARS-O
+           PERFORM
+           VARYING WS-ARRYNDX1 FROM 1 BY 1
+             UNTIL WS-ARRYNDX1 > CREB976-NRSELLIN-MAX
+               MOVE CREB976-NROPCLIN-V       (WS-ARRYNDX1)
+                 TO NROPCLIN OF ED-CREEVARS-O(WS-ARRYNDX1)
+               MOVE CREB976-IDUTILIN-V       (WS-ARRYNDX1)
+                 TO IDUTILIN OF ED-CREEVARS-O(WS-ARRYNDX1)
+               MOVE CREB976-NMUTILIN-V       (WS-ARRYNDX1)
+                 TO NMUTILIN OF ED-CREEVARS-O(WS-ARRYNDX1)
+               MOVE CREB976-IDEMPLIN-V       (WS-ARRYNDX1)
+                 TO IDEMPLIN OF ED-CREEVARS-O(WS-ARRYNDX1)
+               MOVE CREB976-IDBALLIN-V       (WS-ARRYNDX1)
+                 TO IDBALLIN OF ED-CREEVARS-O(WS-ARRYNDX1)
+               MOVE CREB976-IDGRFLIN-V       (WS-ARRYNDX1)
+                 TO IDGRFLIN OF ED-CREEVARS-O(WS-ARRYNDX1)
+               MOVE CREB976-STEXELIN-V       (WS-ARRYNDX1)
+                 TO STEXELIN OF ED-CREEVARS-O(WS-ARRYNDX1)
+           END-PERFORM
+           MOVE ED-CREEVARS-O       TO CREE976D01-O
+           WRITE CREE976-D01
+                 FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+
+           IF  NOT CREE976-OK
+               MOVE FS-CREE976      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2240-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2250-READ-REGDET           SECTION.
+
+           READ CREE976
+                FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+                AT END CONTINUE
+           END-READ
+
+           IF  CREE976-OK
+               MOVE CREE976D01-I              TO ED-CREEVARS-I
+               MOVE IDUTILIZ OF ED-CREEVARS-I TO CREB976-IDUTILIZ-V
+               MOVE NMUTILIZ OF ED-CREEVARS-I TO CREB976-NMUTILIZ-V
+               MOVE IDEMPRSA OF ED-CREEVARS-I TO CREB976-IDEMPRSA-V
+               MOVE IDBALCAO OF ED-CREEVARS-I TO CREB976-IDBALCAO-V
+               MOVE IDGRFUNC OF ED-CREEVARS-I TO CREB976-IDGRFUNC-V
+               MOVE MCSITEXE OF ED-CREEVARS-I TO CREB976-MCSITEXE-V
+               PERFORM
+               VARYING WS-ARRYNDX1 FROM 1 BY 1
+                 UNTIL WS-ARRYNDX1 > CREB976-NRSELLIN-MAX
+                   MOVE NROPCLIN OF ED-CREEVARS-I(WS-ARRYNDX1)
+                     TO CREB976-NROPCLIN-V       (WS-ARRYNDX1)
+               END-PERFORM
+               MOVE IDVARCSR OF ED-CREEVARS-I TO CREB000-IDVARCSR
+               MOVE IDTECLAF OF CA-CREE976    TO CREB000-IDTECLAF
+           ELSE
+               MOVE FS-CREE976                TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG               TO CREB000-NMOBJECT
+               SET  CREB000-READ              TO TRUE
+               SET  CREB000-MSGDLOG           TO TRUE
+           END-IF
+           .
+       P2250-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2300-CLSE-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           CLOSE CREE976
+
+           IF  NOT CREE976-OK
+               MOVE FS-CREE976      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-CLSE    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2300-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P3000-FIM                   SECTION.
+      *----------------------------------------------------------------*
+
+           GOBACK
+           .
+       P3000-EXIT.                 EXIT.
+      *--- FIM DO PROGRAMA CREP976 ------------------------------------*

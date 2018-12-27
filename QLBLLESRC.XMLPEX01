@@ -1,0 +1,28 @@
+       IDENTIFICATION DIVISION.
+     š*----------------------------------------------------------------*
+       PROGRAM-ID.  XMLPEX01.
+     š*----------------------------------------------------------------*
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01  TOTAL-CHAR   PIC 9(05) VALUE 0.
+       01  XML-OUTPUT   PIC X(1000) VALUE QUOTES.
+       01  one.
+         02 THISX PICTURE 9V999 VALUE 1.00.
+         02 THATX PICTURE X(5) occurs 1 times.
+         02 SOMEX PICTURE 9(5) VALUE 00100.
+     š*----------------------------------------------------------------*
+       PROCEDURE DIVISION.
+           MOVE "Data2" TO THATX(1).
+           DISPLAY " one = " QUOTE one QUOTE.
+
+           XML GENERATE XML-OUTPUT  FROM one
+               COUNT IN TOTAL-CHAR
+           ON  EXCEPTION
+               DISPLAY "Problem  XML-CODE = " XML-CODE
+           END-XML.
+           PERFORM A.
+           DISPLAY "STOP RUN.      ".
+           STOP RUN.
+       A.  DISPLAY "Here is the variable XML-OUTPUT".
+           DISPLAY XML-OUTPUT(1:TOTAL-CHAR). DISPLAY SPACE.

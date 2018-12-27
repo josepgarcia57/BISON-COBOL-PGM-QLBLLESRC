@@ -1,0 +1,813 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    LOADERTST   INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2018-OUT-06.
+     š*---------------------------------------------------------------*
+     š*   APLICACO .......: AML - Anti Money Loundering               *
+     š*   OBJECTIVO ......: Este programa destina-se ao Tratamento    *
+     š*                     das Mensagens Response HIT                *
+     š*   ANALISTA .......: PEDRO GARCIA                              *
+     š*   PROGRAMADOR.....:                                           *
+     š*===============================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 EXECUTA-P001               PIC 9(01).
+          88 INICIO-P001             VALUE 0.
+          88 FIM-P001                VALUE 1.
+      *
+       01 EXECUTA-P002               PIC 9(01).
+          88 INICIO-P002             VALUE 0.
+          88 FIM-P002                VALUE 1.
+      *
+       01 IND-BLK-HIT                PIC 9(01).
+          88 HIT-BLOCK               VALUE 0.
+          88 HIT-NBLOCK              VALUE 1.
+      *
+       01 IND-ERRO                   PIC 9(01).
+          88 SEM-ERRO                VALUE 0.
+          88 COM-ERRO                VALUE 1.
+      *
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-ANOIN                PIC X(04).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-DIAIN                PIC X(02).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01  W-CONSTANTS.
+           05  K-APLICACAO           PIC X(3)    VALUE "AML".
+           05  K-PROGRAMA            PIC X(8)    VALUE "LOADERTST".
+
+       01 WS-DESCTYPE              PIC X(40).
+
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+     š* Parametros p/ Interface
+     š* EMAIL
+       01 WS-IDPRC    PIC 9(5).
+       01 WS-MSGEMAIL PIC X(1000).
+       01 Edit-Nbr-Mn PIC      ---------9,99.
+       01 Edit-Int-Mn PIC      ----------9.
+       01 WS-Nbr-Mn   PIC X(25).
+       01 WS-Int-Mn   PIC X(11).
+
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+
+       01 WS-DTREF                 PIC X(10).
+       01 WS-NURACI                PIC X(07).
+       01 WS-CPRACI                PIC X(07).
+
+       01 WS-FRMPATH               PIC X(45).
+       01 WS-TOPATH                PIC X(45).
+       01 WS-ERROR                 PIC X(10).
+       01 WS-SRCSEQ                PIC S9(4)V9(2) COMP-3.
+       01 WS-SRCDAT                PIC S9(6) COMP-3.
+       01 WS-READHIT               PIC X(500).
+       01 WS-SRCDTA                PIC X(254).
+       01 WS-FNAME                 PIC X(29).
+       01 WS-LPLREF                PIC S9(11) COMP-3.
+       01 WX-LPLREF                PIC X(11).
+       01 WS-AMLSTAT               PIC X(03).
+       01 WS-TRANREL               PIC X(16).
+       01 WS-NR-NBLOCK             PIC 9(3).
+       01 WS-NR-BLOCK              PIC 9(3).
+       01 WS-NR-RELEASE            PIC 9(5).
+       01 WS-LOAD-PARM             PIC X(9) VALUE "'BLDRIE'".
+
+     š* Copy : Tabela de MAINIES
+       01  R-MAINIES.
+           COPY DDS-ALL-FORMATS OF MAINIES.
+
+     š* Copy : Tabela de Clientes NOVA
+           EXEC SQL
+               INCLUDE AMLH200N
+           END-EXEC.
+
+     š* Copy : Tabela de AMLT900A
+       01  R-AMLT900A.
+           COPY DDS-ALL-FORMATS OF AMLT900A.
+
+           EXEC SQL DECLARE AMLRPL CURSOR FOR
+           SELECT *
+           FROM QTEMP/AMLFRPLY
+           END-EXEC.
+
+     š* Cursor com as Linhas do Ficheiro
+           EXEC SQL DECLARE AMLHIT CURSOR FOR
+           SELECT *
+           FROM QTEMP/AMLFHIT
+           END-EXEC.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       PROCEDURE DIVISION.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+           PERFORM P001-INICIO
+             PERFORM P500-EXECUTA-LOADER
+
+           PERFORM P999-FIMPGM.
+     š*---------------------------------------------------------------------
+       P001-INICIO.
+     š*---------------------------------------------------------------------
+           SET  INICIO-P001         TO  TRUE.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10) TO WS-DATA-DIA.
+           SET SEM-ERRO             TO TRUE.
+     š*-
+     š*****************************************************************
+       P300-PROCESSO-GERAL.
+     š*****************************************************************
+     š*-
+           IF SEM-ERRO
+              PERFORM P400-CHECK-TRANSFER
+           END-IF
+
+           IF SEM-ERRO AND
+             AMLH200N-AMLSTAT = "REQ"
+             PERFORM P030-CICLO-LEITURA-HIT
+                             UNTIL FIM-P002
+           END-IF
+
+           IF SEM-ERRO   AND
+              HIT-BLOCK  AND
+              AMLH200N-AMLSTAT = "REQ"
+              PERFORM P400-UPDATE-STATUS-HIT
+              PERFORM P450-SEND-EMAIL-HIT
+           END-IF.
+
+           IF SEM-ERRO    AND
+              HIT-NBLOCK  AND
+              AMLH200N-AMLSTAT = "REQ"
+              PERFORM P400-RELEASE-TRANSFER
+              PERFORM P400-UPDATE-STATUS-HITNB
+              PERFORM P450-SEND-EMAIL-HNB
+           END-IF.
+
+           IF SEM-ERRO AND
+              AMLH200N-AMLSTAT = "REQ"
+              PERFORM P400-ARCHIVE-MSG
+           END-IF.
+
+           PERFORM P200-FETCH-CURSOR-AMLRPL.
+     š*-
+     š*---------------------------------------------------------------------
+       P500-EXECUTA-LOADER.
+     š*---------------------------------------------------------------------
+     š*-
+           CALL "AMLCLOAD".
+     š*-
+     š*---------------------------------------------------------------------
+       P030-CICLO-LEITURA-HIT.
+     š*---------------------------------------------------------------------
+     š*-
+     š*- Cursor de Leitura das Linhas do Ficheiro                      -----
+           SET HIT-BLOCK  TO  TRUE.
+           PERFORM P100-OPEN-CURSOR-AMLHIT
+           PERFORM P200-FETCH-CURSOR-AMLHIT
+                           UNTIL FIM-P002
+           PERFORM P400-CLOSE-CURSOR-AMLHIT.
+     š*-
+     š*---------------------------------------------------------------------
+       P100-OPEN-CURSOR-AMLHIT.
+     š*---------------------------------------------------------------------
+     š*-
+           EXEC SQL
+                OPEN AMLHIT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-P002         TO TRUE
+           WHEN OTHER
+              SET     SEM-ERRO         TO TRUE
+              SET     FIM-P002         TO TRUE
+              MOVE "AMLHIT"            TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*---------------------------------------------------------------------
+       P200-FETCH-CURSOR-AMLHIT.
+     š*---------------------------------------------------------------------
+     š*-
+           EXEC SQL FETCH AMLHIT
+                  INTO :WS-READHIT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              MOVE ZEROS TO WS-NR-NBLOCK WS-NR-BLOCK
+              INSPECT WS-READHIT TALLYING
+                WS-NR-NBLOCK   FOR ALL "NON_BLOCKING_HITS_ONLY"
+              IF WS-NR-NBLOCK NOT EQUAL ZERO
+                SET HIT-NBLOCK      TO TRUE
+                SET   FIM-P002      TO TRUE
+              END-IF
+           WHEN SQLCODE-NOTFOUND
+              SET   FIM-P002         TO TRUE
+           WHEN OTHER
+              SET   FIM-P002         TO TRUE
+              MOVE "AMLHIT"          TO W-OBJECT-NAME
+              SET   CMD-FETCH-CURSOR TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*---------------------------------------------------------------------
+       P400-CLOSE-CURSOR-AMLHIT.
+     š*---------------------------------------------------------------------
+     š*-
+           EXEC SQL
+               CLOSE AMLHIT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET     FIM-P002         TO TRUE
+           WHEN OTHER
+              SET     FIM-P002         TO TRUE
+              MOVE "CURSOR-AMLHIT"     TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*-
+     š*----------------------------------------------------------------
+       P400-CHECK-TRANSFER.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE WS-FNAME(17 :11 )  TO  WS-LPLREF
+           EXEC SQL
+           SELECT    LPLREF
+                  ,  LPLOPR
+                  ,  FILENOT
+                  ,  OPDBNM
+                  ,  OPCRRC
+                  ,  OPDBRC
+                  ,  OPDNMC
+                  ,  OPDBMC
+                  ,  OPID
+                  ,  LPDTJJ
+                  ,  LPDTMM
+                  ,  LPDTAA
+                  ,  TMSTAT
+                  ,  AMLSTAT
+                  ,  TRANREL
+                  ,  TMTREL
+           INTO     :AMLH200N-LPLREF
+                  , :AMLH200N-LPLOPR
+                  , :AMLH200N-FILENOT
+                  , :AMLH200N-OPDBNM
+                  , :AMLH200N-OPCRRC
+                  , :AMLH200N-OPDBRC
+                  , :AMLH200N-OPDNMC
+                  , :AMLH200N-OPDBMC
+                  , :AMLH200N-OPID
+                  , :AMLH200N-LPDTJJ
+                  , :AMLH200N-LPDTMM
+                  , :AMLH200N-LPDTAA
+                  , :AMLH200N-TMSTAT
+                  , :AMLH200N-AMLSTAT
+                  , :AMLH200N-TRANREL
+                  , :AMLH200N-TMTREL
+                FROM AMLJ200
+                WHERE LPLREF = :WS-LPLREF
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              MOVE  AMLH200N-AMLSTAT    TO WS-AMLSTAT
+           WHEN OTHER
+              MOVE "AMLJ200"            TO W-OBJECT-NAME
+              SET CMD-SELECT            TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-UPDATE-STATUS-HIT.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                 UPDATE AMLJ200
+                 SET TMSTAT   = CURRENT TIMESTAMP
+                   , AMLSTAT = "HIT"
+                   , TRANREL  = :WS-LPLREF
+                   , TMTREL   = CURRENT TIMESTAMP
+                 WHERE LPLREF = :WS-LPLREF
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "AMLJ200"           TO W-OBJECT-NAME
+              SET CMD-UPDATE           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-RELEASE-TRANSFER.
+     š*----------------------------------------------------------------
+     š*- Insert Records in MAINIES
+     š*-
+           INITIALIZE  R-MAINIES
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+
+           MOVE "FCM"                 TO IEORIG  OF R-MAINIES
+           MOVE WS-LPLREF             TO WX-LPLREF
+           STRING "FCM"
+                  WX-LPLREF
+                  DELIMITED BY SIZE
+                  INTO WS-TRANREL
+
+           MOVE WS-TRANREL            TO IEREF   OF R-MAINIES
+           MOVE "C"                   TO IEACTI  OF R-MAINIES
+           MOVE "200"                 TO LELID   OF R-MAINIES
+           MOVE AMLH200N-LPLREF       TO LELREF  OF R-MAINIES
+           MOVE AMLH200N-LPLOPR       TO OPOPER  OF R-MAINIES
+           MOVE AMLH200N-LPLOPR       TO OPCNTR  OF R-MAINIES
+           MOVE AMLH200N-LPLOPR       TO LELOPR  OF R-MAINIES
+           MOVE AMLH200N-LPLOPR       TO LECTRL  OF R-MAINIES
+
+           EXEC SQL
+                 INSERT INTO MAINIES
+                 (  IEORIG
+                  , IEREF
+                  , IEACTI
+                  , LELID
+                  , LELREF
+                  , OPOPER
+                  , OPCNTR
+                  , LELOPR
+                  , LECTRL )
+                 VALUES
+                (   :IEORIG
+                  , :IEREF
+                  , :IEACTI
+                  , :LELID
+                  , :LELREF
+                  , :OPOPER
+                  , :OPCNTR
+                  , :LELOPR
+                  , :LECTRL )
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "MAINIES"           TO W-OBJECT-NAME
+              SET CMD-INSERT           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P400-UPDATE-STATUS-HITNB.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                 UPDATE AMLJ200
+                 SET TMSTAT   = CURRENT TIMESTAMP
+                   , AMLSTAT = "HNB"
+                   , TRANREL  = :WS-LPLREF
+                   , TMTREL   = CURRENT TIMESTAMP
+                 WHERE LPLREF = :WS-LPLREF
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+              MOVE "AMLJ200"           TO W-OBJECT-NAME
+              SET CMD-UPDATE           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*---------------------------------------------------------------------
+       P450-SEND-EMAIL-HIT.
+     š*---------------------------------------------------------------------
+     š*-
+     š*-  Descritivos
+           EVALUATE TRUE
+             WHEN AMLH200N-OPID      =   "100"
+               MOVE "Trans. Interna"
+                                         TO WS-DESCTYPE
+             WHEN AMLH200N-OPID      =   "101"
+               MOVE "Transf. SWIFT Saida    "
+                                         TO WS-DESCTYPE
+             WHEN AMLH200N-OPID      =   "102"
+               MOVE "Transf. SWIFT Entrada"
+                                         TO WS-DESCTYPE
+             WHEN AMLH200N-OPID      =   "123"
+               MOVE "Transf. SEPA Entrada"
+                                         TO WS-DESCTYPE
+             WHEN AMLH200N-OPID      =   "125"
+               MOVE "Transf. SEPA Saida"
+                                         TO WS-DESCTYPE
+             WHEN AMLH200N-OPID      =   "135"
+               MOVE "Transf. AT2 de Saida"
+                                         TO WS-DESCTYPE
+             WHEN AMLH200N-OPID      =   "136"
+               IF  AMLH200N-OPCRRC (1:1) = "9"
+                 MOVE "Transf. AT2 de Saida"
+                                         TO WS-DESCTYPE
+               ELSE
+                 MOVE "Transf. AT2 de Entrada"
+                                         TO WS-DESCTYPE
+               END-IF
+             WHEN AMLH200N-OPID      =   "137"
+               IF  AMLH200N-OPCRRC (1:1) = "9"
+                 MOVE "Transf. AT2 Urgente de Saida"
+                                         TO WS-DESCTYPE
+               ELSE
+                 MOVE "Transf. AT2 Urgente de Entrada"
+                                         TO WS-DESCTYPE
+               END-IF
+             WHEN AMLH200N-OPID      =   "138"
+                 MOVE "Transf. AT2 Com Comissões"
+                                         TO WS-DESCTYPE
+             WHEN AMLH200N-OPID      =   "139"
+                 MOVE "Transf. AT2 Sem Comissões"
+                                         TO WS-DESCTYPE
+             WHEN OTHER
+               CONTINUE
+           END-EVALUATE
+     š*-  Email
+           MOVE AMLH200N-OPDNMC  TO Edit-Nbr-Mn
+           MOVE Edit-Nbr-Mn      TO WS-Nbr-Mn
+           MOVE AMLH200N-LPLREF  TO Edit-Int-Mn
+           MOVE Edit-Int-Mn      TO WS-Int-Mn
+
+           MOVE "00004" TO WS-IDPRC
+           STRING "Transacção: "           DELIMITED BY SIZE
+                   WS-Int-Mn               DELIMITED BY SIZE
+                  "  / Data  : "           DELIMITED BY SIZE
+                   AMLH200N-LPDTAA         DELIMITED BY SIZE
+                   AMLH200N-LPDTMM         DELIMITED BY SIZE
+                   AMLH200N-LPDTJJ         DELIMITED BY SIZE
+                  "  / Racine Debito: "    DELIMITED BY SIZE
+                   AMLH200N-OPDBRC         DELIMITED BY SIZE
+                  "  / Racine Credito: "   DELIMITED BY SIZE
+                   AMLH200N-OPCRRC         DELIMITED BY SIZE
+                   " / Valor :"            DELIMITED BY SIZE
+                   WS-Nbr-Mn               DELIMITED BY SIZE
+                   " / Moeda :"            DELIMITED BY SIZE
+                   AMLH200N-OPDBNM         DELIMITED BY SIZE
+                  "  / OPID: "             DELIMITED BY SIZE
+                   AMLH200N-OPID           DELIMITED BY SIZE
+                   " - "                   DELIMITED BY SIZE
+                   WS-DESCTYPE             DELIMITED BY SIZE
+                                          INTO WS-MSGEMAIL
+               CALL "UTLP050" USING WS-IDPRC WS-MSGEMAIL.
+     š*-
+     š*---------------------------------------------------------------------
+       P450-SEND-EMAIL-HNB.
+     š*---------------------------------------------------------------------
+     š*-
+     š*-  Descritivos
+           EVALUATE TRUE
+             WHEN AMLH200N-OPID      =   "100"
+               MOVE "Trans. Interna"
+                                         TO WS-DESCTYPE
+             WHEN AMLH200N-OPID      =   "101"
+               MOVE "Transf. SWIFT Saida    "
+                                         TO WS-DESCTYPE
+             WHEN AMLH200N-OPID      =   "102"
+               MOVE "Transf. SWIFT Entrada"
+                                         TO WS-DESCTYPE
+             WHEN AMLH200N-OPID      =   "123"
+               MOVE "Transf. SEPA Entrada"
+                                         TO WS-DESCTYPE
+             WHEN AMLH200N-OPID      =   "125"
+               MOVE "Transf. SEPA Saida"
+                                         TO WS-DESCTYPE
+             WHEN AMLH200N-OPID      =   "135"
+               MOVE "Transf. AT2 de Saida"
+                                         TO WS-DESCTYPE
+             WHEN AMLH200N-OPID      =   "136"
+               IF  AMLH200N-OPCRRC (1:1) = "9"
+                 MOVE "Transf. AT2 de Saida"
+                                         TO WS-DESCTYPE
+               ELSE
+                 MOVE "Transf. AT2 de Entrada"
+                                         TO WS-DESCTYPE
+               END-IF
+             WHEN AMLH200N-OPID      =   "137"
+               IF  AMLH200N-OPCRRC (1:1) = "9"
+                 MOVE "Transf. AT2 Urgente de Saida"
+                                         TO WS-DESCTYPE
+               ELSE
+                 MOVE "Transf. AT2 Urgente de Entrada"
+                                         TO WS-DESCTYPE
+               END-IF
+             WHEN OTHER
+               CONTINUE
+           END-EVALUATE
+     š*-  Email
+           MOVE AMLH200N-OPDNMC  TO Edit-Nbr-Mn
+           MOVE Edit-Nbr-Mn      TO WS-Nbr-Mn
+           MOVE AMLH200N-LPLREF  TO Edit-Int-Mn
+           MOVE Edit-Int-Mn      TO WS-Int-Mn
+
+           MOVE "00007" TO WS-IDPRC
+           STRING "Transacção: "           DELIMITED BY SIZE
+                   WS-Int-Mn               DELIMITED BY SIZE
+                  "  / Data  : "           DELIMITED BY SIZE
+                   AMLH200N-LPDTAA         DELIMITED BY SIZE
+                   AMLH200N-LPDTMM         DELIMITED BY SIZE
+                   AMLH200N-LPDTJJ         DELIMITED BY SIZE
+                  "  / Racine Debito: "    DELIMITED BY SIZE
+                   AMLH200N-OPDBRC         DELIMITED BY SIZE
+                  "  / Racine Credito: "   DELIMITED BY SIZE
+                   AMLH200N-OPCRRC         DELIMITED BY SIZE
+                   " / Valor :"            DELIMITED BY SIZE
+                   WS-Nbr-Mn               DELIMITED BY SIZE
+                   " / Moeda :"            DELIMITED BY SIZE
+                   AMLH200N-OPDBNM         DELIMITED BY SIZE
+                  "  / OPID: "             DELIMITED BY SIZE
+                   AMLH200N-OPID           DELIMITED BY SIZE
+                   " - "                   DELIMITED BY SIZE
+                   WS-DESCTYPE             DELIMITED BY SIZE
+                                          INTO WS-MSGEMAIL
+               CALL "UTLP050" USING WS-IDPRC WS-MSGEMAIL.
+     š*-
+     š*----------------------------------------------------------------
+       P400-ARCHIVE-MSG.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE SPACES TO WS-FRMPATH
+           STRING "AMLT/REPLY/HIT/"
+                   WS-FNAME DELIMITED BY space
+                   INTO WS-FRMPATH
+           MOVE "AMLTProc/REPLY/HIT"          TO WS-TOPATH
+           CALL "AMLCMVE" using WS-FRMPATH
+                                WS-TOPATH
+                                WS-ERROR .
+     š*-
+     š*---------------------------------------------------------------------
+       P100-OPEN-CURSOR-AMLRPL.
+     š*---------------------------------------------------------------------
+     š*-
+           EXEC SQL
+                OPEN AMLRPL
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-P001         TO TRUE
+           WHEN OTHER
+              SET     SEM-ERRO         TO TRUE
+              SET     FIM-P001         TO TRUE
+              MOVE "AMLRPL"            TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*---------------------------------------------------------------------
+       P200-FETCH-CURSOR-AMLRPL.
+     š*---------------------------------------------------------------------
+     š*-
+           EXEC SQL FETCH AMLRPL
+                     INTO
+                       :WS-SRCSEQ
+                     , :WS-SRCDAT
+                     , :WS-SRCDTA
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             MOVE SPACES     TO WS-FNAME
+             MOVE WS-SRCDTA  TO WS-FNAME
+             IF WS-SRCDTA(1:4) = "ls: "
+               SET   FIM-P001    TO TRUE
+             ELSE
+               IF WS-FNAME(17 :11)  IS NUMERIC
+                 MOVE SPACES TO WS-FRMPATH
+                 STRING "AMLT/REPLY/HIT/"
+                         WS-FNAME DELIMITED BY SPACE
+                         INTO WS-FRMPATH
+                 CALL "AMLCHIT" USING WS-FRMPATH
+               ELSE
+                  SET COM-ERRO TO TRUE
+               END-IF
+             END-IF
+     š*-
+           WHEN SQLCODE-NOTFOUND
+              SET   FIM-P001         TO TRUE
+           WHEN OTHER
+              SET   FIM-P001         TO TRUE
+              MOVE "AMLRPL"          TO W-OBJECT-NAME
+              SET   CMD-FETCH-CURSOR TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*---------------------------------------------------------------------
+       P400-CLOSE-CURSOR-AMLRPL.
+     š*---------------------------------------------------------------------
+     š*-
+           EXEC SQL
+               CLOSE AMLRPL
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET     FIM-P001         TO TRUE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURSOR-AMLRPL"     TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   AMLT900A
+           MOVE MSG-ERRO-SQL    TO ERRMSG   OF  AMLT900A
+           MOVE W-SQLCODE       TO ERRCOD   OF  AMLT900A
+           MOVE "SQL"           TO ERRAPL   OF  AMLT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  AMLT900A
+           MOVE  2              TO ERRRTC   OF  AMLT900A
+           SET COM-ERRO         TO TRUE
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "LOADERTST"      TO  ERRPRG OF AMLT900A.
+           MOVE   WS-NURACI      TO  RACINE OF AMLT900A.
+
+           EXEC SQL  INSERT
+                INTO AMLT900A
+                VALUES  (
+                           :AMLT900A.RACINE
+                         , :AMLT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :AMLT900A.ERRRTC
+                         , :AMLT900A.ERRCOD
+                         , :AMLT900A.ERRMSG
+                         , :AMLT900A.ERRPRG
+                         , :AMLT900A.ERRAPL
+                         , :AMLT900A.ERROBJ
+                         , :AMLT900A.ERRFLD
+                         , :AMLT900A.ERRCMD
+                         , :AMLT900A.ERRKEY1
+                         , :AMLT900A.ERRVAL1
+                         , :AMLT900A.ERRKEY2
+                         , :AMLT900A.ERRVAL2 )
+           END-EXEC.
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              MOVE "AMLT900A"       TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+
+     š*****************************************************************
+       P999-FIMPGM.
+     š*****************************************************************
+           EXEC SQL    COMMIT    HOLD         END-EXEC
+           EXIT PROGRAM.
+           STOP RUN.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA LOADERTST
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *

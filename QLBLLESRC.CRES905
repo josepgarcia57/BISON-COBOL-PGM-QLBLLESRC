@@ -1,0 +1,265 @@
+      *================================================================*
+       IDENTIFICATION DIVISION.
+      *================================================================*
+
+       PROGRAM-ID.     CRES905.
+      *----------------------------------------------------------------*
+      * APLICACAO : GESTAO DE EMPRESTIMOS
+      * PROGRAMA .: CRES905
+      * OBJECTIVO : IMPLEMENTAR UMA FUNCAO UNICA DE CARREGAMENTO DE UMA
+      *             LISTA DE VALORES SOBRE A TABELA "CRET099"
+      * CRIADO EM : 2005/MAIO
+      * POR ......: FERNANDO SILVA (CAPGEMINI PORTUGAL)
+      *----------------------------------------------------------------*
+
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       CONFIGURATION               SECTION.
+      *----------------------------------------------------------------*
+       SPECIAL-NAMES.  DECIMAL-POINT  IS COMMA.
+
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT                SECTION.
+      *----------------------------------------------------------------*
+       FILE-CONTROL.
+           SELECT CREE000B
+                  ASSIGN        TO WORKSTATION-CREE000B-SI
+                  ORGANIZATION  IS TRANSACTION
+                  ACCESS MODE   IS DYNAMIC
+                  RELATIVE KEY  IS RK-CREE000B
+                  FILE STATUS   IS FS-CREE000B
+                  CONTROL-AREA  IS CA-CREE000B.
+
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       FILE                        SECTION.
+      *----------------------------------------------------------------*
+       FD  CREE000B
+           EXTERNAL
+           LABEL RECORD OMITTED.
+       01  CREE000-REG                 PIC X(100).
+       01  CREE000-SFL.
+           COPY DDS-CREE000SFL OF CREE000B.
+       01  CREE000-LOV.
+           COPY DDS-CREE000LOV OF CREE000B.
+       01  CREE000-WIN.
+           COPY DDS-CREE000WIN OF CREE000B.
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE             SECTION.
+      *----------------------------------------------------------------*
+       01  FS-CREE000B                 PIC 99.
+           88  CREE000B-OK                         VALUE ZERO.
+
+       01  RK-CREE000B                 PIC 9(04)   EXTERNAL.
+
+       01  CA-CREE000B.
+           05  IDTECLAF                PIC 99.
+           05  IDTERMNL                PIC X(10).
+           05  FRMTREGT                PIC X(10).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           COPY CREB950.
+
+       01  WS-VARSTRAB.
+           05  WS-PARMSINP.
+               10  WS-CTAB             PIC 9(03).
+               10  WS-CACC             PIC X(20).
+
+           05  WS-SFLRECRD.
+               10  WS-IDENTLIN.
+                   15  WS-CACC         PIC X(20).
+               10  WS-ATRIBLIN.
+                   15  WS-DESC         PIC X(50).
+
+           05  WS-STRNGVAR.
+               10  WS-STRNGPOS         PIC X               OCCURS 10.
+           05  WS-ARRYNDX1             PIC S9(4)       BINARY.
+
+           05  CS-QTBCODS              PIC X.
+               88  QTBCODS-CLSE                    VALUE "C".
+               88  QTBCODS-OPEN                    VALUE "O".
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-CNSTANTS.
+           05  KV-IDFMTDLG-SFL         PIC X(10)   VALUE "CREE000SFL".
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           EXEC SQL INCLUDE SQLCA                              END-EXEC.
+
+           EXEC SQL BEGIN DECLARE  SECTION                     END-EXEC.
+       01  WS-DBGBVARS.
+           COPY DDS-CRET099 OF CRET099.
+
+       01  WS-DBLCVARS.
+           05  DB-VARDUMMY             PIC S9(4)       BINARY.
+           05  DB-PARMSINP.
+               10  DB-CTAB             PIC S9(3)V      COMP-3.
+               10  DB-CACC.
+                   49  DB-CACC-L       PIC S9(4)       BINARY.
+                   49  DB-CACC-V       PIC X(20).
+           EXEC SQL END   DECLARE  SECTION                     END-EXEC.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           EXEC SQL DECLARE QTBCODS CURSOR FOR
+                    SELECT CACC
+                         , DESC
+                      FROM CRET099
+                     WHERE CTAB   =  :DB-PARMSINP.DB-CTAB
+                       AND CACC LIKE :DB-PARMSINP.DB-CACC
+                     ORDER BY 1
+                    FOR READ ONLY                              END-EXEC.
+
+      *----------------------------------------------------------------*
+       LINKAGE                     SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB900.
+
+      *================================================================*
+       PROCEDURE DIVISION USING CREB900-LKGERAL.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       P0000-RAIZ                  SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P1000-INICIO
+
+           PERFORM P2000-PROCESSO
+
+           PERFORM P3000-FIM
+           .
+       P0000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P1000-INICIO                SECTION.
+      *----------------------------------------------------------------*
+
+           MOVE CREB900-PARMSINP     TO WS-PARMSINP
+           INITIALIZE WS-DBGBVARS, WS-DBLCVARS
+           .
+       P1000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P2000-PROCESSO              SECTION.
+      *----------------------------------------------------------------*
+
+           INITIALIZE DB-PARMSINP
+           MOVE WS-CTAB OF WS-PARMSINP TO DB-CTAB
+
+           IF  WS-CACC OF WS-PARMSINP = SPACES OR CREB950-MCPESQGN
+               MOVE "%"                    TO DB-CACC-V
+               MOVE  1                     TO DB-CACC-L
+           ELSE
+               MOVE WS-CACC OF WS-PARMSINP TO DB-CACC-V
+                                              WS-STRNGVAR
+               INITIALIZE WS-ARRYNDX1
+               INSPECT DB-CACC-V
+                       TALLYING WS-ARRYNDX1 FOR ALL "*"
+                       REPLACING ALL "*" BY "%"
+               IF  WS-ARRYNDX1 > ZERO
+                   PERFORM
+                   VARYING DB-CACC-L
+                      FROM LENGTH OF DB-CACC-V BY -1
+                     UNTIL DB-CACC-L = ZERO
+                     OR    WS-STRNGPOS(DB-CACC-L) > SPACE
+                       CONTINUE
+                   END-PERFORM
+               ELSE
+                   MOVE LENGTH OF DB-CACC-V TO DB-CACC-L
+               END-IF
+           END-IF
+           SET  QTBCODS-CLSE  TO TRUE
+           PERFORM P2100-OPEN-QTBCODS
+
+           IF  QTBCODS-OPEN
+               PERFORM P2200-FTCH-QTBCODS
+
+               PERFORM
+               VARYING RK-CREE000B FROM 1 BY 1
+                 UNTIL SQLCODE-NOTFOUND
+                 OR    NOT CREB900-PROC-OK
+                   PERFORM P2300-LOAD-LSTVAL
+
+                   IF  CREB900-PROC-OK
+                       PERFORM P2200-FTCH-QTBCODS
+                   END-IF
+               END-PERFORM
+
+               PERFORM P2400-CLSE-QTBCODS
+           END-IF
+           .
+       P2000-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2100-OPEN-QTBCODS          SECTION.
+
+           EXEC SQL OPEN  QTBCODS                              END-EXEC
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           IF  SQLCODE-OK
+               SET  QTBCODS-OPEN      TO TRUE
+           ELSE
+               SET  CREB900-OPEN-CS   TO TRUE
+               MOVE "CRES905.QTBCODS" TO CREB900-NMOBJECT
+           END-IF
+           .
+       P2100-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2200-FTCH-QTBCODS          SECTION.
+
+           EXEC SQL FETCH QTBCODS
+                     INTO :CRET099.CACC
+                        , :CRET099.DESC                        END-EXEC
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           IF  SQLCODE-ERRORCOD
+               SET  CREB900-FTCH-CS   TO TRUE
+               MOVE "CRES905.QTBCODS" TO CREB900-NMOBJECT
+           END-IF
+           .
+       P2200-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2300-LOAD-LSTVAL           SECTION.
+
+           MOVE CACC OF CRET099            TO WS-CACC OF WS-SFLRECRD
+           MOVE DESC OF CRET099            TO WS-DESC OF WS-SFLRECRD
+
+           INITIALIZE CREE000SFL-O
+           MOVE WS-IDENTLIN OF WS-SFLRECRD TO IDENTLIN OF CREE000SFL-O
+           MOVE WS-ATRIBLIN OF WS-SFLRECRD TO ATRIBLIN OF CREE000SFL-O
+           WRITE SUBFILE CREE000-SFL
+                 FORMAT IS KV-IDFMTDLG-SFL
+                 INVALID KEY CONTINUE
+           END-WRITE
+           .
+       P2300-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2400-CLSE-QTBCODS          SECTION.
+
+           EXEC SQL CLOSE QTBCODS                              END-EXEC
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           IF  SQLCODE-OK
+               SET  QTBCODS-CLSE      TO TRUE
+           ELSE
+               SET  CREB900-CLSE-CS   TO TRUE
+               MOVE "CRES905.QTBCODS" TO CREB900-NMOBJECT
+           END-IF
+           .
+       P2400-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P3000-FIM                   SECTION.
+      *----------------------------------------------------------------*
+
+           IF  CREB900-PROC-OK
+               COMPUTE CREB900-QTLINHAS = RK-CREE000B - 1
+           ELSE
+               MOVE "CRES905" TO CREB900-NMOBJECT
+           END-IF
+           GOBACK
+           .
+       P3000-EXIT.                 EXIT.
+      *--- FIM DO PROGRAMA CRES905 -----------------------------------*

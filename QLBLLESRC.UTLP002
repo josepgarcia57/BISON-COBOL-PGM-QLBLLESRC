@@ -1,0 +1,1324 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.     KYCP002   INITIAL.
+       AUTHOR.        JOSE PEDRO GARCIA (BBI)
+       INSTALLATION.  BANIF SA.
+       DATE-WRITTEN.  2017-JUN-14.
+      *----------------------------------------------------------------*
+      * APLICACO .......: KYC - MANUTENÇÃO CLIENTES OLYMPIC
+      * OBJECTIVO ......: MANUTENÇÃO DE DADOS BASE DE CLIENTES
+      *
+      *----------------------------------------------------------------*
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+       FILE-CONTROL.
+     š*                                                                *
+     š*--> FICHEIRO DE ECRAN COM SUB-FILE                              *
+     š*                                                                *
+           SELECT ECRANS
+                  ASSIGN        TO WORKSTATION-CRVE120-SI
+                  ORGANIZATION  IS TRANSACTION
+                  ACCESS MODE   IS DYNAMIC
+                  RELATIVE KEY  IS SFL-CHV50
+                  CONTROL-AREA  CRT-AREA
+                  FILE STATUS   IS STA-ECR.
+     š*                                                                *
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+       FD  ECRANS  LABEL RECORD OMITTED.
+       01  REG-ECRAN      PIC  X(2000).
+     š*
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 EXECUTA-G03               PIC 9(01).
+          88 INICIO-G03             VALUE 0.
+          88 FIM-G03                VALUE 1.
+      *
+       01 ACESSO-SUBFILE            PIC 9(01).
+          88 BEGIN-OF-SUBFILE       VALUE 0.
+          88 END-OF-SUBFILE         VALUE 1.
+      *
+       01 TRATA-OPCAO               PIC 9(01).
+          88 BEGIN-OF-AFIXA         VALUE 0.
+          88 END-OF-AFIXA           VALUE 1.
+      *
+       01 PROGRAMAS-CHAMADOS        PIC 9(01).
+          88 CALL-INVALIDO          VALUE 0.
+          88 CALL-VALIDO            VALUE 1.
+      *
+       01 WK-PROGRAMA               PIC  X(08).
+       01 WK-EMPRESA                PIC  X(03).
+       01 WK-APL                    PIC  X(03).
+       01 WK-TABELA                 PIC  X(03).
+       01 STA-ECR                   PIC  X(02).
+       01 SFL-CHV50                 PIC  9(04) VALUE ZEROS.
+       01 FIM-SFL                   PIC  9(01).
+       01 NR-LIDOS                  PIC 9(06) VALUE ZEROS.
+       01 CONT                      PIC 9(03) VALUE ZEROS.
+       01 OPEN-CURSOR               PIC 9     VALUE ZERO.
+       01 FLAG-WRITE                PIC X     VALUE 'N'.
+       77 WS-CALCULO             PIC 9(09)  VALUE ZEROS.
+       77 WS-RESTO               PIC 9(09)  VALUE ZEROS.
+     š*
+     š* CAMPOS DE MENSAGENS DE ERRO
+       01  WS-ERRO                  PIC  9(04)     VALUE ZEROS.
+           88 SEM-ERRO                             VALUE 0000.
+           88 COM-ERRO                             VALUE 9999.
+           88 ERRO-OPCAO                           VALUE 3031.
+           88 ERRO-CALL                            VALUE 3760.
+           88 ERRO-CRIACAO                         VALUE 5820.
+           88 ERRO-ALTERACAO                       VALUE 5821.
+           88 ERRO-CONSULTA                        VALUE 5822.
+           88 ERRO-SEM-REG                         VALUE 3734.
+     š*
+       01  WS-INDIC-SFL             PIC  X(01)     VALUE " ".
+           88 COND-SFL-VAZIO                       VALUE "N".
+           88 COND-SFL-CHEIO                       VALUE "S".
+     š*
+       01  WS-ERR1                  PIC  X(01)     VALUE "N".
+       01  WS-DSC1                  PIC  X(80)     VALUE SPACES.
+       01  WS-DSC2                  PIC  X(20)     VALUE SPACES.
+       01  WS-CAMPO                 PIC  X(10)     VALUE SPACES.
+
+       01 W-NCLI                     PIC 9(11) VALUE ZEROS.
+       01 W-NCLI-R REDEFINES W-NCLI.
+          05 W-NCLI1                 PIC 9(02).
+          05 W-NCLI2                 PIC 9(09).
+     š*
+     š*
+     š*--> Área do Ecran
+     š*
+       01 CRT-AREA.
+          03 KEY-AREA               PIC  X(2).
+             88 ENTER-KEY                       VALUE "00".
+             88 CMD-03                          VALUE "03".
+             88 CMD-05                          VALUE "05".
+             88 CMD-09                          VALUE "09".
+             88  PAGEDN                         VALUE "90".
+             88  PAGEUP                         VALUE "91".
+             88 UNDEFINED                       VALUE "99".
+          03 TERMINAL-ID            PIC  X(10).
+          03 RESERVED               PIC  X(10).
+     š*
+       01  IND-AREA.
+           05  IND OCCURS 99 TIMES PIC 1 INDICATOR 1.
+     š*
+      *-----------------------------------------------------------
+      * REGISTOS DE FORMATO DE ECRAN
+      *-----------------------------------------------------------
+       01 SFL-INP.
+          COPY DDSR-SFL-I       OF CRVE120.
+
+       01 SFL-OUT.
+          COPY DDSR-SFL-O       OF CRVE120.
+     š*
+       01 CTL-INP.
+          COPY DDSR-CTL-I       OF CRVE120.
+     š*
+       01 CTL-OUT.
+          COPY DDSR-CTL-O       OF CRVE120.
+     š*
+       01 ERROS-OUT.
+          COPY DDSR-ERROS-O     OF CRVE120.
+     š*-
+      *-----------------------------------------------------------------
+       01  W-CONSTANTS.
+           05  K-APLICACAO             PIC X(3)    VALUE "KYC".
+           05  K-PROGRAMA              PIC X(8)    VALUE "KYCP002".
+           05  K-SW-RC-OK              PIC X(2)    VALUE "SI".
+
+       01  IND-ERRO                        PIC 9       VALUE ZEROS.
+           88  ERRO-GRAVE                              VALUE 1.
+           88  ERR2-GRAVE                              VALUE 2.
+
+       01  WS-VARIAVEIS-NUMERICAS.
+           03  WERRO                       PIC -999    VALUE ZEROS.
+           03  WCONFIRM                    PIC  9(01)  VALUE ZEROS.
+           03  WDTDIA                      PIC  9(06)  VALUE ZEROS.
+           03  WS-DIAS                     PIC  9(05)  VALUE ZEROS.
+           03  WTPDIA                      PIC  9(08)  VALUE ZEROS.
+           03  WS-DATA-X                   PIC  9(06).
+           03  FILLER            REDEFINES WS-DATA-X.
+               05  WAA                     PIC  9(02).
+               05  WMM                     PIC  9(02).
+               05  WDD                     PIC  9(02).
+           03  WTEMPO                      PIC  9(08).
+           03  FILLER            REDEFINES WTEMPO.
+               05  WHH                     PIC  9(02).
+               05  WMN                     PIC  9(02).
+               05  WSS                     PIC  9(02).
+               05  WDS                     PIC  9(02).
+
+       01  WS-VARIAVEIS-CHAR.
+           03  WS-PARAGRAFO                PIC X(20)  VALUE SPACES.
+           03  WS-COMANDO                  PIC X(35)  VALUE SPACES.
+           03  WDATA-TAB                   PIC X(10).
+           03  WDATA-ROTINA                PIC X(10).
+
+       01  WS-TMSALT                      PIC X(26)  VALUE SPACES.
+
+       01  WS-DATA-NULA                  PIC X(10)  VALUE "0001-01-01".
+
+       01  WS-VARIAVEIS-ALFANUMERICAS.
+           03  WDATA.
+               05  WANO                    PIC 9(4).
+               05  BARRA-1                 PIC X.
+               05  WMES                    PIC 9(2).
+               05  BARRA-2                 PIC X.
+               05  WDIA                    PIC 9(2).
+           03  WDATA-D.
+               05  WAA-D                   PIC 9(02).
+               05  FILLER                  PIC X       VALUE "/".
+               05  WMM-D                   PIC 9(02).
+               05  FILLER                  PIC X       VALUE "/".
+               05  WDD-D                   PIC 9(02).
+           03  WTEMPO-D.
+               05  WHH-D                   PIC 9(02).
+               05  FILLER                  PIC X         VALUE ":".
+               05  WMN-D                   PIC 9(02).
+               05  FILLER                  PIC X         VALUE ":".
+               05  WSS-D                   PIC 9(02).
+
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+       01 LK-CRVS121.
+          COPY DDS-ALL-FORMATS OF CRVR121.
+
+       01 LK-CRVR999.
+          COPY DDS-ALL-FORMATS OF CRVR999.
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CRVW999 END-EXEC.
+
+       01 F-ESTADO  PIC X.
+       01 WS-COUNT                   PIC S9(09) COMP.
+
+       01 S-NOME-L                      PIC S9(4)       COMP.
+       01 S-NOME-V                      PIC X(40).
+
+       01  W-NOME.
+          03  W-NOMECHR              PIC X           OCCURS 40.
+
+      **** TABELA DE INTERVINIENTES
+       01  TINT.
+           COPY DDS-ALL-FORMATS OF CRVTINT.
+
+      **** TABELA DE CONTRATOS
+       01  TCNT.
+           COPY DDS-ALL-FORMATS OF CRVTCNT.
+
+           EXEC SQL
+              DECLARE  FDBCLIALL CURSOR FOR
+              SELECT DISTINCT FDBCLI.CLCENT
+                 , FDBCLI.CLNOMC
+                 , SUBSTR(FDBNUM.NUREFE , 1 , 9 )
+                 , FDBCLI.CLRACI
+                 , FDBCLI.CLETAT
+                 , FDBCLI.CLTYPE
+
+              FROM  FDBCLI
+               LEFT JOIN  FDBNUM
+                ON   FDBNUM.NURACI =  FDBCLI.CLRACI
+                AND  FDBNUM.NUETAT = " "
+                AND  FDBNUM.NUTYPE = "022"
+              WHERE   FDBCLI.CLCENT  = :CRVTINT.CDEMP
+                AND (( FDBCLI.CLETAT IN ("A")
+                       AND :F-ESTADO = "A")
+                       OR
+                     ( FDBCLI.CLETAT NOT IN ("A")
+                       AND :F-ESTADO = "I") )
+               ORDER BY  FDBCLI.CLRACI
+               FOR READ ONLY
+           END-EXEC.
+
+
+           EXEC SQL
+              DECLARE  FDBCLIRC  CURSOR FOR
+              SELECT DISTINCT FDBCLI.CLCENT
+                 , FDBCLI.CLNOMC
+                 , SUBSTR(FDBNUM.NUREFE , 1 , 9 )
+                 , FDBCLI.CLRACI
+                 , FDBCLI.CLETAT
+                 , FDBCLI.CLTYPE
+
+              FROM  FDBCLI
+               LEFT JOIN  FDBNUM
+                ON   FDBNUM.NURACI =  FDBCLI.CLRACI
+                AND  FDBNUM.NUETAT = " "
+                AND  FDBNUM.NUTYPE = "022"
+              WHERE   FDBCLI.CLCENT  = :CRVTINT.CDEMP
+                AND (( FDBCLI.CLETAT IN ("A")
+                       AND :F-ESTADO = "A")
+                       OR
+                     ( FDBCLI.CLETAT NOT IN ("A")
+                       AND :F-ESTADO = "I") )
+                AND FDBCLI.CLRACI >= :WS-CLRACI
+               ORDER BY  FDBCLI.CLRACI
+               FOR READ ONLY
+           END-EXEC.
+
+           EXEC SQL
+              DECLARE  FDBCLINM  CURSOR FOR
+              SELECT DISTINCT FDBCLI.CLCENT
+                 , FDBCLI.CLNOMC
+                 , SUBSTR(FDBNUM.NUREFE , 1 , 9 )
+                 , FDBCLI.CLRACI
+                 , FDBCLI.CLETAT
+                 , FDBCLI.CLTYPE
+
+              FROM  FDBCLI
+               LEFT JOIN  FDBNUM
+                ON   FDBNUM.NURACI =  FDBCLI.CLRACI
+                AND  FDBNUM.NUETAT = " "
+                AND  FDBNUM.NUTYPE = "022"
+              WHERE   FDBCLI.CLCENT  = :CRVTINT.CDEMP
+                AND (( FDBCLI.CLETAT IN ("A")
+                       AND :F-ESTADO = "A")
+                       OR
+                     ( FDBCLI.CLETAt NOT IN ("A")
+                       AND :F-ESTADO = "I") )
+                AND FDBCLI.CLNOMC LIKE :S-NOME-V
+               ORDER BY  FDBCLI.CLRACI
+               FOR READ ONLY
+           END-EXEC.
+
+           EXEC SQL
+              DECLARE  FDBCLINIF CURSOR FOR
+              SELECT DISTINCT FDBCLI.CLCENT
+                 , FDBCLI.CLNOMC
+                 , SUBSTR(FDBNUM.NUREFE , 1 , 9 )
+                 , FDBCLI.CLRACI
+                 , FDBCLI.CLETAT
+                 , FDBCLI.CLTYPE
+
+              FROM  FDBCLI
+               LEFT JOIN  FDBNUM
+                ON   FDBNUM.NURACI =  FDBCLI.CLRACI
+                AND  FDBNUM.NUETAT = " "
+                AND  FDBNUM.NUTYPE = "022"
+              WHERE   FDBCLI.CLCENT  = :CRVTINT.CDEMP
+                AND (( FDBCLI.CLETAT IN ("A")
+                       AND :F-ESTADO = "A")
+                       OR
+                     ( FDBCLI.CLETAt NOT IN ("A")
+                       AND :F-ESTADO = "I") )
+                AND SUBSTR(FDBNUM.NUREFE , 1 , 9 )  > :WS-NIF
+               ORDER BY  FDBCLI.CLRACI
+               FOR READ ONLY
+           END-EXEC.
+
+           EXEC SQL
+              DECLARE FDBCLITYP  CURSOR FOR
+              SELECT DISTINCT FDBCLI.CLCENT
+                 , FDBCLI.CLNOMC
+                 , SUBSTR(FDBNUM.NUREFE , 1 , 9 )
+                 , FDBCLI.CLRACI
+                 , FDBCLI.CLETAT
+                 , FDBCLI.CLTYPE
+
+              FROM  FDBCLI
+               LEFT JOIN  FDBNUM
+                ON   FDBNUM.NURACI =  FDBCLI.CLRACI
+                AND  FDBNUM.NUETAT = " "
+                AND  FDBNUM.NUTYPE = "022"
+              WHERE   FDBCLI.CLCENT  = :CRVTINT.CDEMP
+                AND (( FDBCLI.CLETAT IN ("A")
+                       AND :F-ESTADO = "A")
+                       OR
+                     ( FDBCLI.CLETAT NOT IN ("A")
+                       AND :F-ESTADO = "I") )
+                AND FDBCLI.CLTYPE   = :WS-TYPE
+               ORDER BY  FDBCLI.CLRACI
+               FOR READ ONLY
+           END-EXEC.
+
+           EXEC SQL END   DECLARE SECTION END-EXEC.
+
+     š**-
+     š******************************************************************
+       LINKAGE SECTION.
+       01 LK-COMUM.
+          COPY DDS-ALL-FORMATS OF CRVR000.
+     š*
+      *================================================================*
+       PROCEDURE DIVISION USING  LK-COMUM.
+      *================================================================*
+     š*
+           PERFORM P900-INICIO.
+           PERFORM P902-INICIALIZA
+           PERFORM P910-OPEN-CURSORES
+           PERFORM P100-PROCESSO-GERAL
+                   UNTIL FIM-G03
+           PERFORM P930-CLOSE-CURSORES
+           PERFORM P999-FIMPGM.
+     š*****************************************************************
+       P100-PROCESSO-GERAL.
+     š*****************************************************************
+
+           PERFORM P250-CARREGA-SFL
+           PERFORM P120-AVALIA-OPCAO
+                   UNTIL END-OF-AFIXA.
+
+     š*****************************************************************
+       P120-AVALIA-OPCAO.
+     š*****************************************************************
+
+           SET SEM-ERRO TO TRUE
+           SET CALL-INVALIDO  TO  TRUE
+
+           PERFORM P710-READ-CTL
+
+      *--- VALIDAÇÃO DAS TECLAS F-KEY POSSIVEIS --------------------------------
+
+           EVALUATE TRUE
+           WHEN CMD-03
+               SET FIM-G03       TO  TRUE
+               SET END-OF-AFIXA  TO  TRUE
+           WHEN CMD-05
+               INITIALIZE W-SQLCODE
+               PERFORM P903-POSICIONAR
+               SET END-OF-AFIXA  TO  TRUE
+           WHEN CMD-09
+               IF IND(81) = B"1"
+                  MOVE B"0" TO IND(81)
+                  MOVE "A"  TO F-ESTADO
+               ELSE
+                  MOVE B"1" TO IND(81)
+                  MOVE "I"  TO F-ESTADO
+               END-IF
+              INITIALIZE W-SQLCODE
+  **********  INITIALIZE CIF   OF CTL-I CTL-O
+  **********             NOME  OF CTL-I CTL-O
+  **********             NIF   OF CTL-I CTL-O
+              MOVE B"0" TO IND(74)
+              PERFORM P902-INICIALIZA
+              PERFORM P701-WRITE-LIMPA
+              PERFORM P704-WRITE-ERROS
+              PERFORM P702-WRITE-FUNCOES
+              PERFORM P703-WRITE-CTL
+              PERFORM P930-CLOSE-CURSORES
+              PERFORM P802-CONTAR-REGISTOS
+              PERFORM P910-OPEN-CURSORES
+              SET END-OF-AFIXA  TO  TRUE
+           WHEN PAGEDN
+               IF WS-COUNT NOT = NR-LIDOS
+                 SET END-OF-AFIXA  TO  TRUE
+               END-IF
+           WHEN PAGEDN
+               IF WS-COUNT NOT = NR-LIDOS
+                 SET END-OF-AFIXA  TO  TRUE
+               END-IF
+           WHEN ENTER-KEY
+               INITIALIZE FIM-SFL
+               IF SFL-CHV50 = 0
+                 SET END-OF-AFIXA  TO  TRUE
+                 SET SEM-ERRO TO TRUE
+                 PERFORM P930-CLOSE-CURSORES
+                 INITIALIZE CIF   OF CTL-I CTL-O CRVTINT
+                            NOME  OF CTL-I CTL-O CRVTINT
+                            NIF   OF CTL-I CTL-O CRVTINT
+                            NCLI  OF CTL-I CTL-O CRVTINT
+                            NCLI1 OF CTL-I CTL-O
+                            NCLI2 OF CTL-I CTL-O
+                 PERFORM P701-WRITE-LIMPA
+                 PERFORM P802-CONTAR-REGISTOS
+                 PERFORM P910-OPEN-CURSORES
+               ELSE
+                 PERFORM  P121-EXECUTA-OPCAO
+               END-IF
+           END-EVALUATE.
+
+     š*****************************************************************
+       P121-EXECUTA-OPCAO.
+     š*****************************************************************
+
+           MOVE "N" TO FLAG-WRITE
+           PERFORM
+             UNTIL FIM-SFL = 1
+               PERFORM P706-READ-SFL
+                 IF FIM-SFL = 0
+      *--- VALIDAÇÃO DA "OPÇÃO" DO SUBFICHEIRO  --------------------------------
+                    EVALUATE OPCAO OF SFL-I
+                      WHEN "1"
+                         PERFORM  P280-CALL-CRVS121
+                         MOVE " " TO OPCAO OF SFL-I
+                         PERFORM P707-REWRITE-SFL
+                         MOVE "S" TO FLAG-WRITE
+                      WHEN SPACES
+                           CONTINUE
+                      WHEN OTHER
+                           SET ERRO-OPCAO TO TRUE
+                           PERFORM P800-MSGERRO
+                    END-EVALUATE
+                 END-IF
+           END-PERFORM.
+           IF FLAG-WRITE = "S"
+              PERFORM P704-WRITE-ERROS
+              PERFORM P702-WRITE-FUNCOES
+              PERFORM P703-WRITE-CTL1
+           END-IF.
+      *-------------------------------------------------------------------------
+     š*****************************************************************
+      *   ROTINAS  DE  PROCESSAMENTO
+     š*****************************************************************
+     š*-
+     š*----------------------------------------------------------------
+       P250-CARREGA-SFL.
+     š*----------------------------------------------------------------
+
+           MOVE CDEMP OF LK-COMUM TO CDEMP OF CRVTINT
+           PERFORM    P701-WRITE-LIMPA.
+           PERFORM P802-CONTAR-REGISTOS
+           MOVE ZEROS TO CONT
+           PERFORM P620-FETCH-CURSOR-TINT
+                   UNTIL SQLCODE-NOTFOUND OR CONT > 14.
+
+           PERFORM P704-WRITE-ERROS
+           PERFORM P702-WRITE-FUNCOES
+           PERFORM P703-WRITE-CTL
+           SET BEGIN-OF-AFIXA TO TRUE.
+
+     š*----------------------------------------------------------------
+       P280-CALL-CRVS121.
+     š*----------------------------------------------------------------
+
+           MOVE CORR   SFL-I TO        RCRVR121
+           MOVE F-ESTADO  TO ACT OF LK-CRVS121.
+           CALL   "CRVS121" USING LK-COMUM LK-CRVS121.
+     š*
+      ******************************************************************
+       P620-FETCH-CURSOR-TINT.
+      ******************************************************************
+
+           IF NIF OF CTL-O NOT = ZEROS
+              EXEC SQL FETCH CURTINT3
+                       INTO    :CRVTINT.CDEMP
+                              ,:CRVTINT.CIF
+                              ,:CRVTINT.NOME
+                              ,:CRVTINT.NIF
+                              ,:CRVTINT.NCLI
+                              ,:CRVTCNT.CDESTADO
+              END-EXEC
+           ELSE
+              IF NOME OF CTL-O NOT = SPACES
+                 EXEC SQL FETCH CURTINT2
+                          INTO   :CRVTINT.CDEMP
+                                ,:CRVTINT.CIF
+                                ,:CRVTINT.NOME
+                                ,:CRVTINT.NIF
+                                ,:CRVTINT.NCLI
+                                ,:CRVTCNT.CDESTADO
+                 END-EXEC
+              ELSE
+11045 *          IF CIF  OF CTL-O NOT = SPACES
+11045            IF CIF  OF CTL-O NOT = ZEROS
+                    EXEC SQL FETCH CURTINT1
+                             INTO   :CRVTINT.CDEMP
+                                    ,:CRVTINT.CIF
+                                    ,:CRVTINT.NOME
+                                    ,:CRVTINT.NIF
+                                    ,:CRVTINT.NCLI
+                                    ,:CRVTCNT.CDESTADO
+                    END-EXEC
+                 ELSE
+                    IF NCLI OF CTL-O NOT = ZEROS
+                       EXEC SQL FETCH CURTINT4
+                            INTO    :CRVTINT.CDEMP
+                                   ,:CRVTINT.CIF
+                                   ,:CRVTINT.NOME
+                                   ,:CRVTINT.NIF
+                                   ,:CRVTINT.NCLI
+                                   ,:CRVTCNT.CDESTADO
+                       END-EXEC
+                    ELSE
+                       EXEC SQL FETCH CURTINT0
+                               INTO   :CRVTINT.CDEMP
+                                     ,:CRVTINT.CIF
+                                     ,:CRVTINT.NOME
+                                     ,:CRVTINT.NIF
+                                     ,:CRVTINT.NCLI
+                                     ,:CRVTCNT.CDESTADO
+                       END-EXEC
+                    END-IF
+                 END-IF
+              END-IF
+           END-IF
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+               ADD 1 TO NR-LIDOS
+               ADD 1 TO CONT
+               PERFORM  P650-WRITE-SUBFILE
+           WHEN SQLCODE-NOTFOUND
+               SET BEGIN-OF-AFIXA TO TRUE
+               IF NR-LIDOS = 0
+                 SET ERRO-SEM-REG TO TRUE
+                 PERFORM P800-MSGERRO
+               END-IF
+           WHEN OTHER
+              SET BEGIN-OF-AFIXA TO TRUE
+              MOVE "CURSOR-TINT" TO W-OBJECT-NAME
+              SET  CMD-FETCH-CURSOR TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P650-WRITE-SUBFILE.
+     š*---------------------------------------------------------------------
+
+            INITIALIZE SFL-I  SFL-O.
+            ADD 1 TO SFL-CHV50
+            ADD 1 TO PAGINA OF CTL-O
+            MOVE CORR      CRVTINT   TO SFL-I.
+            MOVE CDESTADO OF CRVTCNT TO CDESTADO OF SFL-I
+            MOVE NCLI OF CRVTINT TO W-NCLI
+            MOVE W-NCLI1 TO NCLI1 OF SFL-I
+            MOVE W-NCLI2 TO NCLI2 OF SFL-I
+            PERFORM P711-WRITE-SFL.
+
+     š*---------------------------------------------------------------------
+       P701-WRITE-LIMPA.
+     š*---------------------------------------------------------------------
+     š*
+           WRITE REG-ECRAN FORMAT "LIMPA"
+                           INDICATORS IND-AREA.
+      *
+     š*---------------------------------------------------------------------
+       P702-WRITE-FUNCOES.
+     š*---------------------------------------------------------------------
+     š*
+           WRITE REG-ECRAN FORMAT "FUNCOES"
+                           INDICATORS IND-AREA.
+     š*
+     š*---------------------------------------------------------------------
+       P703-WRITE-CTL.
+     š*---------------------------------------------------------------------
+           IF SFL-CHV50 = 0
+              MOVE B"1" TO IND(72)
+              MOVE B"0" TO IND(73)
+              PERFORM P705-LIMPA-SF1
+              MOVE 1 TO PAGINA OF CTL-O
+           ELSE
+              MOVE SFL-CHV50 TO PAGINA OF CTL-O
+           END-IF
+
+           MOVE CRVUSER  OF RCRVR000  TO  USER      OF  CTL-O
+           MOVE DESEMP   OF RCRVR000  TO  EMPRESA   OF  CTL-O
+           MOVE WS-COUNT              TO  ENTRADAS  OF  CTL-O
+
+      *
+           IF WS-COUNT > 0
+              IF SQLCODE-NOTFOUND  OR SFL-CHV50 = WS-COUNT
+                 MOVE B"1" TO IND(74)
+              END-IF
+           END-IF
+
+           WRITE REG-ECRAN FROM CTL-OUT FORMAT "CTL"
+                  INDICATORS IND-AREA.
+     š*
+     š*---------------------------------------------------------------------
+       P703-WRITE-CTL1.
+     š*---------------------------------------------------------------------
+           DIVIDE SFL-CHV50 BY 15 GIVING WS-CALCULO
+           REMAINDER WS-RESTO
+           IF WS-RESTO = 0
+              COMPUTE WS-CALCULO = WS-CALCULO - 1
+           END-IF
+           COMPUTE SFL-CHV50 = (WS-CALCULO + 1) * 15
+
+           IF SFL-CHV50 > WS-COUNT
+              MOVE WS-COUNT TO SFL-CHV50
+           END-IF
+
+           IF SFL-CHV50 = 0
+              MOVE B"1" TO IND(72)
+              MOVE B"0" TO IND(73)
+              PERFORM P705-LIMPA-SF1
+              MOVE 1 TO PAGINA OF CTL-O
+           ELSE
+              MOVE SFL-CHV50 TO PAGINA OF CTL-O
+           END-IF
+
+           MOVE CRVUSER  OF RCRVR000  TO  USER      OF  CTL-O
+           MOVE DESEMP   OF RCRVR000  TO  EMPRESA   OF  CTL-O
+           MOVE WS-COUNT              TO  ENTRADAS  OF  CTL-O
+
+      *
+           IF WS-COUNT > 0
+              IF SQLCODE-NOTFOUND  OR SFL-CHV50 = WS-COUNT
+                 MOVE B"1" TO IND(74)
+              END-IF
+           END-IF
+
+           WRITE REG-ECRAN FROM CTL-OUT FORMAT "CTL"
+                  INDICATORS IND-AREA.
+     š*
+     š*---------------------------------------------------------------------
+       P704-WRITE-ERROS.
+     š*---------------------------------------------------------------------
+     š*
+           WRITE REG-ECRAN FROM ERROS-O FORMAT "ERROS"
+                           INDICATORS IND-AREA.
+     š*
+     š*---------------------------------------------------------------------
+       P705-LIMPA-SF1.
+     š*---------------------------------------------------------------------
+           MOVE 0 TO SFL-CHV50
+           MOVE B"0" TO IND(73)
+           MOVE B"0" TO IND(74)
+           MOVE B"1" TO IND(72)
+           WRITE REG-ECRAN FROM CTL-OUT FORMAT "CTL"
+                           INDICATORS IND-AREA.
+      *
+     š*---------------------------------------------------------------------
+       P706-READ-SFL.
+     š*---------------------------------------------------------------------
+     š*
+           READ  SUBFILE ECRANS NEXT MODIFIED INTO SFL-I
+                               FORMAT "SFL"
+                         AT END MOVE 1 TO FIM-SFL
+                     NOT AT END MOVE 0 TO FIM-SFL.
+     š*
+     š*---------------------------------------------------------------------
+       P707-REWRITE-SFL.
+     š*---------------------------------------------------------------------
+     š*
+           MOVE B"0" TO IND(72)
+           MOVE B"1" TO IND(73)
+           REWRITE SUBFILE REG-ECRAN FROM SFL-I FORMAT "SFL"
+                         INDICATORS IND-AREA
+                         INVALID MOVE "10" TO STA-ECR.
+     š*
+      *---------------------------------------------------------
+       P708-LER-SUBFILE.
+      *---------------------------------------------------------
+            READ  SUBFILE ECRANS NEXT MODIFIED INTO SFL-I
+                   FORMAT "SFL"
+                   AT END     SET END-OF-SUBFILE TO TRUE
+                   NOT AT END SET BEGIN-OF-SUBFILE TO TRUE
+            END-READ.
+     š*
+     š*---------------------------------------------------------------------
+       P710-READ-CTL.
+     š*---------------------------------------------------------------------
+           READ  ECRANS  INTO CTL-INP     FORMAT "CTL"
+                           INDICATORS IND-AREA.
+           INITIALIZE ERROS-O
+           MOVE B"0" TO IND(55)
+           MOVE CORR CTL-I TO CTL-O.
+           MOVE NCLI1 OF CTL-I  TO W-NCLI1
+           MOVE NCLI2 OF CTL-I  TO W-NCLI2
+           MOVE W-NCLI TO NCLI OF CTL-O.
+           MOVE NOME OF CTL-O  TO S-NOME-V  W-NOME.
+           IF  NOME OF CTL-O > SPACES
+             PERFORM
+             VARYING S-NOME-L FROM LENGTH OF W-NOME BY -1
+                UNTIL W-NOMECHR(S-NOME-L) > SPACES
+                  OR S-NOME-L             = ZERO
+                  CONTINUE
+             END-PERFORM.
+             ADD 1 TO S-NOME-L
+             IF S-NOME-L < 40
+               PERFORM
+                 VARYING S-NOME-L FROM S-NOME-L   BY +1
+                    UNTIL S-NOME-L             = 41
+                    MOVE "%" TO W-NOMECHR(S-NOME-L)
+               END-PERFORM
+               MOVE  W-NOME  TO  S-NOME-V
+             END-IF.
+     š*
+     š*---------------------------------------------------------------------
+       P711-WRITE-SFL.
+     š*---------------------------------------------------------------------
+     š*
+           MOVE B"0" TO IND(72)
+           MOVE B"1" TO IND(73)
+           WRITE SUBFILE REG-ECRAN FROM SFL-I FORMAT "SFL"
+                         INDICATORS IND-AREA
+                         INVALID MOVE "10" TO STA-ECR.
+     š*
+     š*---------------------------------------------------------------------
+       P800-MSGERRO.
+     š*---------------------------------------------------------------------
+      *
+           INITIALIZE  WS-DSC1 WS-DSC2
+           CALL "INTC990" USING WS-ERRO WS-ERR1
+                                WS-DSC1 WS-DSC2
+           MOVE WS-DSC1 TO CRVCERRD OF ERROS-O
+           MOVE WS-ERRO TO CRVCERRC OF ERROS-O
+           MOVE WS-CAMPO          TO CRVCERRN OF ERROS-O
+           MOVE "CRV"   TO CRVCERRA OF ERROS-O
+           MOVE B"1"    TO IND(55)
+           PERFORM P704-WRITE-ERROS.
+     š*---------------------------------------------------------------------
+       P802-CONTAR-REGISTOS.
+     š*---------------------------------------------------------------------
+      *
+              INITIALIZE CRVTINT
+              MOVE CDEMP OF LK-COMUM TO CDEMP OF CRVTINT
+              MOVE ZEROS TO ENTRADAS  OF  CTL-O    WS-COUNT
+11045 *       IF CIF OF CTL-O NOT = SPACES
+11045         IF CIF OF CTL-O NOT = ZEROS
+                 MOVE CIF   OF CTL-O TO CIF  OF CRVTINT
+                 PERFORM P810-CONTAR-REGISTOS-1
+              ELSE
+      *
+                 IF NOME OF CTL-O NOT = SPACES
+                    MOVE NOME  OF CTL-O TO NOME OF CRVTINT
+                    PERFORM P810-CONTAR-REGISTOS-2
+                 ELSE
+      *
+                    IF NIF OF CTL-O NOT = ZEROS
+                       MOVE NIF   OF CTL-O TO NIF  OF CRVTINT
+                       PERFORM P810-CONTAR-REGISTOS-3
+                    ELSE
+                       IF NCLI OF CTL-O NOT = ZEROS
+                          MOVE NCLI  OF CTL-O TO NCLI OF CRVTINT
+                          PERFORM P810-CONTAR-REGISTOS-4
+                       ELSE
+                          PERFORM P810-CONTAR-REGISTOS-0
+                       END-IF
+                    END-IF
+                 END-IF
+              END-IF.
+     š*
+     š*---------------------------------------------------------------------
+       P810-CONTAR-REGISTOS-0.
+     š*---------------------------------------------------------------------
+              EXEC SQL
+                SELECT  COUNT(*)
+                  INTO :WS-COUNT
+                  FROM CRVTINT, CRVTCNT
+                   WHERE    CRVTINT.CDEMP = :CRVTINT.CDEMP
+                        AND CRVTINT.CDEMP = CRVTCNT.CDEMP
+                        AND CRVTINT.NCLI  = CRVTCNT.NCLI
+                        AND CRVTINT.CDRELACI = 1
+                        AND CRVTINT.CDOPER = 0
+                        AND CRVTINT.PRCDV = 0
+                        AND CRVTINT.NPLREC = 0
+                   AND ((CRVTCNT.CDESTADO NOT IN
+                                    ("FEC", "ANL", "LIQ","CNC")
+                         AND :F-ESTADO= "A")
+                        OR
+                        (CRVTCNT.CDESTADO     IN
+                                    ("FEC", "ANL", "LIQ","CNC")
+                         AND :F-ESTADO= "I"))
+              END-EXEC.
+     š*---------------------------------------------------------------------
+       P810-CONTAR-REGISTOS-1.
+     š*---------------------------------------------------------------------
+              EXEC SQL
+                SELECT  COUNT(*)
+                  INTO :WS-COUNT
+                  FROM CRVTINT, CRVTCNT
+                   WHERE    CRVTINT.CDEMP = :CRVTINT.CDEMP
+                        AND CRVTINT.CDEMP = CRVTCNT.CDEMP
+                        AND CRVTINT.NCLI  = CRVTCNT.NCLI
+                        AND CRVTINT.CDRELACI = 1
+                        AND CRVTINT.CDOPER = 0
+                        AND CRVTINT.PRCDV = 0
+                        AND CRVTINT.NPLREC = 0
+                   AND ((CRVTCNT.CDESTADO NOT IN
+                                    ("FEC", "ANL", "LIQ","CNC")
+                         AND :F-ESTADO= "A")
+                        OR
+                        (CRVTCNT.CDESTADO     IN
+                                    ("FEC", "ANL", "LIQ","CNC")
+                         AND :F-ESTADO= "I"))
+                        AND CRVTINT.CIF >= :CRVTINT.CIF
+              END-EXEC.
+     š*---------------------------------------------------------------------
+       P810-CONTAR-REGISTOS-2.
+     š*---------------------------------------------------------------------
+              EXEC SQL
+                SELECT  COUNT(*)
+                  INTO :WS-COUNT
+                  FROM CRVTINT, CRVTCNT
+                   WHERE    CRVTINT.CDEMP = :CRVTINT.CDEMP
+                        AND CRVTINT.CDEMP = CRVTCNT.CDEMP
+                        AND CRVTINT.NCLI  = CRVTCNT.NCLI
+                        AND CRVTINT.CDRELACI = 1
+                        AND CRVTINT.CDOPER = 0
+                        AND CRVTINT.PRCDV = 0
+                        AND CRVTINT.NPLREC = 0
+                   AND ((CRVTCNT.CDESTADO NOT IN
+                                    ("FEC", "ANL", "LIQ","CNC")
+                         AND :F-ESTADO= "A")
+                        OR
+                        (CRVTCNT.CDESTADO     IN
+                                    ("FEC", "ANL", "LIQ","CNC")
+                         AND :F-ESTADO= "I"))
+                        AND CRVTINT.NOME LIKE :S-NOME-V
+              END-EXEC.
+     š*---------------------------------------------------------------------
+       P810-CONTAR-REGISTOS-3.
+     š*---------------------------------------------------------------------
+              EXEC SQL
+                SELECT  COUNT(*)
+                  INTO :WS-COUNT
+                  FROM CRVTINT, CRVTCNT
+                   WHERE    CRVTINT.CDEMP = :CRVTINT.CDEMP
+                        AND CRVTINT.CDEMP = CRVTCNT.CDEMP
+                        AND CRVTINT.NCLI  = CRVTCNT.NCLI
+                        AND CRVTINT.CDRELACI = 1
+                        AND CRVTINT.CDOPER = 0
+                        AND CRVTINT.PRCDV = 0
+                        AND CRVTINT.NPLREC = 0
+                   AND ((CRVTCNT.CDESTADO NOT IN
+                                    ("FEC", "ANL", "LIQ","CNC")
+                         AND :F-ESTADO= "A")
+                        OR
+                        (CRVTCNT.CDESTADO     IN
+                                    ("FEC", "ANL", "LIQ","CNC")
+                         AND :F-ESTADO= "I"))
+                        AND CRVTINT.NIF  >= :CRVTINT.NIF
+              END-EXEC.
+      *
+     š*---------------------------------------------------------------------
+       P810-CONTAR-REGISTOS-4.
+     š*---------------------------------------------------------------------
+              EXEC SQL
+                SELECT  COUNT(*)
+                  INTO :WS-COUNT
+                  FROM CRVTINT, CRVTCNT
+                   WHERE    CRVTINT.CDEMP = :CRVTINT.CDEMP
+                        AND CRVTINT.CDEMP = CRVTCNT.CDEMP
+                        AND CRVTINT.NCLI  = CRVTCNT.NCLI
+                        AND CRVTINT.CDRELACI = 1
+                        AND CRVTINT.CDOPER = 0
+                        AND CRVTINT.PRCDV = 0
+                        AND CRVTINT.NPLREC = 0
+                   AND ((CRVTCNT.CDESTADO NOT IN
+                                    ("FEC", "ANL", "LIQ","CNC")
+                         AND :F-ESTADO= "A")
+                        OR
+                        (CRVTCNT.CDESTADO     IN
+                                    ("FEC", "ANL", "LIQ","CNC")
+                         AND :F-ESTADO= "I"))
+                        AND CRVTINT.NCLI >= :CRVTINT.NCLI
+              END-EXEC.
+      *
+     š*---------------------------------------------------------------------
+       P900-INICIO.
+     š*---------------------------------------------------------------------
+           INITIALIZE KEY-AREA.
+           IF CDEMP OF LK-COMUM = SPACES
+              MOVE "BNF"   TO CDEMP  OF LK-COMUM
+              MOVE "BANIF" TO DESEMP OF LK-COMUM
+           END-IF.
+
+           IF CDAPL OF LK-COMUM = SPACES
+              MOVE "CRV"   TO CDAPL  OF LK-COMUM
+           END-IF.
+           MOVE ALL B"0" TO IND-AREA
+
+           OPEN I-O   ECRANS.
+           SET  INICIO-G03         TO  TRUE.
+           SET  CALL-INVALIDO      TO  TRUE.
+           INITIALIZE  CRT-AREA.
+           PERFORM   P901-INICIALIZA-CTL.
+           MOVE B"0" TO IND(81).
+           MOVE "A" TO F-ESTADO.
+           INITIALIZE W-SQLCODE
+           INITIALIZE CIF   OF CTL-I CTL-O
+                      NOME  OF CTL-I CTL-O
+                      NIF   OF CTL-I CTL-O
+                      NCLI  OF CTL-I CTL-O
+                      NCLI1 OF CTL-I CTL-O
+                      NCLI2 OF CTL-I CTL-O
+           MOVE B"1" TO IND(80)
+           MOVE B"0" TO IND(74)
+           PERFORM P902-INICIALIZA
+           PERFORM P701-WRITE-LIMPA.
+           PERFORM P704-WRITE-ERROS
+           PERFORM P702-WRITE-FUNCOES
+           PERFORM P703-WRITE-CTL
+           PERFORM P710-READ-CTL
+           PERFORM P802-CONTAR-REGISTOS
+           IF CMD-03
+              SET   FIM-G03  TO  TRUE
+           ELSE
+              MOVE B"0" TO IND(80)
+           END-IF.
+      *
+     š*---------------------------- -----------------------------------
+       P901-INICIALIZA-CTL.
+     š*----------------------------------------------------------------
+           MOVE B"1" TO IND(72)
+           MOVE B"0" TO IND(73)
+           INITIALIZE    CTL-I   CTL-O SFL-I SFL-CHV50.
+           MOVE 0 TO PAGINA OF CTL-O.
+     š*---------------------------- -----------------------------------
+       P902-INICIALIZA.
+     š*----------------------------------------------------------------
+           MOVE B"0" TO IND(72).
+           MOVE B"1" TO IND(73).
+           MOVE 0 TO SFL-CHV50
+           MOVE 1 TO PAGINA OF CTL-O
+           SET BEGIN-OF-AFIXA TO TRUE
+           MOVE ZEROS TO NR-LIDOS
+           MOVE ZEROS TO WS-COUNT
+           PERFORM P704-WRITE-ERROS
+           PERFORM P702-WRITE-FUNCOES
+           PERFORM P703-WRITE-CTL.
+     š*----------------------------------------------------------------
+       P903-POSICIONAR.
+     š*----------------------------------------------------------------
+           INITIALIZE CIF   OF CTL-I CTL-O
+                      NOME  OF CTL-I CTL-O
+                      NIF   OF CTL-I CTL-O
+                      NCLI  OF CTL-I CTL-O
+                      NCLI1 OF CTL-I CTL-O
+                      NCLI2 OF CTL-I CTL-O
+           MOVE B"1" TO IND(80)
+           MOVE B"0" TO IND(74)
+           PERFORM P902-INICIALIZA
+           PERFORM P701-WRITE-LIMPA.
+           PERFORM P704-WRITE-ERROS
+           PERFORM P702-WRITE-FUNCOES
+           PERFORM P703-WRITE-CTL
+           PERFORM P710-READ-CTL
+           PERFORM P930-CLOSE-CURSORES
+           PERFORM P910-OPEN-CURSORES
+           IF CMD-03
+              SET   FIM-G03  TO  TRUE
+           ELSE
+              MOVE B"0" TO IND(80)
+           END-IF.
+      ******************************************************************
+       P910-OPEN-CURSORES.
+      ******************************************************************
+           IF NIF OF CTL-O NOT = ZEROS
+              PERFORM  P910-OPEN-CURSOR-TINT3
+              MOVE 3 TO OPEN-CURSOR
+           ELSE
+              IF NOME OF CTL-O NOT = SPACES
+                 PERFORM  P910-OPEN-CURSOR-TINT2
+                 MOVE 2 TO OPEN-CURSOR
+              ELSE
+11045 *          IF CIF  OF CTL-O NOT = SPACES
+11045            IF CIF  OF CTL-O NOT = ZEROS
+                    PERFORM  P910-OPEN-CURSOR-TINT1
+                    MOVE 1 TO OPEN-CURSOR
+                 ELSE
+                    IF NCLI OF CTL-O NOT = ZEROS
+                       PERFORM  P910-OPEN-CURSOR-TINT4
+                       MOVE 4 TO OPEN-CURSOR
+                    ELSE
+                       PERFORM  P910-OPEN-CURSOR-TINT0
+                       MOVE 0 TO OPEN-CURSOR
+                 END-IF
+              END-IF
+           END-IF.
+      ******************************************************************
+       P910-OPEN-CURSOR-TINT0.
+      ******************************************************************
+           INITIALIZE     CRVTINT
+           MOVE CDEMP OF LK-COMUM TO CDEMP OF CRVTINT
+           MOVE CIF  OF CTL-O    TO CIF   OF CRVTINT
+           MOVE NOME OF CTL-O    TO NOME  OF CRVTINT
+           MOVE NIF  OF CTL-O    TO NIF   OF CRVTINT
+           MOVE NCLI OF CTL-O    TO NCLI  OF CRVTINT
+
+           EXEC SQL
+                OPEN CURTINT0
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              MOVE "CURSOR-TINT0" TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR              TO  TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+      ******************************************************************
+       P910-OPEN-CURSOR-TINT1.
+      ******************************************************************
+           INITIALIZE     CRVTINT
+           MOVE CDEMP OF LK-COMUM TO CDEMP OF CRVTINT
+           MOVE CIF  OF CTL-O    TO CIF   OF CRVTINT
+           MOVE NOME OF CTL-O    TO NOME  OF CRVTINT
+           MOVE NCLI OF CTL-O    TO NCLI  OF CRVTINT
+
+           EXEC SQL
+                OPEN CURTINT1
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              MOVE "CURSOR-TINT1" TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR              TO  TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+      ******************************************************************
+       P910-OPEN-CURSOR-TINT2.
+      ******************************************************************
+           INITIALIZE     CRVTINT
+           MOVE CDEMP OF LK-COMUM TO CDEMP OF CRVTINT
+           MOVE CIF  OF CTL-O    TO CIF   OF CRVTINT
+           MOVE NOME OF CTL-O    TO NOME  OF CRVTINT
+           MOVE NCLI OF CTL-O    TO NCLI  OF CRVTINT
+
+           EXEC SQL
+                OPEN CURTINT2
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              MOVE "CURSOR-TINT2" TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR              TO  TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+      ******************************************************************
+       P910-OPEN-CURSOR-TINT3.
+      ******************************************************************
+           INITIALIZE     CRVTINT
+           MOVE CDEMP OF LK-COMUM TO CDEMP OF CRVTINT
+           MOVE CIF  OF CTL-O    TO CIF   OF CRVTINT
+           MOVE NOME OF CTL-O    TO NOME  OF CRVTINT
+           MOVE NCLI OF CTL-O    TO NCLI  OF CRVTINT
+           MOVE NIF  OF CTL-O    TO NIF   OF CRVTINT
+
+           EXEC SQL
+                OPEN CURTINT3
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              MOVE "CURSOR-TINT3" TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR              TO  TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+      ******************************************************************
+       P910-OPEN-CURSOR-TINT4.
+      ******************************************************************
+           INITIALIZE     CRVTINT
+           MOVE CDEMP OF LK-COMUM TO CDEMP OF CRVTINT
+           MOVE CIF  OF CTL-O    TO CIF   OF CRVTINT
+           MOVE NOME OF CTL-O    TO NOME  OF CRVTINT
+           MOVE NIF  OF CTL-O    TO NIF   OF CRVTINT
+           MOVE NCLI OF CTL-O    TO NCLI  OF CRVTINT
+
+           EXEC SQL
+                OPEN CURTINT4
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              MOVE "CURSOR-TINT4" TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR              TO  TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+      ******************************************************************
+       P930-CLOSE-CURSORES.
+      ******************************************************************
+           IF OPEN-CURSOR = 0
+              PERFORM P930-CLOSE-CURSOR-TINT0
+           ELSE
+              IF OPEN-CURSOR = 1
+                 PERFORM P930-CLOSE-CURSOR-TINT1
+              ELSE
+                 IF OPEN-CURSOR = 2
+                    PERFORM P930-CLOSE-CURSOR-TINT2
+                 ELSE
+                    IF OPEN-CURSOR = 3
+                       PERFORM P930-CLOSE-CURSOR-TINT3
+                    ELSE
+                       PERFORM P930-CLOSE-CURSOR-TINT4
+                    END-IF
+                 END-IF
+              END-IF
+           END-IF.
+      ******************************************************************
+       P930-CLOSE-CURSOR-TINT0.
+      ******************************************************************
+
+           EXEC SQL
+               CLOSE CURTINT0
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              MOVE "CURSOR-TINT0"               TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR             TO  TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+      ******************************************************************
+       P930-CLOSE-CURSOR-TINT1.
+      ******************************************************************
+
+           EXEC SQL
+               CLOSE CURTINT1
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              MOVE "CURSOR-TINT1"               TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR             TO  TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+      ******************************************************************
+       P930-CLOSE-CURSOR-TINT2.
+      ******************************************************************
+
+           EXEC SQL
+               CLOSE CURTINT2
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              MOVE "CURSOR-TINT2"               TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR             TO  TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+      ******************************************************************
+       P930-CLOSE-CURSOR-TINT3.
+      ******************************************************************
+
+           EXEC SQL
+               CLOSE CURTINT3
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              MOVE "CURSOR-TINT3"               TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR             TO  TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+      ******************************************************************
+       P930-CLOSE-CURSOR-TINT4.
+      ******************************************************************
+
+           EXEC SQL
+               CLOSE CURTINT4
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN OTHER
+              MOVE "CURSOR-TINT4"               TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR             TO  TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           MOVE MSG-ERRO-SQL TO CRVCERRD OF ERROS-O
+           MOVE W-SQLCODE    TO CRVCERRC OF ERROS-O
+           MOVE "SQL"        TO CRVCERRA OF ERROS-O
+           MOVE W-OBJECT-NAME   TO CRVCERRN OF ERROS-O
+           MOVE B"1"    TO IND(55)
+           PERFORM P704-WRITE-ERROS.
+
+
+     š*****************************************************************
+       P999-FIMPGM.
+     š*****************************************************************
+           CLOSE ECRANS.
+           GOBACK.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA KYCP002
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+

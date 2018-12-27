@@ -1,0 +1,249 @@
+      *================================================================*
+       IDENTIFICATION DIVISION.
+      *================================================================*
+
+       PROGRAM-ID.     CRES999.
+      *----------------------------------------------------------------*
+      * APLICACAO : GESTAO DE EMPRESTIMOS
+      * PROGRAMA .: CRES999
+      * OBJECTIVO : IMPLEMENTAR UMA FUNÇÃO ÚNICA PARA FORMATAR OS PARÂ-
+      *             METROS DE INPUT A USAR PELO PROCESSO DE DESTINO NOS
+      *             CASOS DE NAVEGAÇÃO ENTRE PROCESSOS
+      * CRIADO EM : 2005/FEVEREIRO
+      * POR ......: FERNANDO SILVA (CAPGEMINI PORTUGAL)
+      *----------------------------------------------------------------*
+
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       CONFIGURATION               SECTION.
+      *----------------------------------------------------------------*
+       SPECIAL-NAMES.  DECIMAL-POINT  IS COMMA.
+
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE             SECTION.
+      *----------------------------------------------------------------*
+       01  WS-VARSTRAB.
+           05  WS-PARMSNVG             PIC X(80).
+           05  WS-IDREG0NN     REDEFINES WS-PARMSNVG.
+               10  WS-NCNTR            PIC 9(11).
+               10  WS-NSQCNTR          PIC 99.
+               10  WS-CTPCNTR          PIC 99.
+           05  WS-IDREG005     REDEFINES WS-PARMSNVG.
+               10  WS-NCNTR            PIC 9(11).
+               10  WS-NSQCNTR          PIC 99.
+               10  WS-CTPCNTR          PIC 99.
+               10  WS-CRAMO            PIC X.
+               10  WS-CSEGUR           PIC X(04).
+               10  WS-NAPOL            PIC X(20).
+           05  WS-IDREG901     REDEFINES WS-PARMSNVG.
+               10  WS-IDAPLICA         PIC X(03).
+           05  WS-IDREG902     REDEFINES WS-PARMSNVG.
+               10  WS-IDAPLICA         PIC X(03).
+           05  WS-IDREG903     REDEFINES WS-PARMSNVG.
+               10  WS-IDMSGAPL         PIC X(07).
+               10  WS-DSMSGAPL         PIC X(64).
+           05  WS-IDREG905     REDEFINES WS-PARMSNVG.
+               10  WS-IDAPLICA         PIC X(03).
+               10  WS-IDDIALOG         PIC X(08).
+           05  WS-IDREG907     REDEFINES WS-PARMSNVG.
+               10  WS-IDPRCAPL         PIC X(08).
+               10  WS-DSPRCAPL         PIC X(32).
+               10  WS-IDAPLICA         PIC X(03).
+               10  WS-IDDIALOG         PIC X(08).
+               10  WS-IDTIPDLG         PIC XX.
+               10  WS-MCSITEXE         PIC X.
+               10  WS-IDPRCDEP         PIC X(08).
+           05  WS-IDREG909     REDEFINES WS-PARMSNVG.
+               10  WS-IDPRCAPL         PIC X(08).
+           05  WS-IDREG910     REDEFINES WS-PARMSNVG.
+               10  WS-IDPRCAPL         PIC X(08).
+               10  WS-NMVARDLG         PIC X(10).
+           05  WS-IDREG912     REDEFINES WS-PARMSNVG.
+               10  WS-IDPRCAPL         PIC X(08).
+               10  WS-IDEMPRSA         PIC X(03).
+               10  WS-IDFAMPRD         PIC X(03).
+               10  WS-IDPRODUT         PIC X(03).
+           05  WS-IDREG914     REDEFINES WS-PARMSNVG.
+               10  WS-IDAPLICA         PIC X(03).
+               10  WS-NRMNUPRC         PIC 99.
+               10  WS-NVSBMNU1         PIC 99.
+               10  WS-NVSBMNU2         PIC 99.
+           05  WS-IDREG916     REDEFINES WS-PARMSNVG.
+               10  WS-IDAPLICA         PIC X(03).
+               10  WS-NRMNUPRC         PIC 99.
+               10  WS-IDPRCORI         PIC X(08).
+               10  WS-IDPRCDST         PIC X(08).
+           05  WS-IDREG918     REDEFINES WS-PARMSNVG.
+               10  WS-IDGRFUNC         PIC X(08).
+               10  WS-DSGRFUNC         PIC X(50).
+               10  WS-MCSITEXE         PIC X.
+           05  WS-IDREG920     REDEFINES WS-PARMSNVG.
+               10  WS-IDGRFUNC         PIC X(08).
+           05  WS-IDREG921     REDEFINES WS-PARMSNVG.
+               10  WS-IDGRFUNC         PIC X(08).
+               10  WS-IDAPLICA         PIC X(03).
+               10  WS-NRMNUPRC         PIC 99.
+               10  WS-MCSITEXE         PIC X.
+           05  WS-IDREG923     REDEFINES WS-PARMSNVG.
+               10  WS-IDGRFUNC         PIC X(08).
+               10  WS-IDAPLICA         PIC X(03).
+           05  WS-IDREG924     REDEFINES WS-PARMSNVG.
+               10  WS-IDGRFUNC         PIC X(08).
+               10  WS-IDEMPRSA         PIC X(03).
+               10  WS-IDFAMPRD         PIC X(03).
+               10  WS-IDPRODUT         PIC X(03).
+           05  WS-IDREG926     REDEFINES WS-PARMSNVG.
+               10  WS-IDUTILIZ         PIC X(08).
+               10  WS-NMUTILIZ         PIC X(30).
+               10  WS-IDEMPRSA         PIC X(03).
+               10  WS-IDBALCAO         PIC X(03).
+               10  WS-IDGRFUNC         PIC X(08).
+               10  WS-MCSITEXE         PIC X.
+           05  WS-IDREG927     REDEFINES WS-PARMSNVG.
+               10  WS-IDUTILIZ         PIC X(08).
+           05  WS-IDREG928     REDEFINES WS-PARMSNVG.
+               10  WS-IDUTILIZ         PIC X(08).
+
+      *----------------------------------------------------------------*
+       LINKAGE                     SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB999.
+
+      *================================================================*
+       PROCEDURE DIVISION USING CREB999-LKGERAL.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       P0000-RAIZ                  SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P1000-INICIO
+
+           PERFORM P2000-PROCESSO
+
+           PERFORM P3000-FIM
+           .
+       P0000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P1000-INICIO                SECTION.
+      *----------------------------------------------------------------*
+
+           INITIALIZE CREB999-CTLVARS, CREB999-PARMSNVG, WS-PARMSNVG
+           .
+       P1000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P2000-PROCESSO              SECTION.
+      *----------------------------------------------------------------*
+
+           EVALUATE TRUE
+           WHEN CREB999-IDPRCNVG = SPACES
+               SET  CREB999-PRCDST-NINFORM TO TRUE
+           WHEN CREB999-PARMSINP = SPACES
+               SET  CREB999-PARAMS-NINFORM TO TRUE
+           WHEN CREB999-IDPRCNVG = "CREP005"
+               MOVE CREB999-NCNTR          TO WS-NCNTR    OF WS-IDREG005
+               MOVE CREB999-NSQCNTR        TO WS-NSQCNTR  OF WS-IDREG005
+               MOVE CREB999-CTPCNTR        TO WS-CTPCNTR  OF WS-IDREG005
+               MOVE CREB999-CRAMO          TO WS-CRAMO    OF WS-IDREG005
+               MOVE CREB999-CSEGUR         TO WS-CSEGUR   OF WS-IDREG005
+               MOVE CREB999-NAPOL          TO WS-NAPOL    OF WS-IDREG005
+           WHEN CREB999-IDPRCNVG = "CREP901"
+               MOVE CREB999-IDAPLICA       TO WS-IDAPLICA OF WS-IDREG901
+           WHEN CREB999-IDPRCNVG = "CREP902"
+               MOVE CREB999-IDAPLICA       TO WS-IDAPLICA OF WS-IDREG902
+           WHEN CREB999-IDPRCNVG = "CREP903"
+               MOVE CREB999-IDMSGAPL       TO WS-IDMSGAPL OF WS-IDREG903
+               MOVE CREB999-DSMSGAPL       TO WS-DSMSGAPL OF WS-IDREG903
+           WHEN CREB999-IDPRCNVG = "CREP905"
+               MOVE CREB999-IDAPLICA       TO WS-IDAPLICA OF WS-IDREG905
+               MOVE CREB999-IDDIALOG       TO WS-IDDIALOG OF WS-IDREG905
+           WHEN CREB999-IDPRCNVG = "CREP907"
+               MOVE CREB999-IDPRCAPL       TO WS-IDPRCAPL OF WS-IDREG907
+               MOVE CREB999-DSPRCAPL       TO WS-DSPRCAPL OF WS-IDREG907
+               MOVE CREB999-IDAPLICA       TO WS-IDAPLICA OF WS-IDREG907
+               MOVE CREB999-IDDIALOG       TO WS-IDDIALOG OF WS-IDREG907
+               MOVE CREB999-IDTIPDLG       TO WS-IDTIPDLG OF WS-IDREG907
+               MOVE CREB999-MCSITEXE       TO WS-MCSITEXE OF WS-IDREG907
+               MOVE CREB999-IDPRCDEP       TO WS-IDPRCDEP OF WS-IDREG907
+           WHEN CREB999-IDPRCNVG = "CREP909"
+               MOVE CREB999-IDPRCAPL       TO WS-IDPRCAPL OF WS-IDREG909
+           WHEN CREB999-IDPRCNVG = "CREP910"
+               MOVE CREB999-IDPRCAPL       TO WS-IDPRCAPL OF WS-IDREG910
+               MOVE CREB999-NMVARDLG       TO WS-NMVARDLG OF WS-IDREG910
+           WHEN CREB999-IDPRCNVG = "CREP912"
+               MOVE CREB999-IDPRCAPL       TO WS-IDPRCAPL OF WS-IDREG912
+               MOVE CREB999-IDEMPRSA       TO WS-IDEMPRSA OF WS-IDREG912
+               MOVE CREB999-IDFAMPRD       TO WS-IDFAMPRD OF WS-IDREG912
+               MOVE CREB999-IDPRODUT       TO WS-IDPRODUT OF WS-IDREG912
+           WHEN CREB999-IDPRCNVG = "CREP914"
+               MOVE CREB999-IDAPLICA       TO WS-IDAPLICA OF WS-IDREG914
+               MOVE CREB999-NRMNUPRC       TO WS-NRMNUPRC OF WS-IDREG914
+               MOVE CREB999-NVSBMNU1       TO WS-NVSBMNU1 OF WS-IDREG914
+               MOVE CREB999-NVSBMNU2       TO WS-NVSBMNU2 OF WS-IDREG914
+           WHEN CREB999-IDPRCNVG = "CREP916"
+               MOVE CREB999-IDAPLICA       TO WS-IDAPLICA OF WS-IDREG916
+               MOVE CREB999-NRMNUPRC       TO WS-NRMNUPRC OF WS-IDREG916
+               MOVE CREB999-IDPRCORI       TO WS-IDPRCORI OF WS-IDREG916
+               MOVE CREB999-IDPRCDST       TO WS-IDPRCDST OF WS-IDREG916
+           WHEN CREB999-IDPRCNVG = "CREP918"
+               MOVE CREB999-IDGRFUNC       TO WS-IDGRFUNC OF WS-IDREG918
+               MOVE CREB999-DSGRFUNC       TO WS-DSGRFUNC OF WS-IDREG918
+               MOVE CREB999-MCSITEXE       TO WS-MCSITEXE OF WS-IDREG918
+           WHEN CREB999-IDPRCNVG = "CREP920"
+               MOVE CREB999-IDGRFUNC       TO WS-IDGRFUNC OF WS-IDREG920
+           WHEN CREB999-IDPRCNVG = "CREP921"
+               MOVE CREB999-IDGRFUNC       TO WS-IDGRFUNC OF WS-IDREG921
+               MOVE CREB999-IDAPLICA       TO WS-IDAPLICA OF WS-IDREG921
+               MOVE CREB999-NRMNUPRC       TO WS-NRMNUPRC OF WS-IDREG921
+               MOVE CREB999-MCSITEXE       TO WS-MCSITEXE OF WS-IDREG921
+           WHEN CREB999-IDPRCNVG = "CREP923"
+               MOVE CREB999-IDGRFUNC       TO WS-IDGRFUNC OF WS-IDREG923
+               MOVE CREB999-IDAPLICA       TO WS-IDAPLICA OF WS-IDREG923
+           WHEN CREB999-IDPRCNVG = "CREP924"
+               MOVE CREB999-IDGRFUNC       TO WS-IDGRFUNC OF WS-IDREG924
+               MOVE CREB999-IDEMPRSA       TO WS-IDEMPRSA OF WS-IDREG924
+               MOVE CREB999-IDFAMPRD       TO WS-IDFAMPRD OF WS-IDREG924
+               MOVE CREB999-IDPRODUT       TO WS-IDPRODUT OF WS-IDREG924
+           WHEN CREB999-IDPRCNVG = "CREP926"
+               MOVE CREB999-IDUTILIZ       TO WS-IDUTILIZ OF WS-IDREG926
+               MOVE CREB999-NMUTILIZ       TO WS-NMUTILIZ OF WS-IDREG926
+               MOVE CREB999-IDEMPRSA       TO WS-IDEMPRSA OF WS-IDREG926
+               MOVE CREB999-IDBALCAO       TO WS-IDBALCAO OF WS-IDREG926
+               MOVE CREB999-IDGRFUNC       TO WS-IDGRFUNC OF WS-IDREG926
+               MOVE CREB999-MCSITEXE       TO WS-MCSITEXE OF WS-IDREG926
+           WHEN CREB999-IDPRCNVG = "CREP927"
+               MOVE CREB999-IDUTILIZ       TO WS-IDUTILIZ OF WS-IDREG927
+           WHEN CREB999-IDPRCNVG = "CREP928"
+               MOVE CREB999-IDUTILIZ       TO WS-IDUTILIZ OF WS-IDREG928
+           WHEN CREB999-IDPRCNVG(1:5) = "CREP0"
+               MOVE CREB999-NCNTR          TO WS-NCNTR    OF WS-IDREG0NN
+               MOVE CREB999-NSQCNTR        TO WS-NSQCNTR  OF WS-IDREG0NN
+               MOVE CREB999-CTPCNTR        TO WS-CTPCNTR  OF WS-IDREG0NN
+           WHEN OTHER
+               SET  CREB999-PRCDST-INVALID TO TRUE
+           END-EVALUATE
+           .
+       P2000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P3000-FIM                   SECTION.
+      *----------------------------------------------------------------*
+
+           IF  CREB999-PROC-OK
+               MOVE WS-PARMSNVG TO CREB999-PARMSNVG
+           ELSE
+               MOVE "CRES999"   TO CREB999-NMOBJECT
+           END-IF
+           GOBACK
+           .
+       P3000-EXIT.                 EXIT.
+      *--- FIM DO PROGRAMA CRES999 ------------------------------------*

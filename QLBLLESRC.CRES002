@@ -1,0 +1,155 @@
+      *================================================================*
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.     CRES002.
+      *----------------------------------------------------------------*
+      * APLICACAO : GESTAO DE EMPRESTIMOS
+      * PROGRAMA .: CRES002
+      * OBJECTIVO : IMPLEMENTAR UMA FUNCAO UNICA PARA RETORNO DE DESCRI
+      *             TIVOS COM ORIGEM NA CRET099
+      * CRIADO EM : 2005/MAIO
+      * POR ......: CAPGEMINI PORTUGAL
+      *----------------------------------------------------------------*
+
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       CONFIGURATION               SECTION.
+      *----------------------------------------------------------------*
+       SPECIAL-NAMES.  DECIMAL-POINT  IS COMMA.
+
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE             SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB950.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           EXEC SQL INCLUDE SQLCA                              END-EXEC.
+
+           EXEC SQL BEGIN DECLARE  SECTION                     END-EXEC.
+       01  WS-DBGBVARS.
+           COPY DDS-CRET099 OF CRET099.
+
+       01  WS-DBLCVARS.
+           05  DB-VARDUMMY             PIC S9(4)       BINARY.
+           EXEC SQL END   DECLARE  SECTION                     END-EXEC.
+
+      *----------------------------------------------------------------*
+       LINKAGE                     SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB002.
+
+      *================================================================*
+       PROCEDURE DIVISION USING CREB002-LKPARMS.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       P0000-RAIZ                  SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P1000-INICIO
+
+           PERFORM P2000-PROCESSO
+
+           PERFORM P3000-FIM
+           .
+       P0000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P1000-INICIO                SECTION.
+      *----------------------------------------------------------------*
+
+           INITIALIZE CREB002-VARSOUT, CREB002-VARSCTL
+           .
+       P1000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P2000-PROCESSO              SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P2100-VRFY-VARSINP
+
+           IF  CREB002-PROC-OK
+               PERFORM P2200-READ-CRET099
+           END-IF
+           .
+       P2000-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2100-VRFY-VARSINP          SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           EVALUATE TRUE
+           WHEN CREB002-CTAB NOT NUMERIC
+               SET  CREB002-CTAB-NVALID   TO TRUE
+               SET  CREB002-MSGSROT       TO TRUE
+               MOVE "CRES002"             TO CREB002-NMOBJECT
+           WHEN CREB002-CACC    = SPACES
+               SET  CREB002-CACC-NINFORM  TO TRUE
+               SET  CREB002-MSGSROT       TO TRUE
+               MOVE "CRES002"             TO CREB002-NMOBJECT
+           END-EVALUATE
+           .
+       P2100-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2200-READ-CRET099          SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE CREB002-CTAB            TO CTAB    OF CRET099
+           MOVE CREB002-CACC            TO CACC    OF CRET099
+
+           EXEC SQL SELECT DESC
+                         , CAMPO1
+                         , CAMPO2
+                         , CAMPO3
+                         , CAMPO4
+                         , CAMPO5
+                      INTO :CRET099.DESC
+                         , :CRET099.CAMPO1
+                         , :CRET099.CAMPO2
+                         , :CRET099.CAMPO3
+                         , :CRET099.CAMPO4
+                         , :CRET099.CAMPO5
+                      FROM CRET099
+                     WHERE CTAB    = :CRET099.CTAB
+                     AND   CACC    = :CRET099.CACC
+           END-EXEC.
+           MOVE SQLCODE TO CREB950-SQLCODE
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+               MOVE DESC     OF CRET099 TO CREB002-DESC
+               MOVE CAMPO1   OF CRET099 TO CREB002-CAMPO1
+               MOVE CAMPO2   OF CRET099 TO CREB002-CAMPO2
+               MOVE CAMPO3   OF CRET099 TO CREB002-CAMPO3
+               MOVE CAMPO4   OF CRET099 TO CREB002-CAMPO4
+               MOVE CAMPO5   OF CRET099 TO CREB002-CAMPO5
+           WHEN SQLCODE-NOTFOUND
+               MOVE CREB950-DSABRVNF    TO CREB002-DESC
+                                           CREB002-CAMPO1
+                                           CREB002-CAMPO2
+                                           CREB002-CAMPO3
+                                           CREB002-CAMPO4
+                                           CREB002-CAMPO5
+               SET  CREB002-PROC-NF     TO TRUE
+               MOVE CREB950-SQLCODE     TO CREB002-CDRETORN
+           WHEN OTHER
+               MOVE CREB950-SQLCODE     TO CREB002-CDRETORN
+               MOVE "002.T099"          TO CREB002-NMOBJECT
+               SET  CREB002-SLCT        TO TRUE
+               SET  CREB002-MSGSGBD     TO TRUE
+           END-EVALUATE
+           .
+       P2200-EXIT.                 EXIT.
+      *----------------------------------------------------------------*
+       P3000-FIM                   SECTION.
+      *----------------------------------------------------------------*
+
+           GOBACK
+           .
+       P3000-EXIT.                 EXIT.
+      *--- FIM DO PROGRAMA CRES002 -----------------------------------*

@@ -1,0 +1,964 @@
+      *================================================================*
+       ID DIVISION.
+      *================================================================*
+       PROGRAM-ID.     GRSS900.
+      *----------------------------------------------------------------*
+      * APLICACAO : COMUNICACAO ENTRE PROGRAMAS
+      *             CONTROLO DE EXECUCAO
+      *             INIT GRSL900 - STD AREALIG
+      *             + FORMAT & SEND MSGS
+      *
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *
+       INPUT-OUTPUT SECTION.
+      *
+       FILE-CONTROL.
+      *
+      * KEY = EMPRESA+USERID
+      *
+           COPY GRSG900AD REPLACING ==(DSNI)== BY ==BNFF105A==
+                                    ==(DSNX)== BY ==BNFF105==.
+      *
+      * KEY = EMPRESA+USERID ANTIGO
+      *
+           COPY GRSG901AD REPLACING ==(DSNI)== BY ==BNFF105B==
+                                    ==(DSNX)== BY ==BNFF105L01==.
+      *
+      * KEY = EMPRESA+USERID - RELACAO
+      *
+           COPY GRSG900AD REPLACING ==(DSNI)== BY ==BNFF106K==
+                                    ==(DSNX)== BY ==BNFF106L10==.
+      *
+      *
+           COPY GRSG903AS REPLACING ==(DSPF)== BY ==GRSE900==.
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+      *
+      *----------------------------------------------------------------*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+      *
+       FD GRSE900
+                       LABEL RECORDS STANDARD.
+       01 GRSE90001                     PIC X(3600).
+      *
+      *
+           COPY BNFD105A  REPLACING  ==(DSNI)==  BY  ==BNFF105A==
+                                     ==(DSNR)==  BY  ==BNFR105A==.
+      *
+       01  BNFR105A02.
+           COPY BNFR105A   REPLACING  ==(DSNI)== BY ==BNFF105A==.
+      *
+       01  BNFR105A99.
+           COPY DDS-ALL-FORMATS OF BNFF105.
+      *
+           COPY BNFD105A  REPLACING  ==(DSNI)==  BY  ==BNFF105B==
+                                     ==(DSNR)==  BY  ==BNFR105B==.
+      *
+       01  BNFR105B02.
+           COPY BNFR105A   REPLACING  ==(DSNI)== BY ==BNFF105B==.
+      *
+       01  BNFR105B99.
+           COPY DDS-ALL-FORMATS OF BNFF105L01.
+      *
+           COPY BNFD106A  REPLACING  ==(DSNI)==  BY  ==BNFF106K==
+                                     ==(DSNR)==  BY  ==BNFR106K==.
+      *
+       01  BNFR106K02.
+           COPY BNFR106A   REPLACING  ==(DSNI)== BY ==BNFF106K==.
+      *
+       01  BNFR106K99.
+           COPY DDS-ALL-FORMATS OF BNFF106L10.
+      *
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *----------------------------------------------------------------*
+      *
+       01  W-ECRANS.
+      *
+           COPY DDS-ANOMALIAS-I     OF GRSE900.
+           COPY DDS-ANOMALIAS-O     OF GRSE900.
+       01  FILLER  REDEFINES  W-ECRANS.
+           05  FILLER                     PIC X(4).
+           05  FILLER                     PIC X(12).
+           05  WE-MSG    OCCURS  10
+                         INDEXED WE-IDX   PIC X(58).
+      *
+           COPY GRSA002.
+           COPY GRSL007C.
+           COPY GRSW001.
+           COPY GRSW002.
+      *
+       01  WA-USERID.
+           05  WU-USER                 PIC X(4).
+           05  WU-EMPTY                PIC X(4).
+               88  WU-ITS-UID-OLD   VALUE SPACES.
+       01  FILLER  REDEFINES WA-USERID.
+           05  WU-EMPRESA              PIC XXX.
+      *
+       01  MY-EMPRESA                  PIC XXX.
+       01  K-EMPRESA-BNF               PIC XXX  VALUE "BNF".
+      *
+       01  CURR-PGMLIB                 PIC X(10).
+       01  CURR-PGMID                  PIC X(8).
+       01  DRIVER-5250                 PIC X(10) VALUE "QUICMENU".
+      *
+       01  ACTION-SEND-MSG             PIC X     VALUE HIGH-VALUES.
+       01  ACTION-BYPASS-MSG           PIC X     VALUE HIGH-VALUES.
+       01  BATCH-MODE                  PIC X(10) VALUE "B".
+       01  MODE-5250                   PIC X(10) VALUE "T".
+      *
+       01  MESSAGES-TABLE.
+           05  MT-NR-MSGS              PIC S999 COMP-3.
+               88  MT-FULL                      VALUE +9 THRU +999.
+               88  MT-EMPTY                     VALUE ZEROS.
+           05  MT-MSG  OCCURS  9
+                       INDEXED MT-IDX  PIC X(58).
+      *
+       01  MSG-PRFX                    PIC X(24).
+       01  WA-SRC                      PIC X(60).
+       01  WA-TGT                      PIC X(60).
+       01  MSG-SEQ.
+           05  MS-SEQ                  PIC 9.
+      *
+       01  MY-LOG-VALUE                PIC 9(8).
+      *
+       01  PRFX-RANDOM-ID.
+           05  PRFX-RANDOM-NR          PIC V9(8).
+      *
+       01  PRFX-LOG       COMP-4       PIC S9V9(8).
+      *
+       01  SQLCODE-ED.
+           05  SQLCODE-MSK             PIC -Z(6)999.
+      *
+       01  K-BNF                       PIC X(5) VALUE "<BNF>".
+       01  SEP-CHAR                    PIC X    VALUE SPACES.
+      *
+       01  FILLER          COMP-3.
+           05  CMD-LENG                PIC S999 VALUE +10.
+           05  COMPONENT-LENG          PIC S999 VALUE +10.
+           05  DATE-LENG               PIC S999 VALUE +8.
+           05  FILE-LENG               PIC S999 VALUE +10.
+           05  FS-LENG                 PIC S999 VALUE +2.
+           05  KBNF-LENG               PIC S999 VALUE +5.
+           05  KEY-LENG                PIC S999 VALUE +8.
+           05  LIB-LENG                PIC S999 VALUE +10.
+           05  MAX-TXT-LINES           PIC S999 VALUE +3.
+           05  MSG-LENG                PIC S999 VALUE +10.
+           05  OPER-LENG               PIC S999 VALUE +2.
+           05  OPER-XL-LENG            PIC S999 VALUE +10.
+           05  PGM-LENG                PIC S999 VALUE +8.
+           05  PRFX-LENG               PIC S999 VALUE +18.
+           05  RAND-LENG               PIC S999 VALUE +8.
+           05  RC-LENG                 PIC S999 VALUE +2.
+           05  SEQ-LENG                PIC S999 VALUE +1.
+           05  SEP-LENG                PIC S999 VALUE +1.
+           05  SQLCODE-LENG            PIC S999 VALUE +10.
+           05  SQLSTATE-LENG           PIC S999 VALUE +5.
+           05  SQLWARN-LENG            PIC S999 VALUE +11.
+           05  SYSID-LENG              PIC S999 VALUE +10.
+           05  TIME-LENG               PIC S999 VALUE +8.
+           05  TXT-LENG                PIC S999 VALUE +34.
+           05  USERID-LENG             PIC S999 VALUE +8.
+      *
+           05  MAX-LENG                PIC S999.
+           05  SRC-P                   PIC S999.
+           05  SRC-L                   PIC S999.
+           05  TGT-P                   PIC S999.
+           05  TGT-L                   PIC S999.
+           05  SEQ-P                   PIC S999.
+      *
+       01  GRSS000-CONVERT-LEN         PIC 99.
+       01  GRSS000-TO-CONVERT-DATA     PIC X(20).
+       01  GRSS000-CONVERTED           PIC X(40).
+       01  MY-API-RECEIVER.
+           05  FILLER                    COMP-4.
+               10  MAR-BYTES-RETURNED            PIC S9(9).
+               10  MAR-BYTES-AVAILABLE           PIC S9(9).
+               10  MAR-ENTRY-AVAILABLE           PIC S9(9).
+               10  MAR-ENTRY-OFFSET              PIC S9(9).
+               10  MAR-ENTRY-RETURNED            PIC S9(9).
+           05  MAR-RETURNED-THREAD-ID            PIC X(8).
+           05  MAR-INFORMATION-STATUS            PIC X.
+           05  MAR-RESERVED                      PIC XXX.
+      *
+           05  MAR-STACK-ENTRIES                 PIC X(8100).
+      *
+       01  MY-STACK-ENTRY.
+      *
+           05  FILLER                COMP-4.
+               10  MSE-ENTRY-LENGTH            PIC S9(9).
+               10  MSE-STMT-DISPLACEMENT       PIC S9(9).
+               10  MSE-STMT-RETURNED           PIC S9(9).
+               10  MSE-PROC-DISPLACEMENT       PIC S9(9).
+               10  MSE-PROC-LENGTH             PIC S9(9).
+               10  MSE-REQUEST-LEVEL           PIC S9(9).
+           05  MSE-PROGRAM-NAME                PIC X(10).
+           05  MSE-PROGRAM-LIBRARY             PIC X(10).
+           05  MSE-INSTRUCTION                 PIC S9(9) COMP-4.
+           05  MSE-MODULE-NAME                 PIC X(10).
+           05  MSE-MODULE-LIBRARY              PIC X(10).
+           05  MSE-CONTROL-BDY                 PIC X.
+           05  MSE-RESERVED                    PIC XXX.
+           05  MSE-ACT-GROUP-NUMBER            PIC S9(9) COMP-4.
+           05  MSE-ACT-GROUP-NAME              PIC X(10).
+           05  MSE-RESERVED-2                  PIC XX.
+           05  MSE-PROGRAM-ASP-NAME            PIC X(10).
+           05  MSE-PROGRAM-LIBRARY-ASP-NAME    PIC X(10).
+           05  MSE-PROGRAM-ASP-NUMBER          PIC S9(9) COMP-4.
+           05  MSE-PROGRAM-LIBRARY-ASP-NUMBER  PIC S9(9) COMP-4.
+           05  MSE-ACT-GROUP-NUMBER-LONG       PIC 9(18) COMP-4.
+           05  MSE-RESERVED-3                  PIC X(8).
+           05  MSE-STMT-IDENTIFIER  OCCURS 1   PIC X(10).
+           05  MSE-STMT-IDENTIFIER             PIC X(10).
+           05  MSE-PROC-NAME                   PIC X(10).
+      *
+      * COMMON JOB AND THREAD INFORMATION
+      *
+           COPY QWCATTR  OF QSYSINC-QCBLLESRC.
+      *
+      * COMMON STRUCTURE FOR ERROR CODE PARAMETER
+      *
+           COPY QUSEC    OF QSYSINC-QCBLLESRC.
+      *
+       01  K-API-NAME                  PIC X(10) VALUE "QWVRCSTK".
+       01  K-CURRENT-JOB               PIC X     VALUE "*".
+       01  K-API-FORMAT-CSTK0100       PIC X(8)  VALUE "CSTK0100".
+       01  K-JOB-FORMAT-JIDF0100       PIC X(8)  VALUE "JIDF0100".
+      *
+       01  BNFS101-NAME                PIC X(10) VALUE "BNFS101".
+       01  GRSS900-NAME                PIC X(10) VALUE "GRSS900".
+       01  GRSC007-NAME                PIC X(10) VALUE "GRSC007".
+      *
+       01  FILLER                COMP-4.
+           05  MY-QUSEC-LENGTH         PIC S9(9) VALUE +16.
+           05  K-CURRENT-JOB-THREAD    PIC S9(9) VALUE +2.
+           05  K-API-RECEIVER-LENG     PIC S9(9) VALUE +8132.
+           05  K-API-ENTRIES-SIZE      PIC S9(9) VALUE +8100.
+           05  K-SIZE-STACK-ENTRY      PIC S9(9) VALUE +162.
+           05  COUNT-ENTRIES           PIC S9(9).
+           05  CURR-P                  PIC S9(9).
+           05  CURR-L                  PIC S9(9).
+           05  W-SIZE                  PIC S9(9).
+     š*---------------------------------------------------------------*
+       LINKAGE SECTION.
+     š*---------------------------------------------------------------*
+           COPY GRSL900M.
+     š*---------------------------------------------------------------*
+       PROCEDURE DIVISION USING GRSL900M-AREALIG.
+     š*---------------------------------------------------------------*
+      ****************************************
+       MAIN-LINE                       SECTION.
+      ****************************************
+      *
+           MOVE ZEROS TO RETURN-CODE
+      *
+           IF  ADDRESS OF GRSL900M-AREALIG  = NULLS
+               MOVE GRS-ERROR-END TO RETURN-CODE
+      * =>
+               GOBACK
+           END-IF
+      *
+           IF  NOT GRSL900M-ACTION-OK
+               MOVE SPACES TO GRSL900M-ACTION
+           END-IF
+      *
+           IF  GRSL900M-GET-STEPID
+               PERFORM GET-STEPID
+           ELSE
+      *
+      * TESTE GRSL900M-RC-APPL
+      *
+               IF  GRSL900M-APPL-OK
+                   CONTINUE
+               ELSE
+                   IF  GRSL900M-APPL-EXEC-STOP
+                       MOVE GRS-ERROR-END TO GRSL900M-RC
+                   ELSE
+                       IF  GRSL900M-RC-APPL NUMERIC
+                           IF  GRSL900M-APPL-WARNING-GO
+                               MOVE GRS-WARNING-GO TO GRSL900M-RC
+                           END-IF
+                           IF  GRSL900M-APPL-WARNING-STOP
+                               MOVE GRS-WARNING-END TO GRSL900M-RC
+                           END-IF
+                           IF  GRSL900M-APPL-ERROR-STOP
+                               MOVE GRS-ERROR-END TO GRSL900M-RC
+                           END-IF
+                       END-IF
+                   END-IF
+               END-IF
+      *
+               PERFORM BUILD-MSGS
+      *
+               IF  GRSL900M-INTAT-5250
+                   PERFORM SEND-5250-MSG
+               ELSE
+                   PERFORM VARYING MT-IDX FROM 1 BY 1
+                           UNTIL   MT-IDX   >  MT-NR-MSGS
+                       DISPLAY MT-MSG (MT-IDX)
+                   END-PERFORM
+               END-IF
+           END-IF.
+      *
+       RETORNO.
+      *
+           MOVE ZEROS       TO GRSL900M-RC-APPL
+           MOVE SPACES      TO GRSL900M-TXT (1)
+                               GRSL900M-TXT (2)
+                               GRSL900M-TXT (3)
+           MOVE GRSL900M-RC TO RETURN-CODE
+      *
+           GOBACK.
+      *
+       END-MAIN-LINE.                  EXIT.
+      *
+      ****************************************
+       GET-STEPID                      SECTION.
+      ****************************************
+      *
+           INITIALIZE GRSL900M-AREALIG
+      *
+           MOVE ZEROS TO GRSL900M-RC-APPL
+      *
+           MOVE ACTION-SEND-MSG TO GRSL900M-ACTION
+           MOVE BATCH-MODE      TO GRSL900M-ENVR
+      *
+           MOVE  ZEROS TO GRSL900M-RC
+      *
+           PERFORM GRS-GET-SYSDATE
+      *
+           MOVE GRS-SYSDATE TO GRSL900M-YYYYMMDD
+           MOVE GRS-SYSTIME TO GRSL900M-HHMMSSCC
+      *
+           CALL GRSC007-NAME USING GRSL007C-AREALIG
+      *
+           MOVE GRSL007C-SYSID   TO GRSL900M-SYSID
+           MOVE GRSL007C-USERID  TO GRSL900M-USERID
+                                    WA-USERID
+           MOVE GRSL007C-ENVID   TO GRSL900M-ENVID
+           MOVE GRSL007C-JOBTYPE TO GRSL900M-JOBTYPE
+      *
+           IF  WU-EMPTY  NOT = SPACES
+               MOVE WU-EMPRESA    TO MY-EMPRESA
+           ELSE
+               MOVE K-EMPRESA-BNF TO MY-EMPRESA
+           END-IF
+           PERFORM GET-USERID
+      *
+           PERFORM GET-PGMID
+      *
+           MOVE CURR-PGMID TO GRSL900M-STEPID
+      *
+           IF  GRS-SYSTIME = ZEROS
+               MOVE 1           TO MY-LOG-VALUE
+           ELSE
+               MOVE GRS-SYSTIME TO MY-LOG-VALUE
+           END-IF
+      *
+           COMPUTE PRFX-LOG =  FUNCTION LOG(MY-LOG-VALUE)
+      *
+           MOVE PRFX-LOG       TO PRFX-RANDOM-NR
+           MOVE PRFX-RANDOM-ID TO GRSL900M-RANDOM.
+      *
+           PERFORM GET-ENVIRONMENT.
+      *
+       END-GET-STEPID.                 EXIT.
+      *
+       BUILD-MSGS                      SECTION.
+      ****************************************
+      *
+           MOVE ZEROS TO MT-NR-MSGS
+      *
+           IF  GRSL900M-OK      AND
+               GRSL900M-APPL-OK
+      * =>
+               GO END-BUILD-MSGS
+           END-IF
+      *
+           IF  GRSL900M-BYPASS-MSG
+      * =>
+               GO END-BUILD-MSGS
+           END-IF
+      *
+           MOVE ACTION-BYPASS-MSG TO GRSL900M-STATE
+      *
+           PERFORM GET-PGMID
+      *
+           PERFORM FORMAT-MSG-PRFX
+           PERFORM FORMAT-MSG-HDR
+           PERFORM FORMAT-MSG-PGM
+      *
+      * FORMAT TEXT MESSAGES
+      *
+           MOVE TXT-LENG TO SRC-L
+      *
+           PERFORM VARYING GRSL900M-IDX FROM 1 BY 1
+                   UNTIL   GRSL900M-IDX   >  MAX-TXT-LINES
+      *
+               IF  GRSL900M-TXT (GRSL900M-IDX) NOT = SPACES
+                   MOVE GRSL900M-TXT (GRSL900M-IDX) TO WA-SRC
+                   PERFORM LOAD-MESSAGE
+               END-IF
+      *
+           END-PERFORM
+      *
+           PERFORM FORMAT-MSG-IO
+           PERFORM FORMAT-MSG-DB2
+           PERFORM FORMAT-MSG-EXEC.
+      *
+       END-BUILD-MSGS.                 EXIT.
+      *
+      ****************************************
+       FORMAT-MSG-PRFX                 SECTION.
+      ****************************************
+      *
+           MOVE ZEROS  TO MS-SEQ
+           MOVE SPACES TO WA-TGT
+                          SEP-CHAR
+      *
+           MOVE ZEROS     TO TGT-P
+           MOVE K-BNF     TO WA-SRC
+           MOVE KBNF-LENG TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE "_"       TO SEP-CHAR
+      *
+           MOVE GRSL900M-STEPID TO WA-SRC
+           MOVE PGM-LENG       TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE GRSL900M-RANDOM TO WA-SRC
+           MOVE RAND-LENG      TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+      * KEEP SEQUENCE POSITION
+      *
+           ADD  +1    TO TGT-P
+                  GIVING SEQ-P
+      *
+           MOVE MSG-SEQ   TO WA-SRC
+           MOVE SEQ-LENG  TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE TGT-P TO PRFX-LENG
+      *
+           MOVE WA-TGT TO MSG-PRFX.
+      *
+       END-FORMAT-MSG-PRFX.            EXIT.
+      *
+      ****************************************
+       FORMAT-MSG-HDR                  SECTION.
+      ****************************************
+      *
+           MOVE SPACES TO WA-TGT
+           MOVE ZEROS  TO TGT-P
+      *
+           MOVE GRSL900M-SYSID    TO WA-SRC
+           MOVE SYSID-LENG       TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE GRSL900M-YYYYMMDD TO WA-SRC
+           MOVE DATE-LENG        TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE GRSL900M-HHMMSSCC TO WA-SRC
+           MOVE TIME-LENG        TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE GRSL900M-RC TO WA-SRC
+           MOVE RC-LENG    TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE SPACES TO WA-TGT (TGT-P:1)
+           MOVE WA-TGT TO WA-SRC
+      *
+           ADD -1  TO TGT-P
+               GIVING SRC-L
+      *
+           PERFORM LOAD-MESSAGE.
+      *
+       END-FORMAT-MSG-HDR.             EXIT.
+      *
+      ****************************************
+       FORMAT-MSG-PGM                  SECTION.
+      ****************************************
+      *
+           MOVE SPACES TO WA-TGT
+           MOVE ZEROS  TO TGT-P
+      *
+           MOVE GRSL900M-USERID TO WA-SRC
+           MOVE USERID-LENG    TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE CURR-PGMLIB TO WA-SRC
+           MOVE LIB-LENG    TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE CURR-PGMID TO WA-SRC
+           MOVE PGM-LENG   TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE GRSL900M-RC-APPL TO WA-SRC
+           MOVE RC-LENG    TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE SPACES TO WA-TGT (TGT-P:1)
+           MOVE WA-TGT TO WA-SRC
+      *
+           ADD -1  TO TGT-P
+               GIVING SRC-L
+      *
+           PERFORM LOAD-MESSAGE.
+      *
+       END-FORMAT-MSG-PGM.             EXIT.
+      *
+      ****************************************
+       FORMAT-MSG-IO                   SECTION.
+      ****************************************
+      *
+           IF  NOT GRSL900M-APPL-IO-ERROR
+      * =>
+               GO END-FORMAT-MSG-IO
+           END-IF
+      *
+           MOVE SPACES TO WA-TGT
+           MOVE ZEROS  TO TGT-P
+      *
+           MOVE GRSL900M-FILEID TO WA-SRC
+           MOVE FILE-LENG       TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE GRSL900M-IO-OPERATION TO WA-SRC
+           MOVE OPER-LENG             TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE GRSL900M-FILE-STATUS TO WA-SRC
+           MOVE FS-LENG              TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+      * FORMAT KEY HEXA
+      *
+           IF  GRSL900M-KEY NOT = SPACES
+               MOVE KEY-LENG     TO GRSS000-CONVERT-LEN
+               MOVE GRSL900M-KEY TO GRSS000-TO-CONVERT-DATA
+      *
+               CALL "GRSS000" USING GRSS000-CONVERT-LEN
+                                    GRSS000-TO-CONVERT-DATA
+                                    GRSS000-CONVERTED
+      *
+               MOVE GRSS000-CONVERTED TO WA-SRC
+               MULTIPLY 2  BY KEY-LENG
+                       GIVING MAX-LENG
+      *
+               PERFORM FORMAT-DATA
+           END-IF
+      *
+           MOVE SPACES TO WA-TGT (TGT-P:1)
+           MOVE WA-TGT TO WA-SRC
+      *
+           ADD -1  TO TGT-P
+               GIVING SRC-L
+      *
+           PERFORM LOAD-MESSAGE.
+      *
+       END-FORMAT-MSG-IO.              EXIT.
+      *
+      ****************************************
+       FORMAT-MSG-DB2                  SECTION.
+      ****************************************
+      *
+           IF  NOT GRSL900M-APPL-DB-ERROR
+      * =>
+               GO END-FORMAT-MSG-DB2
+           END-IF
+      *
+           MOVE SPACES TO WA-TGT
+           MOVE ZEROS  TO TGT-P
+      *
+           MOVE GRSL900M-TABLEID TO WA-SRC
+           MOVE FILE-LENG        TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE GRSL900M-DB-OPERATION TO WA-SRC
+           MOVE OPER-LENG             TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE GRSL900M-DB-OPER-XL   TO WA-SRC
+           MOVE OPER-XL-LENG          TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE GRSL900M-SQLCODE     TO SQLCODE-MSK
+           MOVE SQLCODE-ED           TO WA-SRC
+           MOVE SQLCODE-LENG         TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE GRSL900M-SQLSTATE    TO WA-SRC
+           MOVE SQLSTATE-LENG        TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE SPACES TO WA-TGT (TGT-P:1)
+           MOVE WA-TGT TO WA-SRC
+      *
+           ADD -1  TO TGT-P
+               GIVING SRC-L
+      *
+           PERFORM LOAD-MESSAGE
+      *
+           MOVE SPACES TO WA-TGT
+           MOVE ZEROS  TO TGT-P
+      *
+           IF  GRSL900M-SQLWARN NOT = SPACES
+      *
+               MOVE GRSL900M-SQLWARN     TO WA-SRC
+               MOVE SQLWARN-LENG         TO MAX-LENG
+      *
+               PERFORM FORMAT-DATA
+      *
+               MOVE SPACES TO WA-TGT (TGT-P:1)
+               MOVE WA-TGT TO WA-SRC
+      *
+               ADD -1  TO TGT-P
+                   GIVING SRC-L
+      *
+               PERFORM LOAD-MESSAGE
+           END-IF.
+      *
+       END-FORMAT-MSG-DB2.             EXIT.
+      *
+      ****************************************
+       FORMAT-MSG-EXEC                 SECTION.
+      ****************************************
+      *
+           IF  NOT GRSL900M-APPL-EX-ERROR
+      * =>
+               GO END-FORMAT-MSG-EXEC
+           END-IF
+      *
+           MOVE SPACES TO WA-TGT
+           MOVE ZEROS  TO TGT-P
+      *
+           MOVE GRSL900M-CMD          TO WA-SRC
+           MOVE CMD-LENG              TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE GRSL900M-CMD-COMPONENT TO WA-SRC
+           MOVE COMPONENT-LENG         TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE GRSL900M-CMD-MSG     TO WA-SRC
+           MOVE MSG-LENG             TO MAX-LENG
+      *
+           PERFORM FORMAT-DATA
+      *
+           MOVE SPACES TO WA-TGT (TGT-P:1)
+           MOVE WA-TGT TO WA-SRC
+      *
+           ADD -1  TO TGT-P
+               GIVING SRC-L
+      *
+           PERFORM LOAD-MESSAGE.
+      *
+       END-FORMAT-MSG-EXEC.            EXIT.
+      *
+      ****************************************
+       LOAD-MESSAGE                    SECTION.
+      ****************************************
+      *
+           IF  MT-FULL
+      * =>
+               GO END-LOAD-MESSAGE
+           END-IF
+      *
+           ADD 1        TO MS-SEQ
+           MOVE MSG-SEQ TO MSG-PRFX (SEQ-P:SEQ-LENG)
+      *
+           ADD +1    TO PRFX-LENG
+                 GIVING TGT-P
+      *
+           MOVE MSG-PRFX         TO WA-TGT
+           MOVE WA-SRC (1:SRC-L) TO WA-TGT (TGT-P:SRC-L)
+      *
+           ADD  +1     TO MT-NR-MSGS
+           SET  MT-IDX TO MT-NR-MSGS
+           MOVE WA-TGT TO MT-MSG (MT-IDX).
+      *
+       END-LOAD-MESSAGE.               EXIT.
+      *
+      ****************************************
+       FORMAT-DATA                     SECTION.
+      ****************************************
+      *
+           PERFORM VARYING SRC-P FROM 1 BY 1
+                   UNTIL   SRC-P   >  MAX-LENG
+      *
+               IF  WA-SRC (SRC-P:1) NOT = SPACES
+                   ADD  +1               TO TGT-P
+                   MOVE WA-SRC (SRC-P:1) TO WA-TGT (TGT-P:1)
+               END-IF
+           END-PERFORM
+      *
+           IF  SEP-CHAR NOT = SPACES
+               ADD  +1       TO TGT-P
+               MOVE SEP-CHAR TO WA-TGT (TGT-P:1)
+           END-IF.
+      *
+       END-FORMAT-DATA.                EXIT.
+      *
+      ****************************************
+       SEND-5250-MSG                   SECTION.
+      ****************************************
+      *
+           IF  MT-EMPTY
+      * =>
+               GO END-SEND-5250-MSG
+           END-IF
+      *
+           OPEN I-O GRSE900
+           IF  GRS-GOOD-IO OR GRS-FILE-ALREADY-OPENED
+               CONTINUE
+           ELSE
+      * =>
+               GO END-SEND-5250-MSG
+           END-IF
+      *
+           INITIALIZE ANOMALIAS-I ANOMALIAS-O
+      *
+           MOVE GRSL900M-USERID TO USER OF ANOMALIAS-O
+      *
+           PERFORM VARYING MT-IDX FROM 1 BY 1
+                   UNTIL   MT-IDX   >  MT-NR-MSGS
+      *
+               SET  WE-IDX          TO MT-IDX
+               MOVE MT-MSG (MT-IDX) TO WE-MSG (WE-IDX)
+           END-PERFORM
+      *
+           WRITE GRSE90001  FROM ANOMALIAS-O FORMAT    "ANOMALIAS"
+      *
+           IF  GRS-GOOD-IO
+               READ GRSE900   INTO ANOMALIAS-I FORMAT  "ANOMALIAS"
+               IF  GRS-GOOD-IO
+                   CLOSE GRSE900
+               END-IF
+           END-IF.
+      *
+       END-SEND-5250-MSG.              EXIT.
+      *
+      ****************************************
+       GET-PGMID                       SECTION.
+      ****************************************
+      *
+           INITIALIZE MY-API-RECEIVER
+                      QWC-JIDF0100
+                      QUS-EC
+      *
+           MOVE K-API-RECEIVER-LENG  TO MAR-BYTES-AVAILABLE
+           MOVE K-CURRENT-JOB        TO JOB-NAME         OF QWC-JIDF0100
+           MOVE K-CURRENT-JOB-THREAD TO THREAD-INDICATOR OF QWC-JIDF0100
+           MOVE LOW-VALUES           TO THREAD-ID        OF QWC-JIDF0100
+                                        RESERVED         OF QWC-JIDF0100
+           MOVE MY-QUSEC-LENGTH      TO BYTES-PROVIDED   OF QUS-EC
+           MOVE ZEROS                TO BYTES-AVAILABLE  OF QUS-EC
+      *
+           CALL "QWVRCSTK" USING MY-API-RECEIVER
+                                 K-API-RECEIVER-LENG
+                                 K-API-FORMAT-CSTK0100
+                                 QWC-JIDF0100
+                                 K-JOB-FORMAT-JIDF0100
+                                 QUS-EC
+      *
+           IF  BYTES-AVAILABLE OF QUS-EC > ZEROS
+               MOVE ALL "?" TO CURR-PGMLIB
+                               CURR-PGMID
+      * =>
+               GO END-GET-PGMID
+           END-IF
+      *
+           MOVE +1                 TO CURR-P
+           MOVE K-SIZE-STACK-ENTRY TO CURR-L
+           MOVE +1                 TO COUNT-ENTRIES
+      *
+           MOVE SPACES TO CURR-PGMLIB
+                          CURR-PGMID
+           MOVE ZEROS  TO W-SIZE
+      *
+           PERFORM VARYING COUNT-ENTRIES   FROM 1 BY 1
+                   UNTIL   COUNT-ENTRIES     >  MAR-ENTRY-AVAILABLE
+                   OR      CURR-PGMID    NOT = SPACES
+                   OR      W-SIZE        NOT < K-API-ENTRIES-SIZE
+      *
+               MOVE MAR-STACK-ENTRIES (CURR-P:CURR-L)
+                                         TO MY-STACK-ENTRY
+      *
+               IF  MSE-PROGRAM-NAME NOT = GRSS900-NAME
+                   MOVE MSE-PROGRAM-LIBRARY TO CURR-PGMLIB
+                   MOVE MSE-PROGRAM-NAME    TO CURR-PGMID
+               END-IF
+      *
+               ADD MSE-ENTRY-LENGTH TO CURR-P
+      *
+               COMPUTE W-SIZE = CURR-P + CURR-L - 1
+      *
+           END-PERFORM.
+      *
+       END-GET-PGMID.                  EXIT.
+      *
+      ****************************************
+       GET-ENVIRONMENT                 SECTION.
+      ****************************************
+      *
+           MOVE BATCH-MODE TO GRSL900M-ENVR
+      *
+           IF  BYTES-AVAILABLE OF QUS-EC > ZEROS
+      * =>
+               GO END-GET-ENVIRONMENT
+           END-IF
+      *
+           MOVE +1                 TO CURR-P
+           MOVE K-SIZE-STACK-ENTRY TO CURR-L
+           MOVE +1                 TO COUNT-ENTRIES
+      *
+           MOVE SPACES TO CURR-PGMLIB
+                          CURR-PGMID
+           MOVE ZEROS  TO W-SIZE
+      *
+           PERFORM VARYING COUNT-ENTRIES   FROM 1 BY 1
+                   UNTIL   COUNT-ENTRIES     >  MAR-ENTRY-AVAILABLE
+                   OR      CURR-PGMID        =  DRIVER-5250
+                   OR      W-SIZE        NOT < K-API-ENTRIES-SIZE
+      *
+               MOVE MAR-STACK-ENTRIES (CURR-P:CURR-L)
+                                         TO MY-STACK-ENTRY
+      *
+               MOVE MSE-PROGRAM-NAME TO CURR-PGMID
+      *
+               ADD MSE-ENTRY-LENGTH  TO CURR-P
+      *
+               COMPUTE W-SIZE = CURR-P + CURR-L - 1
+      *
+           END-PERFORM
+      *
+           IF  CURR-PGMID = DRIVER-5250  OR
+               GRSL007C-RUN-INTERACT
+               MOVE MODE-5250 TO GRSL900M-ENVR
+           END-IF.
+      *
+       END-GET-ENVIRONMENT.            EXIT.
+      *
+      ****************************************
+       GET-USERID                      SECTION.
+      ****************************************
+      *
+           PERFORM BNFF106K-OPEN-INPUT
+
+           IF  WU-ITS-UID-OLD
+               PERFORM BNFF105B-OPEN-INPUT
+           ELSE
+               PERFORM BNFF105A-OPEN-INPUT
+           END-IF
+      *
+           IF  WU-ITS-UID-OLD
+               MOVE WU-USER            TO BNFF105B-ID-USER-ANTR
+      *
+               PERFORM BNFF105B-READ-DIR
+           ELSE
+               MOVE MY-EMPRESA         TO BNFF105A-CD-EMPS
+               MOVE WA-USERID          TO BNFF105A-ID-USER
+      *
+               PERFORM BNFF105A-READ-DIR
+           END-IF
+      *
+           MOVE SPACES TO GRSL900M-OLD-USERID
+      *
+           IF  GRS-GOOD-IO
+               IF  WU-ITS-UID-OLD
+                   MOVE BNFF105B-ID-USER   TO GRSL900M-NEW-USERID
+                   MOVE BNFF105B-CD-EMPS   TO BNFF106K-CD-EMPS
+                   MOVE BNFF105B-ID-USER   TO BNFF106K-ID-USER
+                   MOVE BNFF105B-ID-USER-ANTR
+                                           TO GRSL900M-OLD-USERID
+               ELSE
+                   MOVE BNFF105A-ID-USER   TO GRSL900M-NEW-USERID
+                   MOVE BNFF105A-CD-EMPS   TO BNFF106K-CD-EMPS
+                   MOVE BNFF105A-ID-USER   TO BNFF106K-ID-USER
+                   MOVE BNFF105A-ID-USER-ANTR
+                                           TO GRSL900M-OLD-USERID
+               END-IF
+           ELSE
+               MOVE GRSL007C-USERID      TO GRSL900M-NEW-USERID
+               MOVE SPACES               TO GRSL900M-UOT-USERID
+               MOVE ZEROS                TO GRSL900M-UOT-COD
+      * =>
+               GO END-GET-USERID
+           END-IF
+      *
+      * GET RELACAO
+      *     KEY JÁ POSICIONADA (BNFF105A OU BNFF105B)
+      *
+           PERFORM BNFF106K-READ-DIR
+      *
+           IF  GRS-GOOD-IO
+               MOVE BNFF106K-CD-UOT3     TO GRSL900M-UOT-COD
+           ELSE
+               MOVE ZEROS                TO GRSL900M-UOT-COD
+           END-IF
+      *
+           PERFORM BNFF106K-CLOSE
+      *
+           IF  WU-ITS-UID-OLD
+               PERFORM BNFF105B-CLOSE
+           ELSE
+               PERFORM BNFF105A-CLOSE
+           END-IF.
+      *
+      *
+       END-GET-USERID.                 EXIT.
+      *
+           COPY GRSB002.
+
+           COPY GRSI900ACL  REPLACING  ==(DSNI)==  BY ==BNFF105A==
+                                         "DSNI"    BY  "BNFF105".
+           COPY GRSI900AOI  REPLACING  ==(DSNI)==  BY ==BNFF105A==
+                                         "DSNI"    BY  "BNFF105".
+           COPY GRSI900ARR  REPLACING  ==(DSNI)==  BY ==BNFF105A==
+                                         "DSNI"    BY  "BNFF105".
+      *
+           COPY GRSI900ACL  REPLACING  ==(DSNI)==  BY ==BNFF105B==
+                                         "DSNI"    BY  "BNFF105L01".
+           COPY GRSI900AOI  REPLACING  ==(DSNI)==  BY ==BNFF105B==
+                                         "DSNI"    BY  "BNFF105L01".
+           COPY GRSI900ARR  REPLACING  ==(DSNI)==  BY ==BNFF105B==
+                                         "DSNI"    BY  "BNFF105L01".
+
+           COPY GRSI900ACL  REPLACING  ==(DSNI)==  BY ==BNFF106K==
+                                         "DSNI"    BY  "BNFF106L10".
+           COPY GRSI900AOI  REPLACING  ==(DSNI)==  BY ==BNFF106K==
+                                         "DSNI"    BY  "BNFF106L10".
+           COPY GRSI900ARR  REPLACING  ==(DSNI)==  BY ==BNFF106K==
+                                         "DSNI"    BY  "BNFF106L10".
+      *

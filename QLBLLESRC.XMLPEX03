@@ -1,0 +1,128 @@
+       IDENTIFICATION DIVISION.
+     š*----------------------------------------------------------------*
+       PROGRAM-ID.  XMLPEX03.
+     š*----------------------------------------------------------------*
+       Data division.
+       Working-storage section.
+        1 nca comp pic 99999.
+        1 prename pic x(30).
+        1 tagname pic x(30).
+        1 pos comp pic 999.
+        1 buffer pic x(99).
+        1 ix comp pic 999.
+        1 tally comp pic 999.
+        1 tagstate comp pic 9.
+          88 closed value 0.
+          88 opened value 1.
+          88 attributes value 2.
+       Linkage section.
+        1 nc comp  pic 9999.
+        1 xmlOrg.
+           2 pic x occurs 1 to 1024 depending on nc.
+        1 xmlAsAtt pic x(1024).
+
+      *================================================================*
+       Procedure division using  nc xmlOrg xmlAsAtt.
+      *================================================================*
+           Initialize tagstate prename tagname
+           INITIALIZE xmlAsAtt
+                      REPLACING ALPHANUMERIC BY SPACES
+                                    NUMERIC BY ZEROS.
+           Move 1 to nca pos
+           xml parse xmlOrg processing
+               procedure TrXml thru TrXml-Exit
+              on exception
+                display "XML parse error      " xml-code
+           END-XML.
+           Move nca to nc
+           Stop Run.
+      *================================================================*
+       TrXml section.
+      *================================================================*
+           Evaluate xml-event
+     š*
+           When "START-OF-ELEMENT"
+            If opened
+               Move ">" to xmlAsAtt(nca:1)
+               Add 1 to nca
+            End-if
+            If tagname not = space
+              If attributes
+                Move ">" to xmlAsAtt(nca:1)
+                Add 1 to nca
+              End-if
+              String "<" delimited by size tagname delimited by space
+                   into xmlAsAtt with pointer nca
+              Move tagname to prename
+              Set opened to true
+            End-if
+            Move xml-text to tagname
+     š*
+           When "CONTENT-CHARACTERS"
+            String xml-text delimited by size into buffer
+                with pointer pos
+     š*
+           When "CONTENT-CHARACTER"
+             Evaluate xml-text
+             When "<"
+              String "&lt;" delimited by size into buffer
+                      with pointer pos
+              When "&"
+                  String "&amp;" delimited by size into buffer
+                      with pointer pos
+
+              When other
+                  String xml-text delimited by size into buffer
+                       with pointer pos
+             End-evaluate
+     š*
+           When "END-OF-ELEMENT"
+             If pos > 1
+               Subtract 1 from pos
+               If prename not = space
+                 String space xml-text "='" delimited by size
+                  into xmlAsAtt with pointer nca
+                  Move 0 to tally
+                  Inspect buffer(1:pos) tallying tally for all "'"
+                  If tally = 0
+                     Move buffer(1:pos) to xmlAsAtt(nca:pos)
+                     Add pos to nca
+                  Else
+                   Perform varying ix from 1 by 1 until ix > pos
+                     If buffer(ix:1) = "'"
+                       Move "&quot;" to xmlAsAtt(nca:6)
+                       Add 6 to nca
+                     Else
+                       Move buffer(ix:1) to xmlAsAtt(nca:1)
+                       Add 1 to nca
+                     End-if
+                   End-perform
+                  End-if
+                  Move "'" to xmlAsAtt(nca:1)
+                  Add 1 to nca
+                  Set attributes to true
+               Else
+                String
+                "<" xml-text ">" buffer(1:pos) "</" xml-text ">"
+                    delimited by size into xmlAsAtt
+                     with pointer nca
+                 Set closed to true
+               End-if
+               Move 1 to pos
+             Else
+               If xml-text = prename
+                  Move "/>" to xmlAsAtt(nca:2)
+                  Add 2 to nca
+                  Move space to prename
+               Else
+                 String "</" xml-text ">" delimited by size
+                     into xmlAsAtt with pointer nca
+               End-if
+               Set closed to true
+             End-if
+             Move space to tagname
+     š*
+            When other
+               Continue
+           End-evaluate.
+       TrXml-Exit. EXIT.

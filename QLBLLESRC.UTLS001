@@ -1,0 +1,222 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    UTLS001.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2017-MAR-13.
+     š*----------------------------------------------------------------*
+     š* PROGRAMA  . . . . UTLS001                                      *
+     š*                   Substituição de caractéres inválidos         *
+     š*                                                                *
+     š*----------------------------------------------------------------*
+      *
+       ENVIRONMENT DIVISION.
+      *
+       CONFIGURATION SECTION.
+       SOURCE-COMPUTER.           IBM-AS400.
+       OBJECT-COMPUTER.           IBM-AS400.
+      *
+       SPECIAL-NAMES.
+      *
+       INPUT-OUTPUT SECTION.
+
+     š*----------------------------------------------------------------*
+       DATA DIVISION.
+      *
+       FILE SECTION.
+      *
+       WORKING-STORAGE SECTION.
+      *
+        01 CAMPO                     PIC X(100).
+        01 FILLER REDEFINES CAMPO.
+           05    CAMPO1              PIC X OCCURS 100 TIMES.
+
+        01 NUM                       PIC 9(3).
+      *
+        01 CAMPO-TESTE               PIC X.
+           88 CARACTER-VALIDO      VALUE
+      *                             - letras minusculas
+                                          "a", "b", "c", "d", "e",
+                                          "f", "g", "h", "i", "j",
+                                          "k", "l", "m", "n", "o",
+                                          "p", "q", "r", "s", "t",
+                                          "u", "v", "w", "x", "y",
+                                          "z",
+      *                             - letras maiusculas
+                                          "A", "B", "C", "D", "E",
+                                          "F", "G", "H", "I", "J",
+                                          "K", "L", "M", "N", "O",
+                                          "P", "Q", "R", "S", "T",
+                                          "U", "V", "W", "X", "Y",
+                                          "Z",
+      *                             - numeros
+                                          "0", "1", "2", "3", "4",
+                                          "5", "6", "7", "8", "9",
+      *                             - outros
+                                          " ", "/", "-", "?", ":",
+                                          "(", ")", ".", ",", "'",
+                                          "+".
+      *
+        01 USERRO                    PIC X(4).
+        01 USERR1                    PIC X.
+        01 USRDSC1                   PIC X(80).
+        01 USRDSC2                   PIC X(20).
+
+     š*----------------------------------------------------------------*
+       LINKAGE SECTION.
+     š*----------------------------------------------------------------*
+           COPY UTLL001.
+
+     š*----------------------------------------------------------------*
+       PROCEDURE DIVISION USING UTLS001-AREALIG.
+     š*----------------------------------------------------------------*
+       MAIN-LINE.
+      *
+           PERFORM UTLS001-INICIO
+           PERFORM UTLS001-TRATA
+           PERFORM UTLS001-FIM.
+
+      *----------------------------------------------------------------*
+       UTLS001-INICIO.
+      *----------------------------------------------------------------*
+           INITIALIZE UTLS001-OUTPUT-PARMS
+           MOVE "0000" TO USERRO
+           MOVE "N"    TO USERR1.
+
+      *----------------------------------------------------------------*
+       UTLS001-TRATA.
+      *----------------------------------------------------------------*
+           MOVE UTLS001-CAMPOI TO CAMPO
+           PERFORM UTLS001-TESTA VARYING NUM FROM 1 BY 1
+                                 UNTIL NUM > 100
+           MOVE CAMPO TO UTLS001-CAMPOO
+           PERFORM UTLS001-TRATA-ERRO
+           IF UTLS001-ERRO NOT = SPACES
+              IF UTLS001-NIVVAL="0"
+                 MOVE SPACES TO UTLS001-ERRO
+                 MOVE SPACES TO UTLS001-DESCERRO
+              ELSE
+                 MOVE UTLS001-CAMPOI TO UTLS001-CAMPOO
+              END-IF
+           END-IF.
+
+      *----------------------------------------------------------------*
+       UTLS001-TESTA.
+      *----------------------------------------------------------------*
+           MOVE CAMPO1(NUM)  TO CAMPO-TESTE.
+           IF   NOT CARACTER-VALIDO
+                PERFORM  UTLS001-ALTERA
+                MOVE "1151"  TO USERRO
+           END-IF.
+
+      *----------------------------------------------------------------*
+       UTLS001-ALTERA.
+      *----------------------------------------------------------------*
+           EVALUATE  TRUE
+
+            WHEN CAMPO1(NUM) = "à" OR
+                 CAMPO1(NUM) = "á" OR
+                 CAMPO1(NUM) = "â" OR
+                 CAMPO1(NUM) = "ã" OR
+                 CAMPO1(NUM) = "ä" OR
+                 CAMPO1(NUM) = "ª"
+              MOVE "a" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "ç"
+              MOVE "c" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "é" OR
+                 CAMPO1(NUM) = "è" OR
+                 CAMPO1(NUM) = "ê" OR
+                 CAMPO1(NUM) = "ë"
+              MOVE "e" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "í" OR
+                 CAMPO1(NUM) = "ì" OR
+                 CAMPO1(NUM) = "ï"
+              MOVE "i" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "ñ"
+              MOVE "n" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "ó" OR
+                 CAMPO1(NUM) = "ò" OR
+                 CAMPO1(NUM) = "õ" OR
+                 CAMPO1(NUM) = "ö"
+              MOVE "o" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "ú" OR
+                 CAMPO1(NUM) = "ù" OR
+                 CAMPO1(NUM) = "û" OR
+                 CAMPO1(NUM) = "ü"
+              MOVE "u" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "Á" OR
+                 CAMPO1(NUM) = "À" OR
+                 CAMPO1(NUM) = "Ã" OR
+                 CAMPO1(NUM) = "Â" OR
+                 CAMPO1(NUM) = "Ä"
+              MOVE "A" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "Ç"
+              MOVE "C" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "É" OR
+                 CAMPO1(NUM) = "È" OR
+                 CAMPO1(NUM) = "Ê" OR
+                 CAMPO1(NUM) = "Ë"
+              MOVE "E" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "Í" OR
+                 CAMPO1(NUM) = "Ì" OR
+                 CAMPO1(NUM) = "Ï"
+              MOVE "I" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "Ñ"
+              MOVE "N" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "Ó" OR
+                 CAMPO1(NUM) = "Ò" OR
+                 CAMPO1(NUM) = "Õ" OR
+                 CAMPO1(NUM) = "Ô" OR
+                 CAMPO1(NUM) = "Ö"
+              MOVE "O" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "Ú" OR
+                 CAMPO1(NUM) = "Ù" OR
+                 CAMPO1(NUM) = "Û" OR
+                 CAMPO1(NUM) = "Ü"
+              MOVE "U" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "\"
+              MOVE "/" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "[" OR
+                 CAMPO1(NUM) = "{"
+              MOVE "(" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = "]" OR
+                 CAMPO1(NUM) = "}"
+              MOVE ")" TO CAMPO1(NUM)
+
+            WHEN CAMPO1(NUM) = """" OR
+                 CAMPO1(NUM) = "«"  OR
+                 CAMPO1(NUM) = "»"
+              MOVE "'" TO CAMPO1(NUM)
+
+            WHEN OTHER
+              MOVE " " TO CAMPO1(NUM)
+
+           END-EVALUATE.
+
+      *----------------------------------------------------------------*
+       UTLS001-TRATA-ERRO.
+      *----------------------------------------------------------------*
+           CALL  "INTC990" USING USERRO USERR1 USRDSC1 USRDSC2
+           MOVE USERRO              TO UTLS001-ERRO
+           MOVE USRDSC1             TO UTLS001-DESCERRO.
+
+      *----------------------------------------------------------------*
+       UTLS001-FIM.
+      *----------------------------------------------------------------*
+           GOBACK.

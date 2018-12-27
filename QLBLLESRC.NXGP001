@@ -1,0 +1,517 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    NXGP001   INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2017-Fev-14.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: NXG - Reconciliação de Contas NXG          *
+     š*   OBJECTIVO ......: Este programa destina-se a Preencher       *
+     š*                     o Ficheiro  NXGJ001A                       *
+     š*                     Parametrizado em Other Numbering 927       *
+     š*                     NUREFE Tem a última Data de Extracção.     *
+     š*   ANALISTA .......: PEDRO GARCIA                               *
+     š*   PROGRAMADOR.....:                                            *
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 EXECUTA-P001               PIC 9(01).
+          88 INICIO-P001             VALUE 0.
+          88 FIM-P001                VALUE 1.
+      *
+       01 EXECUTA-ADM                PIC 9(01).
+          88 INICIO-ADM              VALUE 0.
+          88 FIM-ADM                 VALUE 1.
+      *
+       01 IND-ERRO                   PIC  X(01).
+          88 COM-ERRO                VALUE "1".
+          88 SEM-ERRO                VALUE "0".
+
+       01 NR-ADM                     PIC 9(06) VALUE ZEROS.
+       01 NR-READ                    PIC 9(06) VALUE ZEROS.
+       01 NR-PROC                    PIC 9(06) VALUE ZEROS.
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-DIAIN                PIC X(02).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-ANOIN                PIC X(04).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01 WN-DATA-CONVER.
+          03 WN-FIL                  PIC X(01).
+          03 WN-ANOIN                PIC X(04).
+          03 WN-MESIN                PIC X(02).
+          03 WN-DIAIN                PIC X(02).
+       01 WY-DATA-CONVER  REDEFINES  WN-DATA-CONVER     PIC X(9).
+     š*
+       01 WX-ANO-CONVER.
+          03 WS-ANO-12               PIC X(02).
+          03 WS-ANO-34               PIC X(02).
+
+       01  W-CONSTANTS.
+           05  K-APLICACAO           PIC X(3)    VALUE "NXG".
+           05  K-PROGRAMA            PIC X(8)    VALUE "NXGP001".
+
+     š* Indice para Pesquisa de String
+       01 S-CHAR-L                   PIC S9(4)   COMP.
+       01 S-CHAR-V                   PIC X(37).
+       01 W-CHAR.
+          03 W-NOMECHR               PIC X       OCCURS 37.
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+
+     š* Copy : Tabela de Other Numbering
+       01  R-NXGJ001A.
+           COPY DDS-ALL-FORMATS OF NXGJ001A.
+
+     š* Copy : Tabela de Other Numbering
+       01  R-FDBNUM.
+           COPY DDS-ALL-FORMATS OF FDBNUM.
+
+     š* Copy : Tabela de Other Movimentos
+       01  R-FDBMVT.
+           COPY DDS-ALL-FORMATS OF FDBMVT.
+
+     š* Copy : Tabela de KYCT900A
+       01  R-KYCT900A.
+           COPY DDS-ALL-FORMATS OF KYCT900A.
+
+       01 WS-CONTA                 PIC X(16).
+       01 WS-CONTA-R REDEFINES WS-CONTA.
+          05 WS-RACINE                PIC X(07).
+          05 WS-GRE                   PIC X(03).
+          05 WS-RUB                   PIC X(03).
+          05 WS-MON                   PIC X(03).
+
+       01 WS-CONTA-ANT             PIC X(16).
+       01 WS-NUREFE                PIC X(15).
+       01 WS-NUREFE-R REDEFINES WS-NUREFE.
+          05 DATFIL                PIC X(08).
+          05 FILLER                PIC X(01).
+          05 NRFIL                 PIC X(06).
+
+           EXEC SQL DECLARE CURFDBMVT CURSOR FOR
+                SELECT  MVRACI
+                     ,  MVGRE
+                     ,  MVRUB
+                     ,  MVMON
+                     ,  MVSEQC
+                     ,  MVSEQJ
+                     ,  MVMONT
+                     ,  MVLIB1
+                     ,  MVDTVA
+                     ,  MVDTRF
+                     ,  MVDTSY
+                FROM  FDBMVT A
+                   ,  FDBNUM B
+                WHERE B.NUTYPE = "927"
+                 AND  B.NURACI = A.MVRACI
+                 AND  B.NUGRE  = A.MVGRE
+                 AND  B.NURUB  = A.MVRUB
+                 AND  B.NUMON  = A.MVMON
+                 AND  B.NUETAT <> "A"
+                 AND  A.MVSEQJ >
+                      DECIMAL(SUBSTR(NUREFE , 1, 9) , 9 , 0 )
+           END-EXEC.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+       PROCEDURE DIVISION.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+           PERFORM P001-INICIO
+           PERFORM P150-DELETE-NXGJ001A.
+           IF SEM-ERRO
+             PERFORM P100-OPEN-CURSOR-FDBMVT
+             PERFORM P200-FETCH-CURSOR-FDBMVT
+             PERFORM P300-PROCESSO-GERAL
+                             UNTIL FIM-P001
+             PERFORM P400-CLOSE-CURSOR-FDBMVT
+             PERFORM P999-FIMPGM
+           END-IF.
+     š*---------------------------------------------------------------------
+       P001-INICIO.
+     š*---------------------------------------------------------------------
+           SET  INICIO-P001            TO  TRUE.
+           SET  SEM-ERRO               TO  TRUE.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10) TO WS-DATA-DIA.
+
+     š*---------------------------------------------------------------------
+       P150-DELETE-NXGJ001A.
+     š*---------------------------------------------------------------------
+     š*-
+           EXEC SQL
+                DELETE FROM NXGJ001A
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              CONTINUE
+           WHEN SQLCODE-NOTFOUND
+              CONTINUE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "NXGJ001A"          TO W-OBJECT-NAME
+              SET CMD-DELETE           TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P100-OPEN-CURSOR-FDBMVT.
+     š*---------------------------------------------------------------------
+     š*-
+           INITIALIZE  R-FDBMVT
+
+           EXEC SQL
+                OPEN CURFDBMVT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-P001         TO TRUE
+           WHEN OTHER
+              SET     FIM-P001         TO TRUE
+              MOVE "CURSOR-FDBMVT"     TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*****************************************************************
+       P200-FETCH-CURSOR-FDBMVT.
+     š*****************************************************************
+     š*-
+           MOVE SPACES            TO WS-CONTA
+
+           EXEC SQL FETCH CURFDBMVT
+                     INTO
+                         :MVRACI
+                       , :MVGRE
+                       , :MVRUB
+                       , :MVMON
+                       , :MVSEQC
+                       , :MVSEQJ
+                       , :MVMONT
+                       , :MVLIB1
+                       , :MVDTVA
+                       , :MVDTRF
+                       , :MVDTSY
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             MOVE  MVRACI    OF R-FDBMVT TO WS-RACINE
+             MOVE  MVGRE     OF R-FDBMVT TO WS-GRE
+             MOVE  MVRUB     OF R-FDBMVT TO WS-RUB
+             MOVE  MVMON     OF R-FDBMVT TO WS-MON
+             ADD 1 TO NR-READ
+             ADD 1 TO NR-PROC
+           WHEN SQLCODE-NOTFOUND
+             SET  FIM-P001          TO TRUE
+           WHEN OTHER
+             SET COM-ERRO           TO TRUE
+             SET   FIM-P001         TO TRUE
+             MOVE "CURFDBMVT"       TO W-OBJECT-NAME
+             SET   CMD-FETCH-CURSOR TO TRUE
+             PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*****************************************************************
+       P400-CLOSE-CURSOR-FDBMVT.
+     š*****************************************************************
+     š*-
+           EXEC SQL
+               CLOSE CURFDBMVT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET     FIM-P001         TO TRUE
+           WHEN OTHER
+              SET COM-ERRO             TO TRUE
+              SET     FIM-P001         TO TRUE
+              MOVE "CURSOR-FDBMVT"     TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*-
+     š*----------------------------------------------------------------
+       P300-PROCESSO-GERAL.
+     š*----------------------------------------------------------------
+     š*-
+           INITIALIZE  NXGJ001A
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           PERFORM P400-MOV-DATA
+           PERFORM P500-INSERT-NXGJ001A
+           IF SEM-ERRO
+             PERFORM P200-FETCH-CURSOR-FDBMVT
+           END-IF
+           IF NOT SEM-ERRO
+              PERFORM P980-ROLLBACK
+              SET FIM-P001 TO TRUE
+           END-IF.
+     š*-
+     š*----------------------------------------------------------------
+       P400-MOV-DATA.
+     š*----------------------------------------------------------------
+     š*-
+           MOVE MVRACI  OF R-FDBMVT   TO  NXRACI   OF R-NXGJ001A
+           MOVE MVGRE   OF R-FDBMVT   TO  NXGRE    OF R-NXGJ001A
+           MOVE MVRUB   OF R-FDBMVT   TO  NXRUB    OF R-NXGJ001A
+           MOVE MVMON   OF R-FDBMVT   TO  NXMON    OF R-NXGJ001A
+           MOVE MVSEQC  OF R-FDBMVT   TO  NXSEQC   OF R-NXGJ001A
+           MOVE MVSEQJ  OF R-FDBMVT   TO  NXSEQJ   OF R-NXGJ001A
+           MOVE MVMONT  OF R-FDBMVT   TO  NXMONT   OF R-NXGJ001A
+           MOVE MVLIB1  OF R-FDBMVT   TO  NXLIB1   OF R-NXGJ001A
+           MOVE MVDTVA  OF R-FDBMVT   TO  NXDTVA   OF R-NXGJ001A
+           MOVE MVDTRF  OF R-FDBMVT   TO  NXDTRF   OF R-NXGJ001A
+           MOVE MVDTSY  OF R-FDBMVT   TO  NXDTSY   OF R-NXGJ001A
+     š*----------------------------------------------------------------
+       P500-INSERT-NXGJ001A.
+     š*----------------------------------------------------------------
+     š*-
+           EXEC SQL
+                 INSERT INTO NXGJ001A
+                 VALUES :NXGJ001A
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             CONTINUE
+           WHEN OTHER
+             SET COM-ERRO           TO TRUE
+             SET   FIM-P001         TO TRUE
+             MOVE "NXGJ001A  "      TO W-OBJECT-NAME
+             SET   CMD-INSERT       TO TRUE
+             PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*----------------------------------------------------------------
+       CHECK-SQLCODE.
+     š*----------------------------------------------------------------
+           MOVE SQLCODE       TO W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+                WHEN SQLCODE-OK
+                     CONTINUE
+                WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           MOVE MSG-ERRO-SQL    TO ERRMSG   OF  KYCT900A
+           MOVE W-SQLCODE       TO ERRCOD   OF  KYCT900A
+           MOVE "SQL"           TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE  2              TO ERRRTC   OF  KYCT900A
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE   "NXGP001"           TO  ERRPRG OF KYCT900A.
+           MOVE   MVRACI OF R-FDBMVT  TO  RACINE OF KYCT900A.
+
+           EXEC SQL  INSERT
+                INTO KYCT900A
+                VALUES  (
+                           :KYCT900A.RACINE
+                         , :KYCT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :KYCT900A.ERRRTC
+                         , :KYCT900A.ERRCOD
+                         , :KYCT900A.ERRMSG
+                         , :KYCT900A.ERRPRG
+                         , :KYCT900A.ERRAPL
+                         , :KYCT900A.ERROBJ
+                         , :KYCT900A.ERRFLD
+                         , :KYCT900A.ERRCMD
+                         , :KYCT900A.ERRKEY1
+                         , :KYCT900A.ERRVAL1
+                         , :KYCT900A.ERRKEY2
+                         , :KYCT900A.ERRVAL2 )
+           END-EXEC.
+
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "INSERT-T900A"   TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+     š*****************************************************************
+       P980-ROLLBACK.
+     š*****************************************************************
+           EXEC SQL ROLLBACK     HOLD         END-EXEC.
+           MOVE  SQLCODE         TO  W-SQLCODE
+     š*****************************************************************
+       P999-FIMPGM.
+     š*****************************************************************
+           EXEC SQL    COMMIT    HOLD         END-EXEC
+           EXIT PROGRAM.
+           STOP RUN.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA NXGP001
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *

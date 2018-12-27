@@ -1,0 +1,311 @@
+      *================================================================*
+       IDENTIFICATION DIVISION.
+      *================================================================*
+
+       PROGRAM-ID.     CRES904.
+      *----------------------------------------------------------------*
+      * APLICACAO : GESTAO DE EMPRESTIMOS
+      * PROGRAMA .: CRES904
+      * OBJECTIVO : IMPLEMENTAR UMA FUNCAO UNICA DE CARREGAMENTO DE UMA
+      *             LISTA DE VALORES SOBRE A TABELA "CRET910"
+      * CRIADO EM : 2005/FEVEREIRO
+      * POR ......: FERNANDO SILVA (CAPGEMINI PORTUGAL)
+      *----------------------------------------------------------------*
+
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       CONFIGURATION               SECTION.
+      *----------------------------------------------------------------*
+       SPECIAL-NAMES.  DECIMAL-POINT  IS COMMA.
+
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT                SECTION.
+      *----------------------------------------------------------------*
+       FILE-CONTROL.
+           SELECT CREE000B
+                  ASSIGN        TO WORKSTATION-CREE000B-SI
+                  ORGANIZATION  IS TRANSACTION
+                  ACCESS MODE   IS DYNAMIC
+                  RELATIVE KEY  IS RK-CREE000B
+                  FILE STATUS   IS FS-CREE000B
+                  CONTROL-AREA  IS CA-CREE000B.
+
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       FILE                        SECTION.
+      *----------------------------------------------------------------*
+       FD  CREE000B
+           EXTERNAL
+           LABEL RECORD OMITTED.
+       01  CREE000-REG                 PIC X(100).
+       01  CREE000-SFL.
+           COPY DDS-CREE000SFL OF CREE000B.
+       01  CREE000-LOV.
+           COPY DDS-CREE000LOV OF CREE000B.
+       01  CREE000-WIN.
+           COPY DDS-CREE000WIN OF CREE000B.
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE             SECTION.
+      *----------------------------------------------------------------*
+       01  FS-CREE000B                 PIC 99.
+           88  CREE000B-OK                         VALUE ZERO.
+
+       01  RK-CREE000B                 PIC 9(04)   EXTERNAL.
+
+       01  CA-CREE000B.
+           05  IDTECLAF                PIC 99.
+           05  IDTERMNL                PIC X(10).
+           05  FRMTREGT                PIC X(10).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           COPY CREB950.
+
+       01  WS-VARSTRAB.
+           05  WS-PARMSINP.
+               10  WS-IDUTILIZ         PIC X(08).
+               10  WS-MCSITEXE         PIC X.
+
+           05  WS-SFLRECRD.
+               10  WS-IDENTLIN.
+                   15  WS-IDUTILIZ     PIC X(08).
+               10  WS-ATRIBLIN.
+                   15  WS-NMUTILIZ     PIC X(30).
+                   15  FILLER          PIC XX      VALUE SPACE.
+                   15  WS-DSSITEXE     PIC X(07).
+                   15  FILLER          PIC X       VALUE ")".
+
+           05  WS-STRNGVAR.
+               10  WS-STRNGPOS         PIC X               OCCURS 10.
+           05  WS-ARRYNDX1             PIC S9(4)       BINARY.
+
+           05  CS-QUTILIZ              PIC X.
+               88  QUTILIZ-CLSE                    VALUE "C".
+               88  QUTILIZ-OPEN                    VALUE "O".
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-CNSTANTS.
+           05  KV-IDFMTDLG-SFL         PIC X(10)   VALUE "CREE000SFL".
+           05  KV-SITEXECU-LS.
+               10  KV-MCSITEXE-ACTV    PIC X       VALUE "A".
+               10  FILLER              PIC X(07)   VALUE "Activo".
+               10  KV-MCSITEXE-INIB    PIC X       VALUE "I".
+               10  FILLER              PIC X(07)   VALUE "Inibido".
+           05  KV-SITEXECU-LV  REDEFINES KV-SITEXECU-LS    OCCURS 2.
+               10  KV-SITEXECU-ID      PIC X.
+               10  KV-SITEXECU-DS      PIC X(07).
+           05  KV-SITEXECU-OCC         PIC 9       VALUE 2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           EXEC SQL INCLUDE SQLCA                              END-EXEC.
+
+           EXEC SQL BEGIN DECLARE  SECTION                     END-EXEC.
+       01  WS-DBGBVARS.
+           COPY DDS-CRET910 OF CRET910.
+
+       01  WS-DBLCVARS.
+           05  DB-VARDUMMY             PIC S9(4)       BINARY.
+           05  DB-PARMSINP.
+               10  DB-IDUTILIZ.
+                   49  DB-IDUTILIZ-L   PIC S9(4)       BINARY.
+                   49  DB-IDUTILIZ-V   PIC X(08).
+               10  DB-MCSITEXE         PIC X.
+           05  DB-SNPARAMS.
+               10  DB-STEXEFLT         PIC X.
+                   88  STEXEFLT-ON                 VALUE "S".
+                   88  STEXEFLT-OFF                VALUE "N".
+           EXEC SQL END   DECLARE  SECTION                     END-EXEC.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           EXEC SQL DECLARE QUTILIZ CURSOR FOR
+                    SELECT IDUTILIZ
+                         , NMUTILIZ
+                         , MCSITEXE
+                      FROM CRET910
+                     WHERE IDUTILIZ LIKE :DB-PARMSINP.DB-IDUTILIZ
+                       AND(MCSITEXE    = :DB-PARMSINP.DB-MCSITEXE
+                        OR "N"         = :DB-STEXEFLT)
+                     ORDER BY 1
+                    FOR READ ONLY                              END-EXEC.
+
+      *----------------------------------------------------------------*
+       LINKAGE                     SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB900.
+
+      *================================================================*
+       PROCEDURE DIVISION USING CREB900-LKGERAL.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       P0000-RAIZ                  SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P1000-INICIO
+
+           PERFORM P2000-PROCESSO
+
+           PERFORM P3000-FIM
+           .
+       P0000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P1000-INICIO                SECTION.
+      *----------------------------------------------------------------*
+
+           MOVE CREB900-PARMSINP     TO WS-PARMSINP
+           INITIALIZE WS-DBGBVARS, WS-DBLCVARS
+           .
+       P1000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P2000-PROCESSO              SECTION.
+      *----------------------------------------------------------------*
+
+           IF  WS-IDUTILIZ OF WS-PARMSINP = SPACES OR CREB950-MCPESQGN
+               MOVE "%"                        TO DB-IDUTILIZ-V
+               MOVE  1                         TO DB-IDUTILIZ-L
+           ELSE
+               MOVE WS-IDUTILIZ OF WS-PARMSINP TO DB-IDUTILIZ-V
+                                                  WS-STRNGVAR
+               INITIALIZE WS-ARRYNDX1
+               INSPECT DB-IDUTILIZ-V
+                       TALLYING WS-ARRYNDX1 FOR ALL "*"
+                       REPLACING ALL "*" BY "%"
+                                     "?" BY "_"
+               IF  WS-ARRYNDX1 > ZERO
+                   PERFORM
+                   VARYING DB-IDUTILIZ-L
+                      FROM LENGTH OF DB-IDUTILIZ-V BY -1
+                     UNTIL DB-IDUTILIZ-L = ZERO
+                     OR    WS-STRNGPOS(DB-IDUTILIZ-L) > SPACE
+                       CONTINUE
+                   END-PERFORM
+               ELSE
+                   MOVE "%"                     TO DB-IDUTILIZ-V
+                   MOVE  1                      TO DB-IDUTILIZ-L
+               END-IF
+           END-IF
+
+           IF  WS-MCSITEXE OF WS-PARMSINP = SPACES OR CREB950-MCPESQGN
+               SET  STEXEFLT-OFF               TO TRUE
+           ELSE
+               MOVE WS-MCSITEXE OF WS-PARMSINP TO DB-MCSITEXE
+               SET  STEXEFLT-ON                TO TRUE
+           END-IF
+           SET  QUTILIZ-CLSE  TO TRUE
+           PERFORM P2100-OPEN-QUTILIZ
+
+           IF  QUTILIZ-OPEN
+               PERFORM P2200-FTCH-QUTILIZ
+
+               PERFORM
+               VARYING RK-CREE000B FROM 1 BY 1
+                 UNTIL SQLCODE-NOTFOUND
+                 OR    NOT CREB900-PROC-OK
+                   PERFORM P2300-LOAD-LSTVAL
+
+                   IF  CREB900-PROC-OK
+                       PERFORM P2200-FTCH-QUTILIZ
+                   END-IF
+               END-PERFORM
+
+               PERFORM P2400-CLSE-QUTILIZ
+           END-IF
+           .
+       P2000-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2100-OPEN-QUTILIZ          SECTION.
+
+           EXEC SQL OPEN  QUTILIZ                              END-EXEC
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           IF  SQLCODE-OK
+               SET  QUTILIZ-OPEN      TO TRUE
+           ELSE
+               SET  CREB900-OPEN-CS   TO TRUE
+               MOVE "CRES904.QUTILIZ" TO CREB900-NMOBJECT
+           END-IF
+           .
+       P2100-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2200-FTCH-QUTILIZ          SECTION.
+
+           EXEC SQL FETCH QUTILIZ
+                     INTO :CRET910.IDUTILIZ
+                        , :CRET910.NMUTILIZ
+                        , :CRET910.MCSITEXE                    END-EXEC
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           IF  SQLCODE-ERRORCOD
+               SET  CREB900-FTCH-CS   TO TRUE
+               MOVE "CRES904.QUTILIZ" TO CREB900-NMOBJECT
+           END-IF
+           .
+       P2200-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2300-LOAD-LSTVAL           SECTION.
+
+           MOVE IDUTILIZ OF CRET910 TO WS-IDUTILIZ OF WS-SFLRECRD
+           MOVE NMUTILIZ OF CRET910 TO WS-NMUTILIZ OF WS-SFLRECRD
+           PERFORM P9000-READ-SITEXECU
+
+           INITIALIZE CREE000SFL-O
+           MOVE WS-IDENTLIN OF WS-SFLRECRD TO IDENTLIN OF CREE000SFL-O
+           MOVE WS-ATRIBLIN OF WS-SFLRECRD TO ATRIBLIN OF CREE000SFL-O
+           WRITE SUBFILE CREE000-SFL
+                             FORMAT IS KV-IDFMTDLG-SFL
+           INVALID KEY CONTINUE
+           END-WRITE
+           .
+       P2300-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2400-CLSE-QUTILIZ          SECTION.
+
+           EXEC SQL CLOSE QUTILIZ                              END-EXEC
+
+           MOVE SQLCODE TO CREB950-SQLCODE
+           IF  SQLCODE-OK
+               SET  QUTILIZ-CLSE      TO TRUE
+           ELSE
+               SET  CREB900-CLSE-CS   TO TRUE
+               MOVE "CRES904.QUTILIZ" TO CREB900-NMOBJECT
+           END-IF
+           .
+       P2400-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P3000-FIM                   SECTION.
+      *----------------------------------------------------------------*
+
+           IF  CREB900-PROC-OK
+               COMPUTE CREB900-QTLINHAS = RK-CREE000B - 1
+           ELSE
+               MOVE "CRES904" TO CREB900-NMOBJECT
+           END-IF
+           GOBACK
+           .
+       P3000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P9000-READ-SITEXECU         SECTION.
+
+           PERFORM
+           VARYING WS-ARRYNDX1 FROM 1 BY 1
+             UNTIL WS-ARRYNDX1 > KV-SITEXECU-OCC
+             OR    KV-SITEXECU-ID(WS-ARRYNDX1) = MCSITEXE OF CRET910
+               CONTINUE
+           END-PERFORM
+           IF  WS-ARRYNDX1 <= KV-SITEXECU-OCC
+               MOVE KV-SITEXECU-DS(WS-ARRYNDX1) TO WS-DSSITEXE
+                                                OF WS-SFLRECRD
+           ELSE
+               MOVE CREB950-DSABRVNF            TO WS-DSSITEXE
+                                                OF WS-SFLRECRD
+           END-IF
+           .
+       P9000-EXIT.                 EXIT.
+      *--- FIM DO PROGRAMA CRES904 -----------------------------------*

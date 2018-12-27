@@ -1,0 +1,160 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    UTLS005.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2017-MAR-13.
+     š*----------------------------------------------------------------*
+     š* PROGRAMA  . . . . UTLS005                                      *
+     š*                   Tratamento de Datas                          *
+     š*----------------------------------------------------------------*
+      *
+       ENVIRONMENT DIVISION.
+      *
+       CONFIGURATION SECTION.
+       SOURCE-COMPUTER.           IBM-AS400.
+       OBJECT-COMPUTER.           IBM-AS400.
+      *
+       SPECIAL-NAMES.
+       INPUT-OUTPUT SECTION.
+
+     š*----------------------------------------------------------------*
+       DATA DIVISION.
+      *
+       FILE SECTION.
+      *
+       WORKING-STORAGE SECTION.
+       01 PGM-STATUS                 PIC 9(01).
+          88 SEM-ERRO                VALUE 0.
+          88 COM-ERRO                VALUE 1.
+
+       01  WS-DATA-SYS              FORMAT DATE IS "@Y-%m-%d".
+       01  WS-DATA-SYS_1            FORMAT DATE IS "@Y-%m-%d".
+       01  WS-QTY-A                 PIC X(4).
+       01  WS-QTY-R REDEFINES WS-QTY-A.
+        05 WS-QTY                   PIC 9(4).
+
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+
+       01  WS-DATA-PROC.
+           03  WS-ANO-PROC          PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MES-PROC          PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIA-PROC          PIC 9(02).
+
+       01 WS-DUMMY                  PIC S9(1)       VALUE  ZERO.
+       01 WS-TST-DATE               FORMAT DATE .
+      *
+     š*----------------------------------------------------------------*
+       LINKAGE SECTION.
+     š*----------------------------------------------------------------*
+           COPY UTLL005.
+     š*----------------------------------------------------------------*
+       PROCEDURE DIVISION USING  UTLS005-DATAI-ISO
+                                 UTLS005-DATAI-OPER
+                                 UTLS005-DATAI-QTY
+                                 UTLS005-DATAI-UNID
+                                 UTLS005-DATAO-DIA
+                                 UTLS005-DATAO-ISO
+                                 UTLS005-DATAO-COD
+                                 UTLS005-DATAO-DSC
+     š*----------------------------------------------------------------*
+       MAIN-LINE.
+           PERFORM UTLS005-INICIO
+           ACCEPT WS-DATA-SYS FROM DATE YYYYMMDD
+           MOVE    WS-DATA-SYS TO  UTLS005-DATAO-DIA
+           IF SEM-ERRO and UTLS005-DATAI-ISO NOT EQUAL SPACES
+             PERFORM UTLS005-TRATA
+           ELSE
+             MOVE SPACES TO   UTLS005-DATAO-COD
+                              UTLS005-DATAO-DSC
+                              UTLS005-DATAO-ISO
+           END-IF
+           PERFORM UTLS005-FIM.
+      *----------------------------------------------------------------*
+       UTLS005-INICIO.
+      *----------------------------------------------------------------*
+           INITIALIZE UTLS005-DATAO-DIA
+                      UTLS005-DATAO-ISO
+                      UTLS005-DATAO-COD
+                      UTLS005-DATAO-DSC.
+           SET SEM-ERRO TO TRUE.
+           MOVE  UTLS005-DATAI-QTY TO WS-QTY-A.
+      *----------------------------------------------------------------*
+       UTLS005-TESTA.
+      *----------------------------------------------------------------*
+
+           MOVE UTLS005-DATAI-ISO TO WS-TST-DATE
+           IF FUNCTION TEST-DATE-TIME(WS-TST-DATE)= B"1"
+              SET COM-ERRO          TO  TRUE
+              MOVE "E001"           TO  UTLS005-DATAO-COD
+              MOVE "DATA Invalida!" TO  UTLS005-DATAO-DSC
+           END-IF.
+           IF SEM-ERRO
+              IF UTLS005-DATAI-OPER = "+" OR
+                 UTLS005-DATAI-OPER = "-"
+                 CONTINUE
+              ELSE
+                 MOVE "E002"           TO  UTLS005-DATAO-COD
+                 MOVE "OPER INAVLIDA!" TO  UTLS005-DATAO-DSC
+                 SET COM-ERRO          TO  TRUE
+           END-IF.
+           IF SEM-ERRO
+              IF UTLS005-DATAI-UNID = "D" OR
+                 UTLS005-DATAI-OPER = "M" OR
+                 UTLS005-DATAI-OPER = "Y"
+                 CONTINUE
+              ELSE
+                 MOVE "E"              TO  UTLS005-DATAO-COD
+                 MOVE "OPER INAVLIDA!" TO  UTLS005-DATAO-DSC
+                 SET COM-ERRO          TO  TRUE
+           END-IF.
+      *----------------------------------------------------------------*
+       UTLS005-TRATA.
+      *----------------------------------------------------------------*
+           MOVE  UTLS005-DATAI-ISO  TO WS-DATA-SYS
+           EVALUATE TRUE
+           WHEN UTLS005-DATAI-OPER = "+"
+               IF UTLS005-DATAI-UNID = "Y"
+                MOVE FUNCTION ADD-DURATION(WS-DATA-SYS YEARS WS-QTY)
+                      TO  WS-DATA-SYS_1
+               END-IF
+               IF   UTLS005-DATAI-UNID = "M"
+                 MOVE FUNCTION ADD-DURATION(WS-DATA-SYS MONTHS WS-QTY)
+                      TO  WS-DATA-SYS_1
+               END-IF
+               IF   UTLS005-DATAI-UNID = "D"
+                 MOVE FUNCTION ADD-DURATION(WS-DATA-SYS DAYS  WS-QTY)
+                      TO  WS-DATA-SYS_1
+               END-IF
+           WHEN UTLS005-DATAI-OPER = "-"
+               IF UTLS005-DATAI-UNID = "Y"
+                 MOVE FUNCTION Subtract-Duration
+                      (WS-DATA-SYS YEARS WS-QTY)
+                       TO  WS-DATA-SYS_1
+               END-IF
+               IF   UTLS005-DATAI-UNID = "M"
+                 MOVE FUNCTION Subtract-Duration
+                       (WS-DATA-SYS MONTHS WS-QTY)
+                        TO  WS-DATA-SYS_1
+               END-IF
+               IF   UTLS005-DATAI-UNID = "D"
+                 MOVE FUNCTION Subtract-Duration
+                       (WS-DATA-SYS DAYS  WS-QTY)
+                        TO  WS-DATA-SYS_1
+               END-IF
+           WHEN OTHER
+                CONTINUE
+           END-EVALUATE.
+
+           MOVE WS-DATA-SYS_1 TO UTLS005-DATAO-ISO.
+      *----------------------------------------------------------------*
+       UTLS005-FIM.
+      *----------------------------------------------------------------*
+           GOBACK.

@@ -1,0 +1,51 @@
+     š*===============================================================**
+       IDENTIFICATION DIVISION.
+     š*===============================================================**
+       PROGRAM-ID.        UTLP050T.
+       DATE-WRITTEN.      2018-09.
+     š*---------------------------------------------------------------*
+     š* UTL - ENVIO DE E-MAILS                                        *
+     š*---------------------------------------------------------------**
+     š*===============================================================**
+       ENVIRONMENT DIVISION.
+     š*===============================================================**
+       CONFIGURATION SECTION.
+       SOURCE-COMPUTER.           IBM-AS400.
+       OBJECT-COMPUTER.           IBM-AS400.
+       SPECIAL-NAMES. SYSTEM-CONSOLE IS VIDEO
+                      DECIMAL-POINT  IS COMMA.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+     š*===============================================================**
+       DATA DIVISION.
+     š*===============================================================**
+     š*===============================================================**
+       WORKING-STORAGE SECTION.
+     š*===============================================================**
+     š*----------------------------------------------------------------
+       01 WS-IDPRC    PIC 9(5).
+       01 WS-MSGEMAIL PIC X(1000).
+     š*===============================================================**
+       PROCEDURE DIVISION.
+     š*===============================================================**
+       MAIN-LINE.
+     š******************************************************************
+           MOVE ZEROS TO RETURN-CODE
+
+             MOVE "00002" TO WS-IDPRC
+             STRING "Existem Alterações ao Ficheiro AML BP."
+                                            DELIMITED BY SIZE
+                 "Ficheiro Disponivel em: "
+                                            DELIMITED BY SIZE
+                 "\\filesharing2\binvestor2\"
+                                            DELIMITED BY SIZE
+                 "Share departamental\Projectos\BCB Base Dados "
+                                         DELIMITED BY SIZE
+                 "Clientes BP\AML Informacao Banco Portugal\Send"
+                                          DELIMITED BY SIZE
+                                          INTO WS-MSGEMAIL
+           CALL "UTLP050" USING WS-IDPRC WS-MSGEMAIL.
+
+           EXIT PROGRAM.
+           STOP RUN.
+

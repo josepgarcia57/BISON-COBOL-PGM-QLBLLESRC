@@ -1,0 +1,535 @@
+      *================================================================*
+       IDENTIFICATION DIVISION.
+      *================================================================*
+
+       PROGRAM-ID.     CREP958.
+      *----------------------------------------------------------------*
+      * APLICACAO : GESTAO DE EMPRESTIMOS
+      * PROGRAMA .: CREP958
+      * OBJECTIVO : GERIR O ECRAN DE DIALOGO "CREE958"
+      * CRIADO EM : 2005/FEVEREIRO
+      * POR ......: FERNANDO SILVA (CAPGEMINI PORTUGAL)
+      *----------------------------------------------------------------*
+
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       CONFIGURATION               SECTION.
+      *----------------------------------------------------------------*
+       SPECIAL-NAMES.  DECIMAL-POINT  IS COMMA
+                       SYSTEM-CONSOLE IS VIDEO
+                       LOCAL-DATA     IS LDATA
+                       ATTRIBUTE-DATA IS ATTRB.
+
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT                SECTION.
+      *----------------------------------------------------------------*
+       FILE-CONTROL.
+
+           SELECT CREE958
+                  ASSIGN        TO WORKSTATION-CREE958-SI
+                  ORGANIZATION  IS TRANSACTION
+                  FILE STATUS   IS FS-CREE958
+                  CONTROL-AREA  IS CA-CREE958.
+
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       FILE                        SECTION.
+      *----------------------------------------------------------------*
+       FD  CREE958
+           LABEL RECORD OMITTED.
+       01  CREE958-HDR.
+           COPY DDS-CREE958HDR OF CREE958.
+       01  CREE958-D01.
+           COPY DDS-CREE958D01 OF CREE958.
+       01  CREE958-FTR.
+           COPY DDS-CREE958FTR OF CREE958.
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE             SECTION.
+      *----------------------------------------------------------------*
+       01  FS-CREE958                  PIC 99.
+           88  CREE958-OK                          VALUE ZERO.
+
+       01  CA-CREE958.
+           05  IDTECLAF                PIC 99.
+           05  IDTERMNL                PIC X(10).
+           05  FRMTREGT                PIC X(10).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-VARSTRAB.
+           05  WS-ARRYNDX1             PIC S9(4)       BINARY.
+           05  WS-DTHR-N14             PIC 9(14).
+           05  FILLER      REDEFINES WS-DTHR-N14.
+               10  WS-DATA-N08         PIC 9(08).
+               10  WS-HORA-N06         PIC 9(06).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-CNSTANTS.
+           05  KV-IDDIALOG             PIC X(08)   VALUE "CREE958".
+           05  KV-IDFMTDLG-HDR         PIC X(10)   VALUE "CREE958HDR".
+           05  KV-IDFMTDLG-D01         PIC X(10)   VALUE "CREE958D01".
+           05  KV-IDFMTDLG-FTR         PIC X(10)   VALUE "CREE958FTR".
+           05  KV-IDPRCAPL-HI          PIC 99      VALUE 25.
+           05  KV-IDPRCAPL-PC          PIC 99      VALUE 26.
+           05  KV-IDPRCAPL-PR          PIC 99      VALUE 27.
+           05  KV-IDPRCSGA-HI          PIC 99      VALUE 28.
+           05  KV-IDPRCSGA-PC          PIC 99      VALUE 29.
+           05  KV-IDPRCSGA-PR          PIC 99      VALUE 30.
+           05  KV-DSPRCAPL-HI          PIC 99      VALUE 31.
+           05  KV-DSPRCAPL-PC          PIC 99      VALUE 32.
+           05  KV-DSPRCAPL-PR          PIC 99      VALUE 33.
+           05  KV-IDAPLICA-HI          PIC 99      VALUE 34.
+           05  KV-IDAPLICA-PC          PIC 99      VALUE 35.
+           05  KV-IDAPLICA-PR          PIC 99      VALUE 36.
+           05  KV-IDGSTPRC-HI          PIC 99      VALUE 37.
+           05  KV-IDGSTPRC-PC          PIC 99      VALUE 38.
+           05  KV-IDGSTPRC-PR          PIC 99      VALUE 39.
+           05  KV-IDDIALOG-HI          PIC 99      VALUE 40.
+           05  KV-IDDIALOG-PC          PIC 99      VALUE 41.
+           05  KV-IDDIALOG-PR          PIC 99      VALUE 42.
+           05  KV-IDTIPDLG-HI          PIC 99      VALUE 43.
+           05  KV-IDTIPDLG-PC          PIC 99      VALUE 44.
+           05  KV-IDTIPDLG-PR          PIC 99      VALUE 45.
+           05  KV-SNPGNHZ1-HI          PIC 99      VALUE 46.
+           05  KV-SNPGNHZ1-PC          PIC 99      VALUE 47.
+           05  KV-SNPGNHZ1-PR          PIC 99      VALUE 48.
+           05  KV-SNPGNHZ2-HI          PIC 99      VALUE 49.
+           05  KV-SNPGNHZ2-PC          PIC 99      VALUE 50.
+           05  KV-SNPGNHZ2-PR          PIC 99      VALUE 51.
+           05  KV-NVAUTLER-HI          PIC 99      VALUE 52.
+           05  KV-NVAUTLER-PC          PIC 99      VALUE 53.
+           05  KV-NVAUTLER-PR          PIC 99      VALUE 54.
+           05  KV-NVAUTIMP-HI          PIC 99      VALUE 55.
+           05  KV-NVAUTIMP-PC          PIC 99      VALUE 56.
+           05  KV-NVAUTIMP-PR          PIC 99      VALUE 57.
+           05  KV-NVAUTCRI-HI          PIC 99      VALUE 58.
+           05  KV-NVAUTCRI-PC          PIC 99      VALUE 59.
+           05  KV-NVAUTCRI-PR          PIC 99      VALUE 60.
+           05  KV-NVAUTMDF-HI          PIC 99      VALUE 61.
+           05  KV-NVAUTMDF-PC          PIC 99      VALUE 62.
+           05  KV-NVAUTMDF-PR          PIC 99      VALUE 63.
+           05  KV-NVAUTANL-HI          PIC 99      VALUE 64.
+           05  KV-NVAUTANL-PC          PIC 99      VALUE 65.
+           05  KV-NVAUTANL-PR          PIC 99      VALUE 66.
+           05  KV-NVAUTMIN-HI          PIC 99      VALUE 67.
+           05  KV-NVAUTMIN-PC          PIC 99      VALUE 68.
+           05  KV-NVAUTMIN-PR          PIC 99      VALUE 69.
+           05  KV-IDPRCDEP-HI          PIC 99      VALUE 70.
+           05  KV-IDPRCDEP-PC          PIC 99      VALUE 71.
+           05  KV-IDPRCDEP-PR          PIC 99      VALUE 72.
+           05  KV-DSSITEXE-ND          PIC 99      VALUE 73.
+           05  KV-DHINISIT-ND          PIC 99      VALUE 74.
+           05  KV-DTINISIT-HI          PIC 99      VALUE 75.
+           05  KV-DTINISIT-PC          PIC 99      VALUE 76.
+           05  KV-DHINISIT-PR          PIC 99      VALUE 77.
+           05  KV-HRINISIT-HI          PIC 99      VALUE 78.
+           05  KV-HRINISIT-PC          PIC 99      VALUE 79.
+           05  KV-DHCRIREG-ND          PIC 99      VALUE 80.
+           05  KV-DHMDFREG-ND          PIC 99      VALUE 80.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           COPY CREB958.
+
+      *----------------------------------------------------------------*
+       LINKAGE                     SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB000.
+
+      *================================================================*
+       PROCEDURE DIVISION USING CREB000-LKGERAL.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       P0000-RAIZ                  SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P1000-INICIO
+
+           PERFORM P2000-PROCESSO
+
+           PERFORM P3000-FIM
+           .
+       P0000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P1000-INICIO                SECTION.
+      *----------------------------------------------------------------*
+
+           INITIALIZE FS-CREE958, CA-CREE958
+           .
+       P1000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P2000-PROCESSO              SECTION.
+      *----------------------------------------------------------------*
+
+           IF  CREB000-STDIALOG-OFF
+               PERFORM P2100-OPEN-DIALOG
+           END-IF
+
+           EVALUATE TRUE
+           WHEN NOT CREE958-OK
+               CONTINUE
+           WHEN CREB000-EXECPRC
+               PERFORM P2200-PROC-DIALOG
+           WHEN OTHER
+               PERFORM P2300-CLSE-DIALOG
+           END-EVALUATE
+           .
+       P2000-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2100-OPEN-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           OPEN I-O CREE958
+
+           IF  NOT CREE958-OK
+               MOVE FS-CREE958      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-OPEN-IO TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2100-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2200-PROC-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE CREB000-MSGDLG-V(CREB000-MSGDLG-P:) TO CREB958-MSGDIALG
+
+           PERFORM P2210-PREP-ATRIBS
+           PERFORM P2220-WRIT-REGHDR
+           IF  CREE958-OK
+               PERFORM P2230-WRIT-REGFTR
+           END-IF
+           IF  CREE958-OK
+               PERFORM P2240-WRIT-REGDET
+           END-IF
+           IF  CREE958-OK
+               PERFORM P2250-READ-REGDET
+           END-IF
+
+           MOVE CREB958-MSGDIALG TO CREB000-MSGDLG-V(CREB000-MSGDLG-P:)
+           .
+       P2200-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2210-PREP-ATRIBS           SECTION.
+
+           IF  CREB958-IDPRCAPL-PR
+               SET  CREB000-INDICDLG-ON (KV-IDPRCAPL-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-IDPRCSGA-PR
+               SET  CREB000-INDICDLG-ON (KV-IDPRCSGA-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-DSPRCAPL-PR
+               SET  CREB000-INDICDLG-ON (KV-DSPRCAPL-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-IDAPLICA-PR
+               SET  CREB000-INDICDLG-ON (KV-IDAPLICA-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-IDGSTPRC-PR
+               SET  CREB000-INDICDLG-ON (KV-IDGSTPRC-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-IDDIALOG-PR
+               SET  CREB000-INDICDLG-ON (KV-IDDIALOG-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-IDTIPDLG-PR
+               SET  CREB000-INDICDLG-ON (KV-IDTIPDLG-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-SNPGNHZ1-PR
+               SET  CREB000-INDICDLG-ON (KV-SNPGNHZ1-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-SNPGNHZ2-PR
+               SET  CREB000-INDICDLG-ON (KV-SNPGNHZ2-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-NVAUTLER-PR
+               SET  CREB000-INDICDLG-ON (KV-NVAUTLER-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-NVAUTIMP-PR
+               SET  CREB000-INDICDLG-ON (KV-NVAUTIMP-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-NVAUTCRI-PR
+               SET  CREB000-INDICDLG-ON (KV-NVAUTCRI-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-NVAUTMDF-PR
+               SET  CREB000-INDICDLG-ON (KV-NVAUTMDF-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-NVAUTANL-PR
+               SET  CREB000-INDICDLG-ON (KV-NVAUTANL-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-NVAUTMIN-PR
+               SET  CREB000-INDICDLG-ON (KV-NVAUTMIN-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-IDPRCDEP-PR
+               SET  CREB000-INDICDLG-ON (KV-IDPRCDEP-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB958-DHINISIT-PR
+               SET  CREB000-INDICDLG-ON (KV-DHINISIT-PR) TO TRUE
+           END-IF
+      *
+           EVALUATE TRUE
+           WHEN CREB958-IDPRCAPL-PC
+               SET  CREB000-INDICDLG-ON (KV-IDPRCAPL-PC) TO TRUE
+           WHEN CREB958-IDPRCSGA-PC
+               SET  CREB000-INDICDLG-ON (KV-IDPRCSGA-PC) TO TRUE
+           WHEN CREB958-DSPRCAPL-PC
+               SET  CREB000-INDICDLG-ON (KV-DSPRCAPL-PC) TO TRUE
+           WHEN CREB958-IDAPLICA-PC
+               SET  CREB000-INDICDLG-ON (KV-IDAPLICA-PC) TO TRUE
+           WHEN CREB958-IDGSTPRC-PC
+               SET  CREB000-INDICDLG-ON (KV-IDGSTPRC-PC) TO TRUE
+           WHEN CREB958-IDDIALOG-PC
+               SET  CREB000-INDICDLG-ON (KV-IDDIALOG-PC) TO TRUE
+           WHEN CREB958-IDTIPDLG-PC
+               SET  CREB000-INDICDLG-ON (KV-IDTIPDLG-PC) TO TRUE
+           WHEN CREB958-SNPGNHZ1-PC
+               SET  CREB000-INDICDLG-ON (KV-SNPGNHZ1-PC) TO TRUE
+           WHEN CREB958-SNPGNHZ2-PC
+               SET  CREB000-INDICDLG-ON (KV-SNPGNHZ2-PC) TO TRUE
+           WHEN CREB958-NVAUTLER-PC
+               SET  CREB000-INDICDLG-ON (KV-NVAUTLER-PC) TO TRUE
+           WHEN CREB958-NVAUTIMP-PC
+               SET  CREB000-INDICDLG-ON (KV-NVAUTIMP-PC) TO TRUE
+           WHEN CREB958-NVAUTCRI-PC
+               SET  CREB000-INDICDLG-ON (KV-NVAUTCRI-PC) TO TRUE
+           WHEN CREB958-NVAUTMDF-PC
+               SET  CREB000-INDICDLG-ON (KV-NVAUTMDF-PC) TO TRUE
+           WHEN CREB958-NVAUTANL-PC
+               SET  CREB000-INDICDLG-ON (KV-NVAUTANL-PC) TO TRUE
+           WHEN CREB958-NVAUTMIN-PC
+               SET  CREB000-INDICDLG-ON (KV-NVAUTMIN-PC) TO TRUE
+           WHEN CREB958-IDPRCDEP-PC
+               SET  CREB000-INDICDLG-ON (KV-IDPRCDEP-PC) TO TRUE
+           WHEN CREB958-DTINISIT-PC
+               SET  CREB000-INDICDLG-ON (KV-DTINISIT-PC) TO TRUE
+           WHEN CREB958-HRINISIT-PC
+               SET  CREB000-INDICDLG-ON (KV-HRINISIT-PC) TO TRUE
+           WHEN CREB958-IDPRCAPL-UP
+               SET  CREB000-INDICDLG-ON (KV-IDPRCAPL-PC) TO TRUE
+           WHEN CREB958-IDPRCSGA-UP
+               SET  CREB000-INDICDLG-ON (KV-IDPRCSGA-PC) TO TRUE
+           WHEN CREB958-DHINISIT-UP
+               SET  CREB000-INDICDLG-ON (KV-DTINISIT-PC) TO TRUE
+           END-EVALUATE
+      *
+           EVALUATE TRUE
+           WHEN CREB000-PROC-OK
+               CONTINUE
+           WHEN CREB958-IDPRCAPL-PC
+               SET  CREB000-INDICDLG-ON (KV-IDPRCAPL-HI) TO TRUE
+           WHEN CREB958-IDPRCSGA-PC
+               SET  CREB000-INDICDLG-ON (KV-IDPRCSGA-HI) TO TRUE
+           WHEN CREB958-DSPRCAPL-PC
+               SET  CREB000-INDICDLG-ON (KV-DSPRCAPL-HI) TO TRUE
+           WHEN CREB958-IDAPLICA-PC
+               SET  CREB000-INDICDLG-ON (KV-IDAPLICA-HI) TO TRUE
+           WHEN CREB958-IDGSTPRC-PC
+               SET  CREB000-INDICDLG-ON (KV-IDGSTPRC-HI) TO TRUE
+           WHEN CREB958-IDDIALOG-PC
+               SET  CREB000-INDICDLG-ON (KV-IDDIALOG-HI) TO TRUE
+           WHEN CREB958-IDTIPDLG-PC
+               SET  CREB000-INDICDLG-ON (KV-IDTIPDLG-HI) TO TRUE
+           WHEN CREB958-SNPGNHZ1-PC
+               SET  CREB000-INDICDLG-ON (KV-SNPGNHZ1-HI) TO TRUE
+           WHEN CREB958-SNPGNHZ2-PC
+               SET  CREB000-INDICDLG-ON (KV-SNPGNHZ2-HI) TO TRUE
+           WHEN CREB958-NVAUTLER-PC
+               SET  CREB000-INDICDLG-ON (KV-NVAUTLER-HI) TO TRUE
+           WHEN CREB958-NVAUTIMP-PC
+               SET  CREB000-INDICDLG-ON (KV-NVAUTIMP-HI) TO TRUE
+           WHEN CREB958-NVAUTCRI-PC
+               SET  CREB000-INDICDLG-ON (KV-NVAUTCRI-HI) TO TRUE
+           WHEN CREB958-NVAUTMDF-PC
+               SET  CREB000-INDICDLG-ON (KV-NVAUTMDF-HI) TO TRUE
+           WHEN CREB958-NVAUTANL-PC
+               SET  CREB000-INDICDLG-ON (KV-NVAUTANL-HI) TO TRUE
+           WHEN CREB958-NVAUTMIN-PC
+               SET  CREB000-INDICDLG-ON (KV-NVAUTMIN-HI) TO TRUE
+           WHEN CREB958-IDPRCDEP-PC
+               SET  CREB000-INDICDLG-ON (KV-IDPRCDEP-HI) TO TRUE
+           WHEN CREB958-DTINISIT-PC
+               SET  CREB000-INDICDLG-ON (KV-DTINISIT-HI) TO TRUE
+           WHEN CREB958-HRINISIT-PC
+               SET  CREB000-INDICDLG-ON (KV-HRINISIT-HI) TO TRUE
+           END-EVALUATE
+      *
+           IF  CREB958-DSSITEXE-ND
+               SET  CREB000-INDICDLG-ON (KV-DSSITEXE-ND) TO TRUE
+           END-IF
+      *
+           IF  CREB958-DHINISIT-ND
+               SET  CREB000-INDICDLG-ON (KV-DHINISIT-PR) TO TRUE
+               SET  CREB000-INDICDLG-ON (KV-DHINISIT-ND) TO TRUE
+           END-IF
+      *
+           IF  CREB958-DHCRIREG-ND
+               SET  CREB000-INDICDLG-ON (KV-DHCRIREG-ND) TO TRUE
+           END-IF
+      *
+           IF  CREB958-DHMDFREG-ND
+               SET  CREB000-INDICDLG-ON (KV-DHMDFREG-ND) TO TRUE
+           END-IF
+           .
+       P2210-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2220-WRIT-REGHDR           SECTION.
+
+           MOVE SPACES              TO CREE958-HDR
+           MOVE CREB000-SGEMPRSA    TO SGEMPRSA OF CREE958HDR-O
+           MOVE CREB000-DSAPLICA    TO DSAPLICA OF CREE958HDR-O
+           MOVE CREB000-DTPRCAPL    TO DTACTUAL OF CREE958HDR-O
+           MOVE CREB000-IDPRCAPL    TO IDPRCAPL OF CREE958HDR-O
+           MOVE CREB000-IDDIALOG    TO IDDIALOG OF CREE958HDR-O
+           MOVE CREB000-DSPRCAPL    TO DSPRCAPL OF CREE958HDR-O
+           MOVE CREB000-NMFUNDLG    TO NMFUNDLG OF CREE958HDR-O
+           WRITE CREE958-HDR
+                 FORMAT KV-IDFMTDLG-HDR INDIC CREB000-TBINDARA
+
+           IF  NOT CREE958-OK
+               MOVE FS-CREE958      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2220-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2230-WRIT-REGFTR           SECTION.
+
+           MOVE SPACES              TO CREE958-FTR
+           MOVE CREB000-DSTECLAS    TO DSTECLAS OF CREE958FTR-O
+           MOVE CREB000-DSMSGAPL    TO DSMSGAPL OF CREE958FTR-O
+           WRITE CREE958-FTR
+                 FORMAT KV-IDFMTDLG-FTR INDIC CREB000-TBINDARA
+
+           IF  NOT CREE958-OK
+               MOVE FS-CREE958      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2230-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2240-WRIT-REGDET           SECTION.
+
+           MOVE SPACES              TO CREE958-D01
+           MOVE CREB958-IDPRCAPL-V  TO IDPRCAPL OF CREE958D01-O
+           MOVE CREB958-IDPRCSGA-V  TO IDPRCSGA OF CREE958D01-O
+           MOVE CREB958-DSPRCAPL-V  TO DSPRCAPL OF CREE958D01-O
+           MOVE CREB958-IDAPLICA-V  TO IDAPLICA OF CREE958D01-O
+           MOVE CREB958-NMAPLICA-V  TO NMAPLICA OF CREE958D01-O
+           MOVE CREB958-IDGSTPRC-V  TO IDGSTPRC OF CREE958D01-O
+           MOVE CREB958-IDDIALOG-V  TO IDDIALOG OF CREE958D01-O
+           MOVE CREB958-IDTIPDLG-V  TO IDTIPDLG OF CREE958D01-O
+           MOVE CREB958-DSTIPDLG-V  TO DSTIPDLG OF CREE958D01-O
+           MOVE CREB958-SNPGNHZ1-V  TO SNPGNHZ1 OF CREE958D01-O
+           MOVE CREB958-SNPGNHZ2-V  TO SNPGNHZ2 OF CREE958D01-O
+           MOVE CREB958-NVAUTLER-V  TO NVAUTLER OF CREE958D01-O
+           MOVE CREB958-NVAUTIMP-V  TO NVAUTIMP OF CREE958D01-O
+           MOVE CREB958-NVAUTCRI-V  TO NVAUTCRI OF CREE958D01-O
+           MOVE CREB958-NVAUTMDF-V  TO NVAUTMDF OF CREE958D01-O
+           MOVE CREB958-NVAUTANL-V  TO NVAUTANL OF CREE958D01-O
+           MOVE CREB958-NVAUTMIN-V  TO NVAUTMIN OF CREE958D01-O
+           MOVE CREB958-IDPRCDEP-V  TO IDPRCDEP OF CREE958D01-O
+           MOVE CREB958-NMPRCDEP-V  TO NMPRCDEP OF CREE958D01-O
+           MOVE CREB958-DSSITEXE-V  TO DSSITEXE OF CREE958D01-O
+           MOVE CREB958-DHINISIT-V  TO WS-DTHR-N14
+           MOVE WS-DATA-N08         TO DTINISIT OF CREE958D01-O
+           MOVE WS-HORA-N06         TO HRINISIT OF CREE958D01-O
+           MOVE CREB958-DHCRIREG-V  TO DHCRIREG OF CREE958D01-O
+           MOVE CREB958-DHMDFREG-V  TO DHMDFREG OF CREE958D01-O
+           WRITE CREE958-D01
+                 FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+
+           IF  NOT CREE958-OK
+               MOVE FS-CREE958      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2240-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2250-READ-REGDET           SECTION.
+
+           READ CREE958
+                FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+                AT END CONTINUE
+           END-READ
+
+           IF  CREE958-OK
+               MOVE IDPRCAPL OF CREE958D01-I TO CREB958-IDPRCAPL-V
+               MOVE IDPRCSGA OF CREE958D01-I TO CREB958-IDPRCSGA-V
+               MOVE DSPRCAPL OF CREE958D01-I TO CREB958-DSPRCAPL-V
+               MOVE IDAPLICA OF CREE958D01-I TO CREB958-IDAPLICA-V
+               MOVE IDGSTPRC OF CREE958D01-I TO CREB958-IDGSTPRC-V
+               MOVE IDDIALOG OF CREE958D01-I TO CREB958-IDDIALOG-V
+               MOVE IDTIPDLG OF CREE958D01-I TO CREB958-IDTIPDLG-V
+               MOVE SNPGNHZ1 OF CREE958D01-I TO CREB958-SNPGNHZ1-V
+               MOVE SNPGNHZ2 OF CREE958D01-I TO CREB958-SNPGNHZ2-V
+               MOVE NVAUTLER OF CREE958D01-I TO CREB958-NVAUTLER-V
+               MOVE NVAUTIMP OF CREE958D01-I TO CREB958-NVAUTIMP-V
+               MOVE NVAUTCRI OF CREE958D01-I TO CREB958-NVAUTCRI-V
+               MOVE NVAUTMDF OF CREE958D01-I TO CREB958-NVAUTMDF-V
+               MOVE NVAUTANL OF CREE958D01-I TO CREB958-NVAUTANL-V
+               MOVE NVAUTMIN OF CREE958D01-I TO CREB958-NVAUTMIN-V
+               MOVE IDPRCDEP OF CREE958D01-I TO CREB958-IDPRCDEP-V
+               MOVE DTINISIT OF CREE958D01-I TO WS-DATA-N08
+               MOVE HRINISIT OF CREE958D01-I TO WS-HORA-N06
+               MOVE WS-DTHR-N14              TO CREB958-DHINISIT-V
+               MOVE IDVARCSR OF CREE958D01-I TO CREB000-IDVARCSR
+               MOVE IDTECLAF OF CA-CREE958   TO CREB000-IDTECLAF
+           ELSE
+               MOVE FS-CREE958               TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG              TO CREB000-NMOBJECT
+               SET  CREB000-READ             TO TRUE
+               SET  CREB000-MSGDLOG          TO TRUE
+           END-IF
+           .
+       P2250-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2300-CLSE-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           CLOSE CREE958
+
+           IF  NOT CREE958-OK
+               MOVE FS-CREE958      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-CLSE    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2300-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P3000-FIM                   SECTION.
+      *----------------------------------------------------------------*
+
+           GOBACK
+           .
+       P3000-EXIT.                 EXIT.
+      *--- FIM DO PROGRAMA CREP958 ------------------------------------*

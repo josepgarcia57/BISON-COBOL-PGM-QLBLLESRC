@@ -1,0 +1,402 @@
+      *================================================================*
+       IDENTIFICATION DIVISION.
+      *================================================================*
+
+       PROGRAM-ID.     CREP979.
+      *----------------------------------------------------------------*
+      * APLICACAO : GESTAO DE EMPRESTIMOS
+      * PROGRAMA .: CREP979
+      * OBJECTIVO : GERIR O ECRAN DE DIALOGO "CREE979"
+      * CRIADO EM : 2005/MAIO
+      * POR ......: CAPGEMINI PORTUGAL
+      *----------------------------------------------------------------*
+
+      *================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       CONFIGURATION               SECTION.
+      *----------------------------------------------------------------*
+       SPECIAL-NAMES.  DECIMAL-POINT  IS COMMA
+                       SYSTEM-CONSOLE IS VIDEO
+                       LOCAL-DATA     IS LDATA
+                       ATTRIBUTE-DATA IS ATTRB.
+
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT                SECTION.
+      *----------------------------------------------------------------*
+       FILE-CONTROL.
+
+           SELECT CREE979
+                  ASSIGN        TO WORKSTATION-CREE979-SI
+                  ORGANIZATION  IS TRANSACTION
+                  FILE STATUS   IS FS-CREE979
+                  CONTROL-AREA  IS CA-CREE979.
+
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       FILE                        SECTION.
+      *----------------------------------------------------------------*
+       FD  CREE979
+           LABEL RECORD OMITTED.
+       01  CREE979-HDR.
+           COPY DDS-CREE979HDR OF CREE979.
+       01  CREE979-D01.
+           COPY DDS-CREE979D01 OF CREE979.
+       01  CREE979-FTR.
+           COPY DDS-CREE979FTR OF CREE979.
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE             SECTION.
+      *----------------------------------------------------------------*
+       01  FS-CREE979                  PIC 99.
+           88  CREE979-OK                          VALUE ZERO.
+
+       01  CA-CREE979.
+           05  IDTECLAF                PIC 99.
+           05  IDTERMNL                PIC X(10).
+           05  FRMTREGT                PIC X(10).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-VARSTRAB.
+           05  WS-ARRYNDX1             PIC S9(4)       BINARY.
+           05  WS-DTHR-N14             PIC 9(14).
+           05  FILLER      REDEFINES WS-DTHR-N14.
+               10  WS-DATA-N08         PIC 9(08).
+               10  WS-HORA-N06         PIC 9(06).
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       01  WS-CNSTANTS.
+           05  KV-IDDIALOG             PIC X(08)   VALUE "CREE979".
+           05  KV-IDFMTDLG-HDR         PIC X(10)   VALUE "CREE979HDR".
+           05  KV-IDFMTDLG-D01         PIC X(10)   VALUE "CREE979D01".
+           05  KV-IDFMTDLG-FTR         PIC X(10)   VALUE "CREE979FTR".
+           05  KV-CTAB-HI              PIC 99      VALUE 25.
+           05  KV-CTAB-PC              PIC 99      VALUE 26.
+           05  KV-CTAB-PR              PIC 99      VALUE 27.
+           05  KV-CACC-HI              PIC 99      VALUE 28.
+           05  KV-CACC-PC              PIC 99      VALUE 29.
+           05  KV-CACC-PR              PIC 99      VALUE 30.
+           05  KV-DESC-HI              PIC 99      VALUE 31.
+           05  KV-DESC-PC              PIC 99      VALUE 32.
+           05  KV-DESC-PR              PIC 99      VALUE 33.
+           05  KV-CAMPO1-HI            PIC 99      VALUE 35.
+           05  KV-CAMPO1-PC            PIC 99      VALUE 36.
+           05  KV-CAMPO1-PR            PIC 99      VALUE 37.
+           05  KV-CAMPO2-HI            PIC 99      VALUE 38.
+           05  KV-CAMPO2-PC            PIC 99      VALUE 39.
+           05  KV-CAMPO2-PR            PIC 99      VALUE 40.
+           05  KV-CAMPO3-HI            PIC 99      VALUE 41.
+           05  KV-CAMPO3-PC            PIC 99      VALUE 42.
+           05  KV-CAMPO3-PR            PIC 99      VALUE 43.
+           05  KV-CAMPO4-HI            PIC 99      VALUE 44.
+           05  KV-CAMPO4-PC            PIC 99      VALUE 45.
+           05  KV-CAMPO4-PR            PIC 99      VALUE 46.
+           05  KV-CAMPO5-HI            PIC 99      VALUE 48.
+           05  KV-CAMPO5-PC            PIC 99      VALUE 49.
+           05  KV-CAMPO5-PR            PIC 99      VALUE 50.
+           05  KV-TSCRIREG-ND          PIC 99      VALUE 47.
+           05  KV-TSMDFREG-ND          PIC 99      VALUE 47.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+           COPY CREB979.
+
+      *----------------------------------------------------------------*
+       LINKAGE                     SECTION.
+      *----------------------------------------------------------------*
+           COPY CREB000.
+
+      *================================================================*
+       PROCEDURE DIVISION USING CREB000-LKGERAL.
+      *================================================================*
+
+      *----------------------------------------------------------------*
+       P0000-RAIZ                  SECTION.
+      *----------------------------------------------------------------*
+
+           PERFORM P1000-INICIO
+
+           PERFORM P2000-PROCESSO
+
+           PERFORM P3000-FIM
+           .
+       P0000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P1000-INICIO                SECTION.
+      *----------------------------------------------------------------*
+
+           INITIALIZE FS-CREE979, CA-CREE979
+           .
+       P1000-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P2000-PROCESSO              SECTION.
+      *----------------------------------------------------------------*
+
+           IF  CREB000-STDIALOG-OFF
+               PERFORM P2100-OPEN-DIALOG
+           END-IF
+
+           EVALUATE TRUE
+           WHEN NOT CREE979-OK
+               CONTINUE
+           WHEN CREB000-EXECPRC
+               PERFORM P2200-PROC-DIALOG
+           WHEN OTHER
+               PERFORM P2300-CLSE-DIALOG
+           END-EVALUATE
+           .
+       P2000-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2100-OPEN-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           OPEN I-O CREE979
+
+           IF  NOT CREE979-OK
+               MOVE FS-CREE979      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-OPEN-IO TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2100-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2200-PROC-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE CREB000-MSGDLG-V(CREB000-MSGDLG-P:) TO CREB979-MSGDIALG
+
+           PERFORM P2210-PREP-ATRIBS
+           PERFORM P2220-WRIT-REGHDR
+           IF  CREE979-OK
+               PERFORM P2230-WRIT-REGFTR
+           END-IF
+           IF  CREE979-OK
+               PERFORM P2240-WRIT-REGDET
+           END-IF
+           IF  CREE979-OK
+               PERFORM P2250-READ-REGDET
+           END-IF
+
+           MOVE CREB979-MSGDIALG TO CREB000-MSGDLG-V(CREB000-MSGDLG-P:)
+           .
+       P2200-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2210-PREP-ATRIBS           SECTION.
+
+           IF  CREB979-CTAB-PR
+               SET  CREB000-INDICDLG-ON (KV-CTAB-PR)   TO TRUE
+           END-IF
+      *
+           IF  CREB979-CACC-PR
+               SET  CREB000-INDICDLG-ON (KV-CACC-PR)   TO TRUE
+           END-IF
+      *
+           IF  CREB979-DESC-PR
+               SET  CREB000-INDICDLG-ON (KV-DESC-PR)   TO TRUE
+           END-IF
+      *
+           IF  CREB979-CAMPO1-PR
+               SET  CREB000-INDICDLG-ON (KV-CAMPO1-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB979-CAMPO2-PR
+               SET  CREB000-INDICDLG-ON (KV-CAMPO2-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB979-CAMPO3-PR
+               SET  CREB000-INDICDLG-ON (KV-CAMPO3-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB979-CAMPO4-PR
+               SET  CREB000-INDICDLG-ON (KV-CAMPO4-PR) TO TRUE
+           END-IF
+      *
+           IF  CREB979-CAMPO5-PR
+               SET  CREB000-INDICDLG-ON (KV-CAMPO5-PR) TO TRUE
+           END-IF
+      *
+           EVALUATE TRUE
+           WHEN CREB979-CTAB-PC
+               SET  CREB000-INDICDLG-ON (KV-CTAB-PC)   TO TRUE
+           WHEN CREB979-CACC-PC
+               SET  CREB000-INDICDLG-ON (KV-CACC-PC)   TO TRUE
+           WHEN CREB979-DESC-PC
+               SET  CREB000-INDICDLG-ON (KV-DESC-PC)   TO TRUE
+           WHEN CREB979-CAMPO1-PC
+               SET  CREB000-INDICDLG-ON (KV-CAMPO1-PC) TO TRUE
+           WHEN CREB979-CAMPO2-PC
+               SET  CREB000-INDICDLG-ON (KV-CAMPO2-PC) TO TRUE
+           WHEN CREB979-CAMPO3-PC
+               SET  CREB000-INDICDLG-ON (KV-CAMPO3-PC) TO TRUE
+           WHEN CREB979-CAMPO4-PC
+               SET  CREB000-INDICDLG-ON (KV-CAMPO4-PC) TO TRUE
+           WHEN CREB979-CAMPO5-PC
+               SET  CREB000-INDICDLG-ON (KV-CAMPO5-PC) TO TRUE
+           WHEN CREB979-CTAB-UP
+               SET  CREB000-INDICDLG-ON (KV-CTAB-PC)   TO TRUE
+           WHEN CREB979-CACC-UP
+               SET  CREB000-INDICDLG-ON (KV-CACC-PC)   TO TRUE
+           WHEN CREB979-DESC-UP
+               SET  CREB000-INDICDLG-ON (KV-DESC-PC)   TO TRUE
+           WHEN CREB979-CAMPO1-UP
+               SET  CREB000-INDICDLG-ON (KV-CAMPO1-PC) TO TRUE
+           WHEN CREB979-CAMPO2-UP
+               SET  CREB000-INDICDLG-ON (KV-CAMPO2-PC) TO TRUE
+           WHEN CREB979-CAMPO3-UP
+               SET  CREB000-INDICDLG-ON (KV-CAMPO3-PC) TO TRUE
+           WHEN CREB979-CAMPO4-UP
+               SET  CREB000-INDICDLG-ON (KV-CAMPO4-PC) TO TRUE
+           WHEN CREB979-CAMPO5-UP
+               SET  CREB000-INDICDLG-ON (KV-CAMPO5-PC) TO TRUE
+           END-EVALUATE
+      *
+           EVALUATE TRUE
+           WHEN CREB000-PROC-OK
+               CONTINUE
+           WHEN CREB979-CTAB-PC
+               SET  CREB000-INDICDLG-ON (KV-CTAB-HI)   TO TRUE
+           WHEN CREB979-CACC-PC
+               SET  CREB000-INDICDLG-ON (KV-CACC-HI)   TO TRUE
+           WHEN CREB979-DESC-PC
+               SET  CREB000-INDICDLG-ON (KV-DESC-HI)   TO TRUE
+           WHEN CREB979-CAMPO1-PC
+               SET  CREB000-INDICDLG-ON (KV-CAMPO1-HI) TO TRUE
+           WHEN CREB979-CAMPO2-PC
+               SET  CREB000-INDICDLG-ON (KV-CAMPO2-HI) TO TRUE
+           WHEN CREB979-CAMPO3-PC
+               SET  CREB000-INDICDLG-ON (KV-CAMPO3-HI) TO TRUE
+           WHEN CREB979-CAMPO4-PC
+               SET  CREB000-INDICDLG-ON (KV-CAMPO4-HI) TO TRUE
+           WHEN CREB979-CAMPO5-PC
+               SET  CREB000-INDICDLG-ON (KV-CAMPO5-HI) TO TRUE
+           END-EVALUATE
+      *
+           IF  CREB979-TSCRIREG-ND
+               SET  CREB000-INDICDLG-ON (KV-TSCRIREG-ND) TO TRUE
+           END-IF
+      *
+           IF  CREB979-TSMDFREG-ND
+               SET  CREB000-INDICDLG-ON (KV-TSMDFREG-ND) TO TRUE
+           END-IF
+           .
+       P2210-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2220-WRIT-REGHDR           SECTION.
+
+           MOVE SPACES              TO CREE979-HDR
+           MOVE CREB000-SGEMPRSA    TO SGEMPRSA OF CREE979HDR-O
+           MOVE CREB000-DSAPLICA    TO DSAPLICA OF CREE979HDR-O
+           MOVE CREB000-DTPRCAPL    TO DTACTUAL OF CREE979HDR-O
+           MOVE CREB000-IDPRCAPL    TO IDPROCES OF CREE979HDR-O
+           MOVE CREB000-IDDIALOG    TO IDDIALOG OF CREE979HDR-O
+           MOVE CREB000-DSPRCAPL    TO NMPROCES OF CREE979HDR-O
+           MOVE CREB000-NMFUNDLG    TO NMFUNCAO OF CREE979HDR-O
+           WRITE CREE979-HDR
+                 FORMAT KV-IDFMTDLG-HDR INDIC CREB000-TBINDARA
+
+           IF  NOT CREE979-OK
+               MOVE FS-CREE979      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2220-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2230-WRIT-REGFTR           SECTION.
+
+           MOVE SPACES              TO CREE979-FTR
+           MOVE CREB000-DSTECLAS    TO DSTECLAS OF CREE979FTR-O
+           MOVE CREB000-DSMSGAPL    TO DSMSGAPL OF CREE979FTR-O
+           WRITE CREE979-FTR
+                 FORMAT KV-IDFMTDLG-FTR INDIC CREB000-TBINDARA
+
+           IF  NOT CREE979-OK
+               MOVE FS-CREE979      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2230-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2240-WRIT-REGDET           SECTION.
+
+           MOVE CREB979-CTAB-V      TO CTAB OF CREE979D01-O
+           MOVE CREB979-CACC-V      TO CACC OF CREE979D01-O
+           MOVE CREB979-DESC-V      TO DESC OF CREE979D01-O
+           MOVE CREB979-CAMPO1-V    TO CAMPO1 OF CREE979D01-O
+           MOVE CREB979-CAMPO2-V    TO CAMPO2 OF CREE979D01-O
+           MOVE CREB979-CAMPO3-V    TO CAMPO3 OF CREE979D01-O
+           MOVE CREB979-CAMPO4-V    TO CAMPO4 OF CREE979D01-O
+           MOVE CREB979-CAMPO5-V    TO CAMPO5 OF CREE979D01-O
+           MOVE CREB979-TSCRIREG-V  TO TSCRIREG OF CREE979D01-O
+           MOVE CREB979-TSMDFREG-V  TO TSMDFREG OF CREE979D01-O
+           WRITE CREE979-D01
+                 FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+
+           IF  NOT CREE979-OK
+               MOVE FS-CREE979      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-WRIT    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2240-EXIT.                 EXIT.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2250-READ-REGDET           SECTION.
+
+           READ CREE979
+                FORMAT KV-IDFMTDLG-D01 INDIC CREB000-TBINDARA
+                AT END CONTINUE
+           END-READ
+
+           IF  CREE979-OK
+               MOVE CTAB OF CREE979D01-I     TO CREB979-CTAB-V
+               MOVE CACC OF CREE979D01-I     TO CREB979-CACC-V
+               MOVE DESC OF CREE979D01-I     TO CREB979-DESC-V
+               MOVE CAMPO1 OF CREE979D01-I   TO CREB979-CAMPO1-V
+               MOVE CAMPO2 OF CREE979D01-I   TO CREB979-CAMPO2-V
+               MOVE CAMPO3 OF CREE979D01-I   TO CREB979-CAMPO3-V
+               MOVE CAMPO4 OF CREE979D01-I   TO CREB979-CAMPO4-V
+               MOVE CAMPO5 OF CREE979D01-I   TO CREB979-CAMPO5-V
+               MOVE IDVARCSR OF CREE979D01-I TO CREB000-IDVARCSR
+               MOVE IDTECLAF OF CA-CREE979   TO CREB000-IDTECLAF
+           ELSE
+               MOVE FS-CREE979               TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG              TO CREB000-NMOBJECT
+               SET  CREB000-READ             TO TRUE
+               SET  CREB000-MSGDLOG          TO TRUE
+           END-IF
+           .
+       P2250-EXIT.                 EXIT.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P2300-CLSE-DIALOG           SECTION.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           CLOSE CREE979
+
+           IF  NOT CREE979-OK
+               MOVE FS-CREE979      TO CREB000-CDRETORN
+               MOVE KV-IDDIALOG     TO CREB000-NMOBJECT
+               SET  CREB000-CLSE    TO TRUE
+               SET  CREB000-MSGDLOG TO TRUE
+           END-IF
+           .
+       P2300-EXIT.                 EXIT.
+
+      *----------------------------------------------------------------*
+       P3000-FIM                   SECTION.
+      *----------------------------------------------------------------*
+
+           GOBACK
+           .
+       P3000-EXIT.                 EXIT.
+      *--- FIM DO PROGRAMA CREP979 ------------------------------------*

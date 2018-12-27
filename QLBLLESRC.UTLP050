@@ -1,0 +1,335 @@
+     š*===============================================================**
+       IDENTIFICATION DIVISION.
+     š*===============================================================**
+       PROGRAM-ID.        UTLP050.
+       DATE-WRITTEN.      2018-09.
+     š*---------------------------------------------------------------*
+     š* UTL - ENVIO DE E-MAILS                                        *
+     š*---------------------------------------------------------------**
+     š*===============================================================**
+       ENVIRONMENT DIVISION.
+     š*===============================================================**
+       CONFIGURATION SECTION.
+       SOURCE-COMPUTER.           IBM-AS400.
+       OBJECT-COMPUTER.           IBM-AS400.
+       SPECIAL-NAMES. SYSTEM-CONSOLE IS VIDEO
+                      DECIMAL-POINT  IS COMMA.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+     š*--> UTLF050A - ENDEREÇO DE E-MAILS
+
+           SELECT UTLF050A ASSIGN
+             DATABASE-UTLF050A
+             ORGANIZATION INDEXED
+             ACCESS       DYNAMIC
+             RECORD KEY   EXTERNALLY-DESCRIBED-KEY
+             STATUS       GRS-FILE-STATUS.
+
+     š*===============================================================**
+       DATA DIVISION.
+     š*===============================================================**
+       FILE SECTION.
+
+       FD  UTLF050A
+           LABEL RECORDS IS STANDARD.
+       01  UTLF050A01.
+           05 UTLF050A-KEY      PIC 9(10).
+       01  R-UTLF050A.
+           COPY DDS-ALL-FORMATS OF UTLF050A.
+
+     š*===============================================================**
+       WORKING-STORAGE SECTION.
+     š*===============================================================**
+       01  GRS-FILE-STATUS             PIC XX.
+      * WK - AREA COMUM DE DEFINICAO DO FILE STATUS
+           COPY CPYW999.
+     š*-Area de Ligação a Rotina de Envio de Mail ---------------------
+           COPY  UTLL050.
+     š*----------------------------------------------------------------
+       01  WS-ERRO                 PIC X(07) VALUE SPACES.
+           88 SEM-ERRO                       VALUE "0000".
+           88 COM-ERRO                       VALUE "9999".
+           88 ERRO-CMPO-OBRG                 VALUE "5745".
+           88 ERR-IDPRC-INV                  VALUE "1950".
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+     š*----------------------------------------------------------------
+     š* Switches
+     š*----------------------------------------------------------------
+       01  SW-FIM-CICLO            PIC X(01).
+           88  FIM-CICLO-S             VALUE "S".
+           88  FIM-CICLO-N             VALUE "N".
+       01  SW-FIM-FICH             PIC X(01).
+           88  FIM-FICH-S              VALUE "S".
+           88  FIM-FICH-N              VALUE "N".
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+     š* Copy : Tabela de KYCT900A
+       01  R-KYCT900A.
+           COPY DDS-ALL-FORMATS OF KYCT900A.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+     š*----------------------------------------------------------------
+       LINKAGE SECTION.
+     š*----------------------------------------------------------------
+       01 LK-IDPRC    PIC 9(5).
+       01 LK-MSGEMAIL PIC X(1000).
+     š*===============================================================**
+       PROCEDURE DIVISION  USING  LK-IDPRC LK-MSGEMAIL.
+     š*===============================================================**
+       MAIN-LINE.
+     š******************************************************************
+           MOVE ZEROS TO RETURN-CODE
+
+           PERFORM  INICIO.
+
+           IF  SEM-ERRO
+               PERFORM UTLF050A-OPEN-INPUT
+               IF GRS-GOOD-IO
+                  PERFORM  LE-FICHEIRO
+               END-IF
+           END-IF.
+           PERFORM UTLF050-CLOSE
+           GOBACK.
+     š*===============================================================**
+       INICIO .
+     š*===============================================================**
+     š* Inicializacao de variaveis
+           MOVE ZEROS  TO UTLL050-CODRETORNO.
+           MOVE SPACES TO  UTLL050-DESCERRO.
+           SET SEM-ERRO TO TRUE.
+
+           SET   FIM-CICLO-N   TO  TRUE.
+
+           EVALUATE TRUE
+           WHEN LK-IDPRC = ZEROS
+              MOVE "5745"          TO UTLL050-CODRETORNO
+              SET  ERRO-CMPO-OBRG  TO TRUE
+              MOVE "ERRO: ID. Processo Não Preencido"
+                                   TO UTLL050-DESCERRO
+           WHEN LK-MSGEMAIL = SPACES
+              MOVE "5745"          TO UTLL050-CODRETORNO
+              SET  ERRO-CMPO-OBRG  TO TRUE
+              MOVE "ERRO: MSG de MAil não Preenchida"
+                                   TO UTLL050-DESCERRO
+           END-EVALUATE.
+
+     š*===============================================================**
+       LE-FICHEIRO .
+     š*===============================================================**
+           SET   FIM-FICH-N       TO  TRUE.
+
+           INITIALIZE R-UTLF050A  REPLACING
+                      NUMERIC BY ZEROS
+                      ALPHANUMERIC BY SPACES.
+
+           MOVE LK-IDPRC TO IDPRC OF RUTLF050A.
+
+           PERFORM UTLF050A-START-NL
+           IF NOT GRS-GOOD-IO
+              SET FIM-FICH-S  TO TRUE
+              SET ERR-IDPRC-INV TO TRUE
+           END-IF.
+
+     š* Ciclo de preenchimenTO do subficheiro
+           PERFORM UNTIL FIM-FICH-S OR IDPRC OF RUTLF050A
+              NOT EQUAL LK-IDPRC
+              PERFORM UTLF050A-READ-SEQ
+              IF  NOT GRS-EOF AND IDPRC OF RUTLF050A
+                EQUAL LK-IDPRC
+                   PERFORM MOVE-CAMPOS
+              ELSE
+                SET FIM-FICH-S TO TRUE
+              END-IF
+           END-PERFORM.
+     š*===============================================================**
+       MOVE-CAMPOS.
+     š*===============================================================**
+           IF SEQPRC   OF RUTLF050A = 0
+              MOVE IDPRC    OF RUTLF050A TO  UTLL050-IDPRC
+              MOVE ASSUNTO  OF RUTLF050A TO  UTLL050-ASSUNTO
+              MOVE DSTD     OF RUTLF050A TO  UTLL050-DSTD
+              MOVE DOCD     OF RUTLF050A TO  UTLL050-DOCD
+              MOVE LK-MSGEMAIL           TO  UTLL050-MSGEMAIL
+           END-IF.
+
+           IF SEQPRC   OF RUTLF050A NOT = 0
+              MOVE SEQPRC   OF RUTLF050A TO  UTLL050-SEQPRC
+              MOVE ENDRMAIL OF RUTLF050A TO  UTLL050-ENDRMAIL
+              PERFORM ENVIA-EMAIL
+           END-IF.
+     š*===============================================================**
+       ENVIA-EMAIL.
+     š*==============================================================**
+
+           CALL "UTLC050" USING UTLL050-IDPRC
+                                UTLL050-ASSUNTO
+                                UTLL050-DSTD
+                                UTLL050-DOCD
+                                UTLL050-ENDRMAIL
+                                UTLL050-MSGEMAIL.
+
+     š*=====================================*                          *
+     š* CopyBooks SubRotinas
+     š*======================================*                         *
+      ****************************************
+       UTLF050A-OPEN-INPUT.
+      ****************************************
+      *
+           OPEN INPUT UTLF050A
+           MOVE GRS-FILE-STATUS TO W-FILE-CODE W-EDTFILC
+           IF  GRS-GOOD-IO                OR
+               GRS-FILE-ALREADY-OPENED    OR
+               GRS-OPEN-WITH-DUPLICATES
+               CONTINUE
+           ELSE
+               MOVE "UTLF050A"            TO W-OBJECT-NAME
+               MOVE "UTLP050"             TO W-PROGRAMA
+               MOVE "UTLF050A-OPEN-INPUT" TO W-PARAGRAFO
+               MOVE "SPACES"              TO W-CHAVE
+               MOVE "OI"                  TO W-CMDEXEC
+               PERFORM P990-ERRO-FS
+               GOBACK
+           END-IF.
+      *
+      ****************************************
+       UTLF050A-READ-SEQ.
+      ****************************************
+      *
+           READ UTLF050A NEXT
+           MOVE GRS-FILE-STATUS TO W-FILE-CODE W-EDTFILC
+           IF  GRS-GOOD-IO          OR
+               GRS-EOF              OR
+               GRS-RECORD-LOCKED
+               CONTINUE
+           ELSE
+               MOVE "UTLF050A"            TO W-OBJECT-NAME
+               MOVE "UTLP050"             TO W-PROGRAMA
+               MOVE "UTLF050A-READ-SEQ"   TO W-PARAGRAFO
+               MOVE "SPACES"              TO W-CHAVE
+               MOVE "RS"                  TO W-CMDEXEC
+               PERFORM P990-ERRO-FS
+               GOBACK
+           END-IF.
+      ****************************************
+       UTLF050A-START-NL.
+      ****************************************
+      *
+           START UTLF050A KEY NOT LESS EXTERNALLY-DESCRIBED-KEY
+           MOVE GRS-FILE-STATUS TO W-FILE-CODE W-EDTFILC
+           IF  GRS-GOOD-IO          OR
+               GRS-RECORD-NOTFOUND
+               CONTINUE
+           ELSE
+               MOVE "UTLF050A"            TO W-OBJECT-NAME
+               MOVE "UTLP050"             TO W-PROGRAMA
+               MOVE "ULTF050-START-NL "   TO W-PARAGRAFO
+               MOVE "SPACES"              TO W-CHAVE
+               MOVE "RS"                  TO W-CMDEXEC
+               PERFORM P990-ERRO-FS
+               GOBACK
+           END-IF.
+      *
+      ****************************************
+       UTLF050-CLOSE.
+      ****************************************
+      *
+           CLOSE UTLF050A
+           MOVE GRS-FILE-STATUS TO W-FILE-CODE W-EDTFILC
+           IF  GRS-GOOD-IO             OR
+               GRS-FILE-ALREADY-CLOSED
+               CONTINUE
+           ELSE
+               MOVE "UTLF050A"            TO W-OBJECT-NAME
+               MOVE "UTLP050"             TO W-PROGRAMA
+               MOVE "ULTF050-START-NL "   TO W-PARAGRAFO
+               MOVE "SPACES"              TO W-CHAVE
+               MOVE "CL"                  TO W-CMDEXEC
+               PERFORM P990-ERRO-FS
+               GOBACK
+           END-IF.
+      *
+     š*---------------------------------------------------------------------
+       P990-ERRO-FS.
+     š*---------------------------------------------------------------------
+           EVALUATE TRUE
+           WHEN GRS-READ-DUP-KEY
+                  STRING "ERRO DE DADOS: CHAVE DUPLICADA NO FICHEIRO <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-FS
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ ERRO    <"
+                      W-EDTFILC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-FS
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           SET  COM-ERRO        TO TRUE
+           MOVE  1              TO ERRRTC   OF  KYCT900A
+           MOVE W-FILE-CODE     TO ERRCOD   OF  KYCT900A
+           MOVE MSG-ERRO-FS     TO ERRMSG   OF  KYCT900A
+           MOVE "UTLP050"       TO ERRPRG   OF  KYCT900A
+           MOVE "MAIL"          TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE W-CMDEXEC       TO ERRCMD   OF  KYCT900A
+           MOVE W-PARAGRAFO     TO ERRFLD   OF  KYCT900A
+           MOVE MSG-ERRO-FS     TO UTLL050-DESCERRO
+           PERFORM    P995-INSERT-ERROS.
+     š*---------------------------------------------------------------------
+       P995-INSERT-ERROS.
+     š*---------------------------------------------------------------------
+           MOVE   "UTLP05O"      TO  ERRPRG OF KYCT900A.
+
+           EXEC SQL  INSERT
+                INTO KYCT900A
+                VALUES  (
+                           :KYCT900A.RACINE
+                         , :KYCT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :KYCT900A.ERRRTC
+                         , :KYCT900A.ERRCOD
+                         , :KYCT900A.ERRMSG
+                         , :KYCT900A.ERRPRG
+                         , :KYCT900A.ERRAPL
+                         , :KYCT900A.ERROBJ
+                         , :KYCT900A.ERRFLD
+                         , :KYCT900A.ERRCMD
+                         , :KYCT900A.ERRKEY1
+                         , :KYCT900A.ERRVAL1
+                         , :KYCT900A.ERRKEY2
+                         , :KYCT900A.ERRVAL2 )
+           END-EXEC.
+
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "KYCT900A"       TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+

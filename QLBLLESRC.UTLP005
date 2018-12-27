@@ -1,0 +1,84 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    UTLP005.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2017-MAR-13.
+     š*----------------------------------------------------------------*
+     š* PROGRAMA  . . . . UTLP005                                      *
+     š*                   Tratamento de Datas                          *
+     š*----------------------------------------------------------------*
+      *
+       ENVIRONMENT DIVISION.
+      *
+       CONFIGURATION SECTION.
+       SOURCE-COMPUTER.           IBM-AS400.
+       OBJECT-COMPUTER.           IBM-AS400.
+      *
+       SPECIAL-NAMES.
+       INPUT-OUTPUT SECTION.
+
+     š*----------------------------------------------------------------*
+       DATA DIVISION.
+      *
+       FILE SECTION.
+      *
+       WORKING-STORAGE SECTION.
+       01 PGM-STATUS                 PIC 9(01).
+          88 SEM-ERRO                VALUE 0.
+          88 COM-ERRO                VALUE 1.
+
+       01  WS-DATA-SYS              FORMAT DATE IS "@Y-%m-%d".
+       01  WS-DATA-SYS_1            FORMAT DATE IS "@Y-%m-%d".
+       01  WS-QTY                   PIC 9(3).
+
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+
+       01  WS-DATA-PROC.
+           03  WS-ANO-PROC          PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MES-PROC          PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIA-PROC          PIC 9(02).
+
+       01 WS-DUMMY                  PIC S9(1)       VALUE  ZERO.
+       01 WS-TST-DATE               FORMAT DATE .
+           COPY UTLL005.
+      *
+     š*----------------------------------------------------------------*
+       LINKAGE SECTION.
+     š*----------------------------------------------------------------*
+     š*----------------------------------------------------------------*
+       PROCEDURE.
+     š*----------------------------------------------------------------*
+       MAIN-LINE.
+           INITIALIZE UTLS005-DATAI-ISO
+                      UTLS005-DATAI-OPER
+                      UTLS005-DATAI-QTY
+                      UTLS005-DATAI-UNID
+                      UTLS005-DATAO-DIA
+                      UTLS005-DATAO-ISO
+                      UTLS005-DATAO-COD
+                      UTLS005-DATAO-DSC.
+           MOVE "2018-01-01"   TO  UTLS005-DATAI-ISO.
+           MOVE "+"            TO  UTLS005-DATAI-OPER.
+           MOVE 10             TO  UTLS005-DATAI-QTY.
+           MOVE "D"            TO  UTLS005-DATAI-UNID.
+
+           CALL "UTLS005" USING   UTLS005-DATAI-ISO
+                                  UTLS005-DATAI-OPER
+                                  UTLS005-DATAI-QTY
+                                  UTLS005-DATAI-UNID
+                                  UTLS005-DATAO-DIA
+                                  UTLS005-DATAO-ISO
+                                  UTLS005-DATAO-COD
+                                  UTLS005-DATAO-DSC .
+      *----------------------------------------------------------------*
+       UTLP005-FIM.
+      *----------------------------------------------------------------*
+           GOBACK.

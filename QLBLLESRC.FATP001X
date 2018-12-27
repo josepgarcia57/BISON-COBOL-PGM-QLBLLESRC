@@ -1,0 +1,1959 @@
+       IDENTIFICATION DIVISION.
+      *================================================================*
+       PROGRAM-ID.    FATP001X   INITIAL.
+       AUTHOR.        PEDRO GARCIA
+       INSTALLATION.  BBI SA.
+       DATE-WRITTEN.  2017-MAR-13.
+     š*----------------------------------------------------------------*
+     š*   APLICACO .......: FATCA- Foreign Account Tax Compliance Act **
+     š*   OBJECTIVO ......: Este programa destina-se a Gerar o XML    **
+     š*                     a enviar ao FTACA                         *
+     š*   ANALISTA .......: PEDRO GARCIA                              **
+     š*   PROGRAMADOR.....:                                           **
+     š*================================================================*
+       ENVIRONMENT DIVISION.
+      *================================================================*
+      *----------------------------------------------------------------*
+       CONFIGURATION SECTION.
+      *----------------------------------------------------------------*
+       SOURCE-COMPUTER.    IBM-AS400.
+       OBJECT-COMPUTER.    IBM-AS400.
+       SPECIAL-NAMES.   DECIMAL-POINT IS COMMA.
+      *----------------------------------------------------------------*
+       INPUT-OUTPUT SECTION.
+      *----------------------------------------------------------------*
+      *------------------------------------------------------------------------*
+       FILE-CONTROL.
+      *------------------------------------------------------------------------*
+           SELECT FATF001
+                  ASSIGN TO DATABASE-FATF001
+                  ORGANIZATION IS SEQUENTIAL
+                  ACCESS MODE  IS SEQUENTIAL
+                  FILE STATUS  IS GRS-FILE-STATUS.
+      *================================================================*
+       DATA DIVISION.
+      *================================================================*
+       FILE SECTION.
+      *----------------------------------------------------------------*
+       FD  FATF001.
+       01  REG-FATF001.
+           COPY DDS-ALL-FORMATS OF FATF001.
+      *----------------------------------------------------------------*
+       WORKING-STORAGE SECTION.
+      *-----------------------------------------------------------------
+      *
+       01 GRS-FILE-STATUS            PIC XX.
+      *
+       01 EXECUTA-P001               PIC 9(01).
+          88 INICIO-P001             VALUE 0.
+          88 FIM-P001                VALUE 1.
+
+       01 EXECUTA-P002               PIC 9(01).
+          88 INICIO-P002             VALUE 0.
+          88 FIM-P002                VALUE 1.
+      *
+       01 PGM-STATUS                 PIC 9(01).
+          88 SEM-ERRO                VALUE 0.
+          88 COM-ERRO                VALUE 1.
+      *
+       01 NR-READ                    PIC 9(06) VALUE ZEROS.
+       01 NR-PROC                    PIC 9(06) VALUE ZEROS.
+       01 NR-ERR                     PIC 9(06) VALUE ZEROS.
+
+       01 W-DATA-SYS                 PIC 9(08).
+       01 W-DATA-SYS-R REDEFINES W-DATA-SYS.
+          05 W-DATA-SYS-SC           PIC 9(02).
+          05 W-DATA-SYS-AAMMDD       PIC 9(06).
+
+       01 W-DATA-EDITADA             PIC X(10) VALUE ZEROS.
+       01 W-DATA-R2 REDEFINES W-DATA-EDITADA.
+          05 WS-ANOIN                PIC X(04).
+          05 W-DATA-SEP1             PIC X(01).
+          05 WS-MESIN                PIC X(02).
+          05 W-DATA-SEP2             PIC X(01).
+          05 WS-DIAIN                PIC X(02).
+     š*
+       01 WS-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-MESIN                PIC X(02).
+          03 FILLER                  PIC X VALUE "-".
+          03 WS-DIAIN                PIC X(02).
+     š*
+       01 WX-DATA-CONVER.
+          03 WS-ANOIN                PIC X(04).
+          03 WS-MESIN                PIC X(02).
+          03 WS-DIAIN                PIC X(02).
+       01 WR-DATA-CONVER  REDEFINES  WX-DATA-CONVER     PIC X(8).
+     š*
+       01 WX-ANO-CONVER.
+          03 WS-ANO-12               PIC X(02).
+          03 WS-ANO-34               PIC X(02).
+
+       01  W-CONSTANTS.
+           05  K-APLICACAO           PIC X(3)    VALUE "BPC".
+           05  K-PROGRAMA            PIC X(9)    VALUE "FATP001X".
+
+       01  WS-DATA-DIA.
+           03  WS-ANOIN-DIA         PIC 9(04).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-MESIN-DIA         PIC 9(02).
+           03  FILLER               PIC X VALUE "-".
+           03  WS-DIAIN-DIA         PIC 9(02).
+     š* ------------------------------------------------------
+     š* Linha com XML gerado HardCode pelo programa
+       01 XML-OUTPUT       PIC X(1000).
+
+       01 Ws-dtCriacao.
+          05 ws-Data         PIC X(10).
+          05 ws-SepT         PIC X(1).
+          05 ws-HH           PIC X(2).
+          05 ws-SepH         PIC X(1).
+          05 ws-MM           PIC X(2).
+          05 ws-SepM         PIC X(1).
+          05 ws-SS           PIC X(2).
+     š* ------------------------------------------------------
+       01 WS-STRING.
+          05 WS-STRING-CHR         PIC X           OCCURS 300.
+       01 WS-VAL-TAG-A             PIC X(250).
+       01 WS-NOME-TAG              PIC X(80).
+       01 WS-VAL-TAG-L             PIC S9(4)       COMP   VALUE 0.
+       01 WS-NOM-TAG-L             PIC S9(4)       COMP   VALUE 0.
+     š* ------------------------------------------------------
+     š* Determina Comprimento de uma String
+       01 WS-POS-I                 PIC S9(4)       COMP   VALUE 0.
+       01 WS-POS-S                 PIC S9(4)       COMP   VALUE 0.
+       01 WS-POS-XML               PIC S9(4)       COMP   VALUE 0.
+       01 WS-STRING-L              PIC S9(4)       COMP   VALUE 0.
+       01 WS-STRING-S              PIC S9(4)       COMP   VALUE 0.
+       01 W-NUM                    PIC 9(3).
+       01 Edit-Nbr    PIC      --------9,99.
+
+     š* Campos de Caracteres Invalidos
+        01 CHAR-TESTE                PIC X.
+           88 CARACTER-VALIDO      VALUE
+      *                             - letras minusculas
+                                          "a", "b", "c", "d", "e",
+                                          "f", "g", "h", "i", "j",
+                                          "k", "l", "m", "n", "o",
+                                          "p", "q", "r", "s", "t",
+                                          "u", "v", "w", "x", "y",
+                                          "z",
+      *                             - letras maiusculas
+                                          "A", "B", "C", "D", "E",
+                                          "F", "G", "H", "I", "J",
+                                          "K", "L", "M", "N", "O",
+                                          "P", "Q", "R", "S", "T",
+                                          "U", "V", "W", "X", "Y",
+                                          "Z",
+      *                             - numeros
+                                          "0", "1", "2", "3", "4",
+                                          "5", "6", "7", "8", "9",
+      *                             - outros
+                                          " ", "/", "-", "?", ":",
+                                          "(", ")", ".", ",",
+                                          "+", "Ò", "&".
+
+      * "'" passou a ser considerado invalido
+
+      *----------------------------------------------------------------*
+      * AREAS LIGACAO C/ SUB-ROTINAS
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+      *    DECLARACOES P/ INTERFACE C/ DB2
+      *----------------------------------------------------------------*
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+
+           EXEC SQL
+                INCLUDE SQLCA
+           END-EXEC.
+
+      * COPY BOOK DO MODULO DE ERROS
+           EXEC SQL INCLUDE CPYW999 END-EXEC.
+
+       01  WS-TMS-NULA     PIC  X(26)
+                           VALUE "0001-01-01-00.00.00.000000".
+
+     š* Copy : Tabela de Message Spec
+           EXEC SQL
+               INCLUDE FATHMSG
+           END-EXEC.
+
+     š* Copy : Tabela de Reporting Group ACCOUNT Report
+           EXEC SQL
+               INCLUDE FATHACC
+           END-EXEC.
+
+     š* Copy : Tabela de Intervenientes nas Contas Holders
+           EXEC SQL
+               INCLUDE FATHCLI
+           END-EXEC.
+
+     š* Copy : Tabela de KYCT900A
+       01  R-KYCT900A.
+           COPY DDS-ALL-FORMATS OF KYCT900A.
+      *
+       01  REPFI-REC.
+        05 WS-FI-PERIOD            PIC X(10).
+        05 WS-FI-TIN               PIC X(30).
+        05 WS-FI-RESCOUNTRYCODE    PIC X(02).
+        05 WS-FI-NAME              PIC X(40).
+        05 WS-FI-ADDRESSFREE       PIC X(40).
+        05 WS-FI-CITY              PIC X(20).
+        05 WS-FI-COUNTRYCODE       PIC X(02).
+        05 WS-FI-DOCTYPEINDIC      PIC X(08).
+        05 WS-FI-DOCREFID          PIC X(60).
+
+       01 WS-COUNTRYCODE        PIC X(03).
+       01 WS-Num-OP             PIC 9(05).
+       01 WS-Num-Hold           PIC 9(05).
+       01 WS-GUID-db2           PIC X(36).
+       01 WS-MessageRefId.
+           05 WS-Nif            PIC X(09) Value "502261722".
+           05 WS-Filler1        PIC X(01) Value ".".
+           05 WS-PERIOD         PIC X(08) .
+           05 WS-Filler2        PIC X(01) Value ".".
+           05 WS-VERSION        PIC X(01) Value "1".
+
+       01 WS-DocRefid.
+           05 WS-GIIN           PIC X(19) Value "IYWWWK.99999.SL.620".
+           05 WS-Filler3        PIC X(01) Value ".".
+           05 WS-GUID           PIC X(36).
+
+       01 WS-DOCREFIDFI-DB2        PIC X(60).
+
+       01 WS-MESDIA                PIC X(06).
+       01 WX-MESDIA.
+          02 WS-MESDB2             PIC X(04).
+          02 WS-DIADB2             PIC X(02).
+
+       01  WS-ANO-ANT.
+           03  WS-ANOIN-ANT        PIC 9(04).
+           03  FILLER              PIC X VALUE "-".
+           03  WS-MESIN-ANT        PIC 9(02).
+           03  FILLER              PIC X VALUE "-".
+           03  WS-DIAIN-ANT        PIC 9(02).
+
+       01 WS-DTPROC                PIC X(10).
+
+     š* Cursor Sobre ACOUNTS
+           EXEC SQL DECLARE CURACNT  CURSOR FOR
+            SELECT    PERIOD
+                   ,  ACCTNR
+                   ,  DOCTYPIND
+                   ,  DOCREFID
+                   ,  ACCTBAL
+                   ,  FAT501
+                   ,  FAT502
+                   ,  FAT503
+                   ,  FAT504
+                   ,  CURCODE
+                FROM  FATJACC A
+                WHERE A.PERIOD = :WS-DTPROC
+                 AND EXISTS ( SELECT 1 FROM
+                              FATJCLI B
+                              WHERE A.PERIOD = B.PERIOD
+                                AND A.ACCTNR = B.ACCTNR
+                                AND B.TIN <> " " )
+           END-EXEC.
+
+     š* Cursor Sobre Holder de ACOUNTs
+           EXEC SQL DECLARE CURHOLD   CURSOR FOR
+            SELECT    PERIOD
+                   ,  ACCTNR
+                   ,  INDH
+                   ,  TIN
+                   ,  NAME
+                   ,  FIRSTNAME
+                   ,  LASTNAME
+                   ,  STREET
+                   ,  POSTCODE
+                   ,  CITY
+                   ,  COUNTRYCODE
+                   ,  BIRTHDATE
+                   ,  CITYNATU
+                   ,  ACCTHTYPE
+                FROM  FATJCLI
+                WHERE ACCTNR =:ACC-ACCOUNTNUMBER
+                AND  PERIOD = :WS-DTPROC
+                AND  TIN <> " "
+           END-EXEC.
+
+           EXEC SQL END  DECLARE SECTION END-EXEC.
+      *----------------------------------------------------------------*
+       LINKAGE SECTION.
+      *----------------------------------------------------------------*
+      *================================================================*
+       PROCEDURE DIVISION.
+      *================================================================*
+       P000-INICIO.
+           EXEC SQL
+                 WHENEVER  SQLERROR  CONTINUE
+           END-EXEC.
+
+           PERFORM P001-INICIO.
+
+           PERFORM P002-OPEN-FATF001.
+
+           PERFORM P300-OPEN-TAG-FAT.
+
+           PERFORM P300-GET-FATJMSG.
+
+           PERFORM P300-GERA-TAG-MessageSpec
+
+           PERFORM P300-GERA-DocRefid
+
+           PERFORM P300-CLOSE-TAG-MessageSpec
+
+           PERFORM P300-OPEN-TAG-FATCA
+
+           PERFORM P300-GET-FATJREPFI.
+
+           PERFORM P300-GERA-TAG-ReportingFI
+
+           PERFORM P300-OPEN-TAG-ReportingGroup
+
+           PERFORM P300-CICLO-ACOUNT
+
+           PERFORM P300-CLOSE-TAG-ReportingGroup
+
+           PERFORM P300-CLOSE-TAG-FATCA
+
+           PERFORM P300-CLOSE-TAG-FAT
+
+           PERFORM P400-FATF001-CLOSE.
+
+           PERFORM P999-FIMPGM.
+     š*---------------------------------------------------------------------
+       P001-INICIO.
+     š*---------------------------------------------------------------------
+           SET  INICIO-P001         TO  TRUE.
+           EXEC SQL
+              DELETE FROM FATF001
+           END-EXEC.
+
+           MOVE 1 TO WS-POS-XML
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EXEC SQL SET :S-SYSTMST = CURRENT TIMESTAMP END-EXEC.
+           MOVE S-SYSTMST(1:10) TO WS-DATA-DIA WS-ANO-ANT.
+           COMPUTE WS-ANOIN-ANT  =  WS-ANOIN-ANT - 1
+           MOVE "12"            TO WS-MESIN-ANT
+           MOVE "31"            TO WS-DIAIN-ANT
+           MOVE WS-ANO-ANT      TO WS-DTPROC
+     š*-Ws-dtCriacao                                                   -----
+           MOVE WS-DATA-DIA TO ws-Data
+           MOVE "T"         TO ws-SepT.
+           MOVE S-SYSTMST(12:2  ) TO  ws-HH
+           MOVE S-SYSTMST(15:2  ) TO  ws-MM
+           MOVE S-SYSTMST(18:2  ) TO  ws-SS
+           MOVE ":"               TO  ws-SepH
+           MOVE ":"               TO  ws-SepM.
+     š*---------------------------------------------------------------------
+       P002-OPEN-FATF001.
+     š*---------------------------------------------------------------------
+           INITIALIZE  MSG-REC
+                       REPLACING ALPHANUMERIC BY SPACES
+                                     NUMERIC BY ZEROS.
+           PERFORM P300-FATF001-OPEN
+           INITIALIZE REG-FATF001  XML-OUTPUT.
+     š*---------------------------------------------------------------------
+       P300-CICLO-ACOUNT.
+     š*---------------------------------------------------------------------
+           PERFORM P120-OPEN-CURSOR-ACNT.
+           PERFORM P220-FETCH-CURSOR-ACNT.
+           PERFORM P300-TRATA-ACNT WITH TEST BEFORE
+                           UNTIL FIM-P001.
+           PERFORM P420-CLOSE-CURSOR-ACNT.
+     š*---------------------------------------------------------------------
+       P300-TRATA-ACNT.
+     š*---------------------------------------------------------------------
+           PERFORM P300-OPEN-TAG-AccountReport.
+           PERFORM P300-GERA-DocRefid
+           PERFORM P300-GERA-TAG-DocSpec.
+           PERFORM P300-GERA-TAG-AccountNumber.
+
+           PERFORM P300-CICLO-HOLDERS
+
+           PERFORM P300-GERA-TAG-AccountBalance.
+           IF ACC-FAT501 NOT EQUAL 0
+             PERFORM P300-GERA-TAG-Payment-501
+           END-IF
+           IF ACC-FAT502 NOT EQUAL 0
+             PERFORM P300-GERA-TAG-Payment-502
+           END-IF
+           IF ACC-FAT503 NOT EQUAL 0
+             PERFORM P300-GERA-TAG-Payment-503
+           END-IF
+           IF ACC-FAT504 NOT EQUAL 0
+             PERFORM P300-GERA-TAG-Payment-504
+           END-IF
+
+           PERFORM P300-CLOSE-TAG-AccountReport.
+           PERFORM P220-FETCH-CURSOR-ACNT.
+     š*---------------------------------------------------------------------
+       P300-CICLO-HOLDERS.
+     š*---------------------------------------------------------------------
+           PERFORM P120-OPEN-CURSOR-HOLD.
+           PERFORM P220-FETCH-CURSOR-HOLD.
+           PERFORM P300-TRATA-HOLDER WITH TEST BEFORE
+                           UNTIL FIM-P002.
+           PERFORM P420-CLOSE-CURSOR-HOLD.
+     š*---------------------------------------------------------------------
+       P300-TRATA-HOLDER.
+     š*---------------------------------------------------------------------
+           PERFORM P300-OPEN-TAG-AccountHolder.
+           IF CLI-INDH = "Individual"
+                      OR =  "INDIVIDUAL"
+             PERFORM P300-GERA-TAG-Ind
+           ELSE
+             PERFORM P300-GERA-TAG-Org
+           END-IF
+           PERFORM P300-CLOSE-TAG-AccountHolder.
+           PERFORM P220-FETCH-CURSOR-HOLD.
+     š*---------------------------------------------------------------------
+       P300-OPEN-TAG-FAT.
+     š*---------------------------------------------------------------------
+           INITIALIZE XML-OUTPUT
+     š*-XML Doc Declaration
+           MOVE "<?xml version='1.0' encoding='utf-8'?>"
+                       TO XML-OUTPUT.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+           MOVE  "fat:FATCA_OECD"    TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+     š*-ATT1
+           MOVE "xmlns:fat"          TO  WS-NOME-TAG
+           MOVE "urn:oecd:ties:fatca:v2"
+                                     TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+     š*-ATT2
+           MOVE "xmlns:cfc"          TO  WS-NOME-TAG
+           MOVE "urn:oecd:ties:stffatcatypes:v2"
+                                     TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+     š*-ATT3
+           MOVE "version"            TO  WS-NOME-TAG
+           MOVE "version1"           TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+
+           PERFORM P300-END-TAG
+
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-MessageSpec.
+     š*---------------------------------------------------------------------
+           MOVE "fat:MessageSpec"         TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*-------------------                                             -----
+     š*-Sending Company IN                                             -----
+     š*--------------------                                            -----
+           MOVE "cfc:SendingCompanyIN"    TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE  MSG-SENDINGCOMPANYIN     TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*-------------------                                             -----
+     š*-TransmittingCountry                                            -----
+     š*--------------------                                            -----
+           MOVE "cfc:TransmittingCountry" TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG
+           MOVE  MSG-TRANSMITTINGCOUNTRY  TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*-------------------                                             -----
+     š*-ReceivingCountry                                               -----
+     š*--------------------                                            -----
+           MOVE "cfc:ReceivingCountry"    TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG
+           MOVE  MSG-RECEIVINGCOUNTRY     TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*-------------------                                             -----
+     š*-MessageType                                                    -----
+     š*--------------------                                            -----
+           MOVE "cfc:MessageType"          TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE  MSG-MESSAGETYPE          TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*-------------------                                             -----
+     š*-MessageRefId                                                   -----
+     š*--------------------                                            -----
+           PERFORM P300-GERA-MessageRefId
+
+           MOVE "cfc:MessageRefId"        TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG
+           MOVE  WS-MessageRefId          TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*-------------------                                             -----
+     š*-ReportingPeriod                                                -----
+     š*--------------------                                            -----
+           MOVE "cfc:ReportingPeriod"     TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG
+           MOVE  MSG-REPORTINGPERIOD      TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*-------------------                                             -----
+     š*-Timestamg                                                      -----
+     š*--------------------                                            -----
+           MOVE "cfc:Timestamp"          TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG
+           MOVE  Ws-dtCriacao             TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG-MessageSpec.
+     š*---------------------------------------------------------------------
+           MOVE  "fat:MessageSpec"       TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-OPEN-TAG-FATCA.
+     š*---------------------------------------------------------------------
+           MOVE "fat:FATCA"                TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG-FATCA.
+     š*---------------------------------------------------------------------
+           MOVE  "fat:FATCA"             TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-OPEN-TAG-ReportingGroup.
+     š*---------------------------------------------------------------------
+           MOVE "fat:ReportingGroup"       TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG-ReportingGroup.
+     š*---------------------------------------------------------------------
+           MOVE  "fat:ReportingGroup"    TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG-FAT.
+     š*---------------------------------------------------------------------
+           MOVE  "fat:FATCA_OECD"           TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-ReportingFI.
+     š*---------------------------------------------------------------------
+     š*- Open fat:ReportingFI                                          -----
+           MOVE "fat:ReportingFI"          TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+           MOVE "cfc:ResCountryCode"      TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE  WS-FI-RESCOUNTRYCODE      TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+           MOVE "cfc:TIN"                 TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE  WS-FI-TIN                TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+           MOVE "cfc:Name"                TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE  WS-FI-NAME               TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Morada da Instituição Financeira                              -----
+           MOVE "cfc:Address"             TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+           MOVE "cfc:CountryCode"         TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE  WS-FI-COUNTRYCODE        TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+           MOVE "cfc:AddressFree"          TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE  WS-FI-ADDRESSFREE        TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+           MOVE  "cfc:Address"           TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*- FilerCategory                                                 -----
+           MOVE "fat:FilerCategory"        TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE  "FATCA601"               TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*- DocRefidFi                                                    -----
+           PERFORM P300-GERA-TAG-DocSpecFi.
+     š*- Close  fat:ReportingFI                                        -----
+           MOVE  "fat:ReportingFI"       TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-OPEN-TAG-AccountReport.
+     š*---------------------------------------------------------------------
+           MOVE "fat:AccountReport"        TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG-AccountReport.
+     š*---------------------------------------------------------------------
+           MOVE "fat:AccountReport"        TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-DocSpecFi.
+     š*---------------------------------------------------------------------
+     š*- Open fat:DocSpec                                              -----
+           MOVE "fat:DocSpec"              TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+           MOVE "fat:DocTypeIndic"        TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   WS-FI-DOCTYPEINDIC       TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+           MOVE "fat:DocRefId"            TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   WS-DocRefid            TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Close  fat:DocSpec                                            -----
+           MOVE  "fat:DocSpec"           TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-DocSpec.
+     š*---------------------------------------------------------------------
+     š*- Open fat:DocSpec                                              -----
+           MOVE "fat:DocSpec"              TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+           MOVE "fat:DocTypeIndic"        TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   ACC-DOCTYPIND          TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+           MOVE "fat:DocRefId"            TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   WS-DocRefid
+                                         TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+           MOVE ACC-DOCREFID  TO WS-DOCREFIDFI-DB2
+           EXEC SQL
+           UPDATE  FATJACC
+             SET DOCREFID = :WS-DOCREFIDFI-DB2
+             WHERE PERIOD = :WS-DTPROC
+               AND ACCTNR = :ACC-ACCOUNTNUMBER
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+     š*- Close  fat:DocSpec                                            -----
+           MOVE  "fat:DocSpec"           TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-AccountNumber.
+     š*---------------------------------------------------------------------
+           MOVE "fat:AccountNumber"       TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   ACC-ACCOUNTNUMBER      TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-OPEN-TAG-AccountHolder.
+     š*---------------------------------------------------------------------
+           MOVE "fat:AccountHolder"        TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-Ind.
+     š*---------------------------------------------------------------------
+     š*- Open fat:Individual                                           -----
+           MOVE "fat:Individual"           TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*-TAG ResCountryCode
+           MOVE "cfc:ResCountryCode"       TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   "PT"                  TO  WS-VAL-TAG-A
+      **   MOVE   CLI-COUNTRYCODE       TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*-TAG TIN
+           MOVE "cfc:TIN"                  TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   CLI-TIN               TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Open Name                                                     -----
+           MOVE "cfc:Name"                 TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- TAG  First Name                                               -----
+           MOVE "cfc:FirstName"            TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   CLI-FIRSTNAME          TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- TAG  Last  Name                                               -----
+           MOVE "cfc:LastName"              TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   CLI-LASTNAME           TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Close Name                                                    -----
+           MOVE "cfc:Name"                 TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Open Address                                                  -----
+           MOVE "cfc:Address"              TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- TAG  Country Code                                             -----
+           MOVE "cfc:CountryCode"          TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   CLI-COUNTRYCODE        TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Open cfc:AddressFix                                           -----
+           MOVE "cfc:AddressFix"           TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- TAG  Street                                                   -----
+           MOVE "cfc:Street"               TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   CLI-STREET            TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- TAG  PostCode                                                 -----
+           MOVE "cfc:PostCode"             TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   CLI-POSTCODE          TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- TAG  City                                                     -----
+           MOVE "cfc:City"                 TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   CLI-CITY              TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Close AddressFix                                              -----
+           MOVE "cfc:AddressFix"           TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Close Address                                                 -----
+           MOVE "cfc:Address"              TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Open BirthInfo                                                -----
+           MOVE "cfc:BirthInfo"            TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- TAG  BirthDate                                                -----
+           IF CLI-BIRTHDATE NOT EQUAL SPACES AND
+              CLI-BIRTHDATE NOT EQUAL "0001-01-01"
+             MOVE "cfc:BirthDate"            TO  WS-NOME-TAG
+             PERFORM P300-OPEN-TAG
+             PERFORM P300-END-TAG
+             MOVE   CLI-BIRTHDATE         TO  WS-VAL-TAG-A
+             PERFORM P300-DATA-TAG
+             PERFORM P300-CLOSE-TAG
+             MOVE XML-OUTPUT TO REG-FATF001
+             PERFORM P300-FATF001-WRITE
+           END-IF.
+
+     š*- TAG  City                                                     -----
+           IF CLI-CITYNATU  NOT EQUAL SPACES
+             MOVE "cfc:City"                 TO  WS-NOME-TAG
+             PERFORM P300-OPEN-TAG
+             PERFORM P300-END-TAG
+             MOVE   CLI-CITYNATU          TO  WS-VAL-TAG-A
+             PERFORM P300-DATA-TAG
+             PERFORM P300-CLOSE-TAG
+             MOVE XML-OUTPUT TO REG-FATF001
+             PERFORM P300-FATF001-WRITE.
+
+     š*- Close BirthInfo                                               -----
+           MOVE "cfc:BirthInfo"            TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Close Individual                                              -----
+           MOVE "fat:Individual"           TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-Org.
+     š*---------------------------------------------------------------------
+     š*- Open cfc:Organisation                                         -----
+           MOVE "fat:Organisation"         TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*-TAG ResCountryCode
+           MOVE "cfc:ResCountryCode"      TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   "PT"                  TO  WS-VAL-TAG-A
+      **   MOVE   CLI-COUNTRYCODE       TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*-TAG IN
+           MOVE "cfc:TIN"                TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   CLI-TIN                TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- TAG  Name                                                     -----
+           MOVE "cfc:Name"                 TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   CLI-NAME               TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Open Address                                                  -----
+           MOVE "cfc:Address"              TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- TAG  Country Code                                             -----
+           MOVE "cfc:CountryCode"          TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   CLI-COUNTRYCODE        TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Open cfc:AddressFix                                           -----
+           MOVE "cfc:AddressFix"            TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- TAG  Street                                                   -----
+           MOVE "cfc:Street"               TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   CLI-STREET             TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- TAG  PostCode                                                 -----
+           MOVE "cfc:PostCode"             TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   CLI-POSTCODE           TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- TAG  City                                                     -----
+           MOVE "cfc:City"                 TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   CLI-CITY               TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Close AddressFix                                              -----
+           MOVE "cfc:AddressFix"           TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Close Address                                                 -----
+           MOVE "cfc:Address"              TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Close Organization                                            -----
+           MOVE "fat:Organisation"         TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*-TAG AcctHolderType
+           MOVE "fat:AcctHolderType"       TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   CLI-ACCTHTYPE          TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-AccountBalance.
+     š*---------------------------------------------------------------------
+           MOVE "fat:AccountBalance"      TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+     š*-ATT1
+           MOVE "currCode"                TO  WS-NOME-TAG
+           MOVE ACC-CURRCODE             TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+           PERFORM P300-END-TAG
+     š*-Data Tag
+           MOVE  ACC-ACCOUNTBALANCE      TO  Edit-Nbr
+           MOVE  Edit-Nbr                 TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG-N.
+           MOVE "fat:AccountBalance"      TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-Payment-501.
+     š*---------------------------------------------------------------------
+     š*- Open Payment                                                  -----
+           MOVE "fat:Payment"             TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Open Type                                                     -----
+           MOVE "fat:Type"                TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   "FATCA501"                TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG-N.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Open PaymentAmnt                                              -----
+           MOVE "fat:PaymentAmnt"         TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+     š*-ATT1
+           MOVE "currCode"                TO  WS-NOME-TAG
+           MOVE ACC-CURRCODE             TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+           PERFORM P300-END-TAG
+           MOVE   ACC-FAT501             TO  Edit-Nbr
+           MOVE  Edit-Nbr                 TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG-N
+           MOVE "fat:PaymentAmnt"         TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Close  fat:Payment                                            -----
+           MOVE  "fat:Payment"            TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-Payment-502.
+     š*---------------------------------------------------------------------
+     š*- Open Payment                                                  -----
+           MOVE "fat:Payment"             TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Open Type                                                     -----
+           MOVE "fat:Type"                TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   "FATCA502"              TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Open PaymentAmnt                                              -----
+           MOVE "fat:PaymentAmnt"         TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+     š*-ATT1
+           MOVE "currCode"                TO  WS-NOME-TAG
+           MOVE ACC-CURRCODE             TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+           PERFORM P300-END-TAG
+           MOVE   ACC-FAT502             TO  Edit-Nbr
+           MOVE  Edit-Nbr                 TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG-N.
+           MOVE "fat:PaymentAmnt"         TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Close  fat:Payment                                            -----
+           MOVE  "fat:Payment"            TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-Payment-503.
+     š*---------------------------------------------------------------------
+     š*- Open Payment                                                  -----
+           MOVE "fat:Payment"             TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Open Type                                                     -----
+           MOVE "fat:Type"                TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   "FATCA503"              TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Open PaymentAmnt                                              -----
+           MOVE "fat:PaymentAmnt"         TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+     š*-ATT1
+           MOVE "currCode"                TO  WS-NOME-TAG
+           MOVE ACC-CURRCODE              TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+           PERFORM P300-END-TAG
+           MOVE   ACC-FAT503              TO  Edit-Nbr
+           MOVE  Edit-Nbr                 TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG-N.
+           MOVE "fat:PaymentAmnt"         TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Close  fat:Payment                                            -----
+           MOVE  "fat:Payment"            TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG-Payment-504.
+     š*---------------------------------------------------------------------
+     š*- Open Payment                                                  -----
+           MOVE "fat:Payment"             TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Open Type                                                     -----
+           MOVE "fat:Type"                TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+           PERFORM P300-END-TAG.
+           MOVE   "FATCA504"              TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG.
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Open PaymentAmnt                                              -----
+           MOVE "fat:PaymentAmnt"         TO  WS-NOME-TAG
+           PERFORM P300-OPEN-TAG
+     š*-ATT1
+           MOVE "currCode"                TO  WS-NOME-TAG
+           MOVE ACC-CURRCODE              TO  WS-VAL-TAG-A
+           PERFORM P300-ATRIBUTE
+           PERFORM P300-END-TAG
+           MOVE   ACC-FAT504              TO  Edit-Nbr
+           MOVE  Edit-Nbr                 TO  WS-VAL-TAG-A
+           PERFORM P300-DATA-TAG-N.
+           MOVE "fat:PaymentAmnt"         TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG.
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+
+     š*- Close  fat:Payment                                            -----
+           MOVE  "fat:Payment"            TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG-AccountHolder.
+     š*---------------------------------------------------------------------
+           MOVE "fat:AccountHolder"        TO  WS-NOME-TAG
+           PERFORM P300-CLOSE-TAG
+           MOVE XML-OUTPUT TO REG-FATF001.
+           PERFORM P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+       P300-GET-FATJREPFI.
+     š*---------------------------------------------------------------------
+           MOVE "IYWWWK.99999.SL.620" TO WS-FI-TIN
+           MOVE "PT"                  TO WS-FI-RESCOUNTRYCODE
+           MOVE "Banif Banco de Investimento S.A."
+                                      TO WS-FI-NAME
+           MOVE "Av. José Malhoa, 22 1099-012 Lisboa"
+                                      TO WS-FI-ADDRESSFREE
+           MOVE "LISBOA"              TO WS-FI-CITY
+           MOVE "PT"                  TO WS-FI-COUNTRYCODE
+           MOVE "FATCA1"              TO WS-FI-DOCTYPEINDIC
+           MOVE "TIN + Moeda + Seq"   TO WS-FI-DOCREFID
+     š*---------------------------------------------------------------------
+       P300-GET-FATJMSG.
+     š*---------------------------------------------------------------------
+
+           EXEC SQL
+             SELECT     X.SENDCOMPIN
+                     ,  X.TRCOUNTRY
+                     ,  X.RECCOUNTRY
+                     ,  X.MSGTYPE
+                     ,  X.WARNING
+                     ,  X.CONTACT
+                     ,  X.MSGREFID
+                     ,  X.MSGTYPEIND
+                     ,  X.PERIOD
+                     ,  X.TMSMSG
+             INTO      :MSG-SENDINGCOMPANYIN
+                     , :MSG-TRANSMITTINGCOUNTRY
+                     , :MSG-RECEIVINGCOUNTRY
+                     , :MSG-MESSAGETYPE
+                     , :MSG-WARNING
+                     , :MSG-CONTACT
+                     , :MSG-MESSAGEREFID
+                     , :MSG-MESSAGETYPEINDIC
+                     , :MSG-REPORTINGPERIOD
+                     , :MSG-TIMESTAMP
+             FROM  FATJMSG X
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              MOVE MSG-REPORTINGPERIOD TO  WS-DATA-CONVER
+              MOVE CORR WS-DATA-CONVER TO  WX-DATA-CONVER
+              MOVE WR-DATA-CONVER      TO  WS-PERIOD
+           WHEN OTHER
+              MOVE "FATJMSG"         TO W-OBJECT-NAME
+              SET CMD-SELECT         TO TRUE
+              PERFORM P990-ERRO-DB2
+              PERFORM P999-FIMPGM
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P120-OPEN-CURSOR-ACNT.
+     š*---------------------------------------------------------------------
+
+           EXEC SQL
+                OPEN CURACNT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-P001         TO TRUE
+              MOVE 0                   TO WS-Num-OP
+              MOVE 1                   TO WS-Num-Hold
+           WHEN OTHER
+              SET  FIM-P001            TO TRUE
+              MOVE "CURACNT"           TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P220-FETCH-CURSOR-ACNT.
+     š*---------------------------------------------------------------------
+
+           EXEC SQL FETCH CURACNT
+                     INTO  :ACC-PERIOD
+                         , :ACC-ACCOUNTNUMBER
+                         , :ACC-DOCTYPIND
+                         , :ACC-DOCREFID
+                         , :ACC-ACCOUNTBALANCE
+                         , :ACC-FAT501
+                         , :ACC-FAT502
+                         , :ACC-FAT503
+                         , :ACC-FAT504
+                         , :ACC-CURRCODE
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             ADD 1 TO NR-READ
+             ADD 1 TO WS-Num-OP
+           WHEN SQLCODE-NOTFOUND
+              SET  FIM-P001          TO TRUE
+           WHEN OTHER
+              SET   FIM-P001         TO TRUE
+              MOVE "CURACNT"         TO W-OBJECT-NAME
+              SET   CMD-FETCH-CURSOR TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P420-CLOSE-CURSOR-ACNT.
+     š*---------------------------------------------------------------------
+           EXEC SQL
+               CLOSE CURACNT
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  FIM-P001            TO TRUE
+           WHEN OTHER
+              SET  FIM-P001            TO TRUE
+              MOVE "CURACNT"           TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P120-OPEN-CURSOR-HOLD.
+     š*---------------------------------------------------------------------
+
+           EXEC SQL
+                OPEN CURHOLD
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  INICIO-P002         TO TRUE
+              MOVE 0                   TO WS-Num-Hold
+           WHEN OTHER
+              SET  FIM-P002            TO TRUE
+              MOVE "CURHOLD"           TO W-OBJECT-NAME
+              SET CMD-OPEN-CURSOR      TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P220-FETCH-CURSOR-HOLD.
+     š*---------------------------------------------------------------------
+
+           EXEC SQL FETCH CURHOLD
+                     INTO  :CLI-PERIOD
+                         , :CLI-ACCOUNTNUMBER
+                         , :CLI-INDH
+                         , :CLI-TIN
+                         , :CLI-NAME
+                         , :CLI-FIRSTNAME
+                         , :CLI-LASTNAME
+                         , :CLI-STREET
+                         , :CLI-POSTCODE
+                         , :CLI-CITY
+                         , :CLI-COUNTRYCODE
+                         , :CLI-BIRTHDATE
+                         , :CLI-CITYNATU
+                         , :CLI-ACCTHTYPE
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+             ADD 1 TO NR-READ
+             ADD 1 TO WS-Num-Hold
+           WHEN SQLCODE-NOTFOUND
+              SET  FIM-P002          TO TRUE
+           WHEN OTHER
+              SET   FIM-P002         TO TRUE
+              MOVE "CURHOLD"         TO W-OBJECT-NAME
+              SET   CMD-FETCH-CURSOR TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P420-CLOSE-CURSOR-HOLD.
+     š*---------------------------------------------------------------------
+           EXEC SQL
+               CLOSE CURHOLD
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              SET  FIM-P002            TO TRUE
+           WHEN OTHER
+              SET  FIM-P002            TO TRUE
+              MOVE "CURHOLD"           TO W-OBJECT-NAME
+              SET CMD-CLOSE-CURSOR     TO TRUE
+              PERFORM  P990-ERRO-DB2
+           END-EVALUATE.
+     š*---------------------------------------------------------------------
+       P300-GERA-MessageRefId.
+     š*---------------------------------------------------------------------
+           MOVE "502261722"              TO WS-NIF.
+           MOVE "IYWWWK.99999.SL.620"    TO WS-GIIN.
+           MOVE WS-MessageRefId          TO MSG-MESSAGEREFID
+
+           EXEC SQL
+           UPDATE  FATJMSG
+             SET MSGREFID = :MSG-MESSAGEREFID
+               , TMSMSG  = current timestamp
+           END-EXEC.
+
+     š*---------------------------------------------------------------------
+       P300-GERA-DocRefid.
+     š*---------------------------------------------------------------------
+
+           EXEC SQL
+           SELECT
+             LOWER(substr(hex(RAND()* 4294967295) , 1, 8))
+           ||"-"
+           ||LOWER(substr(hex(RAND()* 65535), 1, 4))
+           ||"-"
+           ||LOWER(substr(hex(16384 + RAND()* 4095) , 1 , 4 ))
+           ||"-"
+           ||LOWER(substr(hex(32768 + RAND()* 16383) , 1 , 4 ))
+           ||"-"
+           ||LOWER(substr(hex(RAND()* 65535 ), 1, 4))
+           ||LOWER(substr(hex(RAND()* 4294967295 ) , 1, 8))
+
+           INTO :WS-GUID-db2
+
+           FROM SYSIBM.SYSDUMMY1  as xxx
+           END-EXEC.
+
+           MOVE SQLCODE  TO  W-SQLCODE, W-EDTSQLC.
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              MOVE WS-GUID-db2 to WS-GUID
+           WHEN OTHER
+              MOVE "DOCREFID"        TO W-OBJECT-NAME
+              SET CMD-SELECT         TO TRUE
+              PERFORM P990-ERRO-DB2
+              PERFORM P999-FIMPGM
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P300-FATF001-OPEN.
+     š*---------------------------------------------------------------------
+           OPEN OUTPUT FATF001
+           MOVE GRS-FILE-STATUS TO W-FILE-CODE W-EDTFILC
+           IF  GRS-GOOD-IO                OR
+               GRS-FILE-ALREADY-OPENED
+               CONTINUE
+           ELSE
+               SET  FIM-P001             TO TRUE
+               MOVE "FATP001X"           TO W-PROGRAMA
+               MOVE "P300-FATF001-OPEN"  TO W-PARAGRAFO
+               MOVE "FATF001"            TO W-OBJECT-NAME
+               MOVE "OPEN"               TO W-CMDEXEC
+               MOVE SPACES               TO W-CHAVE
+               PERFORM  P990-ERRO-FS
+               PERFORM P999-FIMPGM
+           END-IF.
+     š*---------------------------------------------------------------------
+       P400-FATF001-CLOSE.
+     š*---------------------------------------------------------------------
+           CLOSE FATF001
+           MOVE GRS-FILE-STATUS TO W-FILE-CODE W-EDTFILC
+           IF  GRS-GOOD-IO                OR
+               GRS-FILE-ALREADY-CLOSED
+               CONTINUE
+           ELSE
+               SET  FIM-P002              TO TRUE
+               MOVE "FATP001X"            TO W-PROGRAMA
+               MOVE "P300-FATF001-CLOSE"  TO W-PARAGRAFO
+               MOVE "FATF001"             TO W-OBJECT-NAME
+               MOVE "CLOSE"               TO W-CMDEXEC
+               MOVE SPACES                TO W-CHAVE
+               PERFORM  P990-ERRO-FS
+           END-IF.
+     š*---------------------------------------------------------------------
+       P300-FATF001-WRITE.
+     š*---------------------------------------------------------------------
+           INSPECT REG-FATF001
+           REPLACING ALL "&" BY "e" .
+           WRITE REG-FATF001
+           MOVE GRS-FILE-STATUS TO W-FILE-CODE W-EDTFILC
+           IF  GRS-GOOD-IO       OR
+               GRS-DUP-KEY
+                INITIALIZE REG-FATF001
+                INITIALIZE XML-OUTPUT
+                ADD 1 TO NR-PROC
+           ELSE
+               SET  FIM-P002               TO TRUE
+               MOVE "FATP001X"             TO W-PROGRAMA
+               MOVE "P300-FATF001-WRITE"   TO W-PARAGRAFO
+               MOVE "FATF001"              TO W-OBJECT-NAME
+               MOVE "WRITE"                TO W-CMDEXEC
+               MOVE SPACES                 TO W-CHAVE
+               PERFORM  P990-ERRO-FS
+           END-IF.
+
+           MOVE 1 TO WS-POS-XML.
+     š*---------------------------------------------------------------------
+       P300-FATF001-DUMMY-WRITE.
+     š*---------------------------------------------------------------------
+           INITIALIZE REG-FATF001
+           INITIALIZE XML-OUTPUT
+           MOVE 1 TO WS-POS-XML.
+     š*---------------------------------------------------------------------
+       P300-OPEN-TAG.
+     š*---------------------------------------------------------------------
+     š*-Trata Nome da TAG
+           MOVE WS-NOME-TAG TO WS-STRING
+           PERFORM P300-COMPRIMENTO
+           MOVE WS-STRING-L  TO WS-NOM-TAG-L
+
+           STRING "<"
+                   WS-NOME-TAG(1: WS-NOM-TAG-L)
+           DELIMITED BY SIZE INTO XML-OUTPUT
+           WITH POINTER WS-POS-XML.
+
+     š*---------------------------------------------------------------------
+       P300-ATRIBUTE.
+     š*---------------------------------------------------------------------
+     š*-$rata Valor Atributo
+           MOVE WS-VAL-TAG-A TO WS-STRING
+           IF WS-STRING  NOT = SPACES
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-VAL-TAG-L
+             MOVE WS-STRING    TO WS-VAL-TAG-A
+
+     š*-Trata Nome e Valor Atributo
+             MOVE WS-NOME-TAG TO WS-STRING
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-NOM-TAG-L
+
+             STRING  " "
+                   WS-NOME-TAG(1: WS-NOM-TAG-L)
+                   "='"
+                   WS-VAL-TAG-A(1: WS-VAL-TAG-L)
+                   "'"
+             DELIMITED BY SIZE INTO XML-OUTPUT
+             WITH POINTER WS-POS-XML.
+
+     š*---------------------------------------------------------------------
+       P300-GERA-TAG.
+     š*---------------------------------------------------------------------
+     š*-Trata Valor da TAG
+           MOVE WS-VAL-TAG-A TO WS-STRING
+           IF  WS-VAL-TAG-A NOT = SPACES
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-VAL-TAG-L
+             MOVE WS-STRING    TO WS-VAL-TAG-A
+
+     š*-Trata Nome da TAG
+             MOVE WS-NOME-TAG TO WS-STRING
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING-L  TO WS-NOM-TAG-L
+             MOVE WS-STRING    TO WS-NOME-TAG
+
+             STRING "<"
+                   WS-NOME-TAG(1: WS-NOM-TAG-L)
+                   ">"
+                   WS-VAL-TAG-A(1: WS-VAL-TAG-L)
+                   "</"
+                   WS-NOME-TAG(1: WS-NOM-TAG-L)
+                   ">"
+             DELIMITED BY SIZE INTO XML-OUTPUT
+             WITH POINTER WS-POS-XML.
+
+     š*---------------------------------------------------------------------
+       P300-DATA-TAG.
+     š*---------------------------------------------------------------------
+     š*-Trata Valor da TAG
+           MOVE WS-VAL-TAG-A TO WS-STRING
+           IF  WS-VAL-TAG-A NOT = SPACES
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             MOVE WS-STRING TO WS-VAL-TAG-A
+             MOVE WS-STRING-L  TO WS-VAL-TAG-L
+
+             STRING
+                   WS-VAL-TAG-A(1: WS-VAL-TAG-L)
+             DELIMITED BY SIZE INTO XML-OUTPUT
+             WITH POINTER WS-POS-XML
+           END-IF.
+     š*---------------------------------------------------------------------
+       P300-DATA-TAG-N.
+     š*---------------------------------------------------------------------
+     š*-Trata Valor da TAG
+           MOVE WS-VAL-TAG-A TO WS-STRING
+           IF  WS-VAL-TAG-A NOT = SPACES
+             PERFORM P300-RETIRA-CARAC-ESPECIAIS
+             PERFORM P300-COMPRIMENTO
+             PERFORM P300-PRIMEIRO-ESPACO
+             INSPECT WS-STRING REPLACING
+                      all "," by "."
+             MOVE WS-STRING TO WS-VAL-TAG-A
+             MOVE WS-STRING-L  TO WS-VAL-TAG-L
+
+             STRING
+                   WS-VAL-TAG-A( WS-POS-S: WS-VAL-TAG-L)
+             DELIMITED BY SIZE INTO XML-OUTPUT
+             WITH POINTER WS-POS-XML
+           END-IF.
+
+     š*---------------------------------------------------------------------
+       P300-CLOSE-TAG.
+     š*---------------------------------------------------------------------
+     š*-Trata Nome da TAG
+           MOVE WS-NOME-TAG TO WS-STRING
+           PERFORM P300-COMPRIMENTO
+           MOVE WS-STRING-L  TO WS-NOM-TAG-L
+
+           STRING
+                "</"
+                WS-NOME-TAG(1: WS-NOM-TAG-L)
+                ">"
+
+           DELIMITED BY SIZE INTO XML-OUTPUT
+           WITH POINTER WS-POS-XML.
+
+     š*---------------------------------------------------------------------
+       P300-END-TAG.
+     š*---------------------------------------------------------------------
+           STRING ">"
+           DELIMITED BY SIZE INTO XML-OUTPUT
+           WITH POINTER WS-POS-XML.
+     š*---------------------------------------------------------------------
+       P300-COMPRIMENTO.
+     š*---------------------------------------------------------------------
+     š*--Retira Espaços  WS-STRING
+     š*- WY -Comprimento Final
+           MOVE ZEROES TO WS-POS-I.
+           INSPECT FUNCTION REVERSE(WS-STRING)
+                   TALLYING WS-POS-I      FOR LEADING SPACE.
+           COMPUTE  WS-STRING-L = LENGTH OF WS-STRING  -  WS-POS-I.
+     š*---------------------------------------------------------------------
+       P300-PRIMEIRO-ESPACO.
+     š*---------------------------------------------------------------------
+     š*--Retira Espaços  WS-STRING(1:WS-STRING-L)
+           MOVE ZEROES TO WS-POS-S.
+           INSPECT WS-STRING(1:WS-STRING-L)
+                   TALLYING WS-POS-S      FOR LEADING SPACE.
+           COMPUTE  WS-STRING-L = WS-STRING-L -  WS-POS-S.
+           ADD 1 TO WS-POS-S.
+     š*---------------------------------------------------------------------
+       P300-RETIRA-CARAC-ESPECIAIS.
+     š*---------------------------------------------------------------------
+     š*-Retira Caracters Invalidos de WS-STRING
+
+           PERFORM P300-UTLS001-TESTA
+                   VARYING W-NUM FROM 1 BY 1
+                   UNTIL W-NUM > LENGTH OF WS-STRING.
+
+     š*---------------------------------------------------------------------
+       P300-UTLS001-TESTA.
+     š*---------------------------------------------------------------------
+           MOVE WS-STRING-CHR(W-NUM)  TO CHAR-TESTE.
+           IF   NOT CARACTER-VALIDO
+                PERFORM  P300-UTLS001-ALTERA
+           END-IF.
+
+     š*---------------------------------------------------------------------
+       P300-UTLS001-ALTERA.
+     š*---------------------------------------------------------------------
+           EVALUATE  TRUE
+
+            WHEN WS-STRING-CHR(W-NUM) = "à" OR
+                 WS-STRING-CHR(W-NUM) = "á" OR
+                 WS-STRING-CHR(W-NUM) = "â" OR
+                 WS-STRING-CHR(W-NUM) = "ã" OR
+                 WS-STRING-CHR(W-NUM) = "ä" OR
+                 WS-STRING-CHR(W-NUM) = "ª"
+              MOVE "a" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "ç"
+              MOVE "c" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "é" OR
+                 WS-STRING-CHR(W-NUM) = "è" OR
+                 WS-STRING-CHR(W-NUM) = "ê" OR
+                 WS-STRING-CHR(W-NUM) = "ë"
+              MOVE "e" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "í" OR
+                 WS-STRING-CHR(W-NUM) = "ì" OR
+                 WS-STRING-CHR(W-NUM) = "ï"
+              MOVE "i" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "ñ"
+              MOVE "n" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "ó" OR
+                 WS-STRING-CHR(W-NUM) = "ò" OR
+                 WS-STRING-CHR(W-NUM) = "õ" OR
+                 WS-STRING-CHR(W-NUM) = "ö"
+              MOVE "o" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "ú" OR
+                 WS-STRING-CHR(W-NUM) = "ù" OR
+                 WS-STRING-CHR(W-NUM) = "û" OR
+                 WS-STRING-CHR(W-NUM) = "ü"
+              MOVE "u" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Á" OR
+                 WS-STRING-CHR(W-NUM) = "À" OR
+                 WS-STRING-CHR(W-NUM) = "Ã" OR
+                 WS-STRING-CHR(W-NUM) = "Â" OR
+                 WS-STRING-CHR(W-NUM) = "Ä"
+              MOVE "A" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Ç"
+              MOVE "C" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "É" OR
+                 WS-STRING-CHR(W-NUM) = "È" OR
+                 WS-STRING-CHR(W-NUM) = "Ê" OR
+                 WS-STRING-CHR(W-NUM) = "Ë"
+              MOVE "E" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Í" OR
+                 WS-STRING-CHR(W-NUM) = "Ì" OR
+                 WS-STRING-CHR(W-NUM) = "Ï"
+              MOVE "I" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Ñ"
+              MOVE "N" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Ó" OR
+                 WS-STRING-CHR(W-NUM) = "Ò" OR
+                 WS-STRING-CHR(W-NUM) = "Õ" OR
+                 WS-STRING-CHR(W-NUM) = "Ô" OR
+                 WS-STRING-CHR(W-NUM) = "Ö"
+              MOVE "O" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "Ú" OR
+                 WS-STRING-CHR(W-NUM) = "Ù" OR
+                 WS-STRING-CHR(W-NUM) = "Û" OR
+                 WS-STRING-CHR(W-NUM) = "Ü"
+              MOVE "U" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "\"
+              MOVE "/" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "&"
+              MOVE "e" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "[" OR
+                 WS-STRING-CHR(W-NUM) = "{"
+              MOVE "(" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = "]" OR
+                 WS-STRING-CHR(W-NUM) = "}"
+              MOVE ")" TO WS-STRING-CHR(W-NUM)
+
+            WHEN WS-STRING-CHR(W-NUM) = """" OR
+                 WS-STRING-CHR(W-NUM) = "«"  OR
+                 WS-STRING-CHR(W-NUM) = "»"
+              MOVE "'" TO WS-STRING-CHR(W-NUM)
+
+            WHEN OTHER
+              MOVE " " TO WS-STRING-CHR(W-NUM)
+
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P990-ERRO-FS.
+     š*---------------------------------------------------------------------
+           EVALUATE TRUE
+           WHEN GRS-READ-DUP-KEY
+                  STRING "ERRO DE DADOS: CHAVE DUPLICADA NO FICHEIRO <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-FS
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ ERRO    <"
+                      W-EDTFILC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-FS
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           SET  COM-ERRO        TO TRUE
+           MOVE  1              TO ERRRTC   OF  KYCT900A
+           MOVE W-FILE-CODE     TO ERRCOD   OF  KYCT900A
+           MOVE MSG-ERRO-FS     TO ERRMSG   OF  KYCT900A
+           MOVE "FATP001X"      TO ERRPRG   OF  KYCT900A
+           MOVE "BCB"           TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE W-CMDEXEC       TO ERRCMD   OF  KYCT900A
+           MOVE W-PARAGRAFO     TO ERRFLD   OF  KYCT900A
+
+           PERFORM    P995-INSERT-ERROS.
+
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P990-ERRO-DB2.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  SQLCODE                 TO  W-SQLCODE
+
+           EVALUATE TRUE
+           WHEN SQLCODE-NOTFOUND
+                  STRING "ERRO DE DADOS: CHAVE INEXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                         W-OBJECT-NAME            DELIMITED BY SPACE
+                         ">"                      DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DUPLKEY
+                 STRING "ERRO DE DADOS: CHAVE JÁ EXISTENTE NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+           WHEN SQLCODE-URESOURC
+                STRING "ERRO DE SISTEMA: TABELA <"
+                                                  DELIMITED BY SIZE
+                       W-OBJECT-NAME              DELIMITED BY SPACE
+                       "> INDISPONÍVEL. CONTACTE RESPONSÁVEL"
+                                                  DELIMITED BY SIZE
+                  INTO MSG-ERRO-SQL
+           WHEN SQLCODE-DLKTMOUT
+               STRING "INFO: TABELA <"            DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      "> MOMENTANEAMENTE INDISPONÍVEL. TENTE DE NOVO"
+                                                  DELIMITED BY SIZE
+                 INTO MSG-ERRO-SQL
+           WHEN OTHER
+               STRING "ERRO: OBJECTO <"           DELIMITED BY SIZE
+                      W-OBJECT-NAME               DELIMITED BY SPACE
+                      ">, FUNCAO <"               DELIMITED BY SIZE
+                      W-CMDEXEC                   DELIMITED BY SPACE
+                      ">, C/ SQLCODE <"
+                      W-EDTSQLC
+                      ">."                        DELIMITED BY SIZE
+                      INTO MSG-ERRO-SQL
+           END-EVALUATE.
+     š*
+           INITIALIZE   KYCT900A
+           SET  COM-ERRO        TO TRUE
+           MOVE MSG-ERRO-SQL    TO ERRMSG   OF  KYCT900A
+           MOVE W-SQLCODE       TO ERRCOD   OF  KYCT900A
+           MOVE "SQL"           TO ERRAPL   OF  KYCT900A
+           MOVE W-OBJECT-NAME   TO ERROBJ   OF  KYCT900A
+           MOVE  2              TO ERRRTC   OF  KYCT900A
+
+           PERFORM    P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+       P995-INSERT-ERROS.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
+           MOVE  "FATP001X"      TO  ERRPRG OF KYCT900A.
+
+           EXEC SQL  INSERT
+                INTO KYCT900A
+                VALUES  (
+                           :KYCT900A.RACINE
+                         , :KYCT900A.REFOPE
+                         , CURRENT TIMESTAMP
+                         , :KYCT900A.ERRRTC
+                         , :KYCT900A.ERRCOD
+                         , :KYCT900A.ERRMSG
+                         , :KYCT900A.ERRPRG
+                         , :KYCT900A.ERRAPL
+                         , :KYCT900A.ERROBJ
+                         , :KYCT900A.ERRFLD
+                         , :KYCT900A.ERRCMD
+                         , :KYCT900A.ERRKEY1
+                         , :KYCT900A.ERRVAL1
+                         , :KYCT900A.ERRKEY2
+                         , :KYCT900A.ERRVAL2 )
+           END-EXEC.
+
+     š*-
+           MOVE SQLCODE          TO  W-SQLCODE, W-EDTSQLC.
+
+           EVALUATE TRUE
+           WHEN SQLCODE-OK
+              ADD      1            TO  NR-ERR
+           WHEN OTHER
+              MOVE "KYCT900A"       TO W-OBJECT-NAME
+              SET  CMD-INSERT       TO TRUE
+              STRING "ERRO DE DADOS AO INSERIR ERRO  NA TABELA <"
+                                                  DELIMITED BY SIZE
+                        W-OBJECT-NAME             DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                        W-SQLCODE                 DELIMITED BY SPACE
+                        ">"                       DELIMITED BY SIZE
+                   INTO MSG-ERRO-SQL
+              DISPLAY MSG-ERRO-SQL
+           END-EVALUATE.
+
+     š*---------------------------------------------------------------------
+       P999-FIMPGM.
+     š*---------------------------------------------------------------------
+           EXIT PROGRAM.
+           STOP RUN.
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+      *    FIM DO PROGRAMA FATP001X
+      *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - *
+
